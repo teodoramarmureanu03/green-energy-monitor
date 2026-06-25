@@ -1,0 +1,1653 @@
+{
+  "AT": {
+    "isoCode": "AT",
+    "country": "Austria",
+    "timestamp": "2026-06-24T23:00:00.000Z",
+    "zonesAggregated": [
+      "AT"
+    ],
+    "total": 4183.3,
+    "renewableMw": 1628,
+    "renewablePct": 38.9,
+    "bySource": [
+      {
+        "source": "Nuclear",
+        "renewable": false,
+        "valueMw": 1492.2
+      },
+      {
+        "source": "Fossil brown coal",
+        "renewable": false,
+        "valueMw": 198.5
+      },
+      {
+        "source": "Fossil hard coal",
+        "renewable": false,
+        "valueMw": 301.3
+      },
+      {
+        "source": "Fossil gas",
+        "renewable": false,
+        "valueMw": 563.3
+      },
+      {
+        "source": "Hydro Run-of-River",
+        "renewable": true,
+        "valueMw": 233.4
+      },
+      {
+        "source": "Hydro water reservoir",
+        "renewable": true,
+        "valueMw": 164.6
+      },
+      {
+        "source": "Wind onshore",
+        "renewable": true,
+        "valueMw": 899.5
+      },
+      {
+        "source": "Wind offshore",
+        "renewable": true,
+        "valueMw": 177.3
+      },
+      {
+        "source": "Solar",
+        "renewable": true,
+        "valueMw": 1.5
+      },
+      {
+        "source": "Biomass",
+        "renewable": true,
+        "valueMw": 151.7
+      }
+    ]
+  },
+  "BE": {
+    "isoCode": "BE",
+    "country": "Belgium",
+    "timestamp": "2026-06-24T23:00:00.000Z",
+    "zonesAggregated": [
+      "BE"
+    ],
+    "total": 4956.8,
+    "renewableMw": 2145.9,
+    "renewablePct": 43.3,
+    "bySource": [
+      {
+        "source": "Nuclear",
+        "renewable": false,
+        "valueMw": 1631.6
+      },
+      {
+        "source": "Fossil brown coal",
+        "renewable": false,
+        "valueMw": 203.6
+      },
+      {
+        "source": "Fossil hard coal",
+        "renewable": false,
+        "valueMw": 322.3
+      },
+      {
+        "source": "Fossil gas",
+        "renewable": false,
+        "valueMw": 653.4
+      },
+      {
+        "source": "Hydro Run-of-River",
+        "renewable": true,
+        "valueMw": 307.4
+      },
+      {
+        "source": "Hydro water reservoir",
+        "renewable": true,
+        "valueMw": 167.6
+      },
+      {
+        "source": "Wind onshore",
+        "renewable": true,
+        "valueMw": 1127.6
+      },
+      {
+        "source": "Wind offshore",
+        "renewable": true,
+        "valueMw": 339.5
+      },
+      {
+        "source": "Solar",
+        "renewable": true,
+        "valueMw": 1.8
+      },
+      {
+        "source": "Biomass",
+        "renewable": true,
+        "valueMw": 202
+      }
+    ]
+  },
+  "BG": {
+    "isoCode": "BG",
+    "country": "Bulgaria",
+    "timestamp": "2026-06-24T23:00:00.000Z",
+    "zonesAggregated": [
+      "BG"
+    ],
+    "total": 2121.3,
+    "renewableMw": 797.3,
+    "renewablePct": 37.6,
+    "bySource": [
+      {
+        "source": "Nuclear",
+        "renewable": false,
+        "valueMw": 751
+      },
+      {
+        "source": "Fossil brown coal",
+        "renewable": false,
+        "valueMw": 131.7
+      },
+      {
+        "source": "Fossil hard coal",
+        "renewable": false,
+        "valueMw": 165
+      },
+      {
+        "source": "Fossil gas",
+        "renewable": false,
+        "valueMw": 276.3
+      },
+      {
+        "source": "Hydro Run-of-River",
+        "renewable": true,
+        "valueMw": 134.9
+      },
+      {
+        "source": "Hydro water reservoir",
+        "renewable": true,
+        "valueMw": 106
+      },
+      {
+        "source": "Wind onshore",
+        "renewable": true,
+        "valueMw": 314.3
+      },
+      {
+        "source": "Wind offshore",
+        "renewable": true,
+        "valueMw": 129.1
+      },
+      {
+        "source": "Solar",
+        "renewable": true,
+        "valueMw": 0.8
+      },
+      {
+        "source": "Biomass",
+        "renewable": true,
+        "valueMw": 112.2
+      }
+    ]
+  },
+  "CH": {
+    "isoCode": "CH",
+    "country": "Switzerland",
+    "timestamp": "2026-06-24T23:00:00.000Z",
+    "zonesAggregated": [
+      "CH"
+    ],
+    "total": 3446.8,
+    "renewableMw": 1247.4,
+    "renewablePct": 36.2,
+    "bySource": [
+      {
+        "source": "Nuclear",
+        "renewable": false,
+        "valueMw": 1244.1
+      },
+      {
+        "source": "Fossil brown coal",
+        "renewable": false,
+        "valueMw": 201.1
+      },
+      {
+        "source": "Fossil hard coal",
+        "renewable": false,
+        "valueMw": 239.4
+      },
+      {
+        "source": "Fossil gas",
+        "renewable": false,
+        "valueMw": 514.8
+      },
+      {
+        "source": "Hydro Run-of-River",
+        "renewable": true,
+        "valueMw": 213.6
+      },
+      {
+        "source": "Hydro water reservoir",
+        "renewable": true,
+        "valueMw": 137.7
+      },
+      {
+        "source": "Wind onshore",
+        "renewable": true,
+        "valueMw": 581.1
+      },
+      {
+        "source": "Wind offshore",
+        "renewable": true,
+        "valueMw": 161
+      },
+      {
+        "source": "Solar",
+        "renewable": true,
+        "valueMw": 1.4
+      },
+      {
+        "source": "Biomass",
+        "renewable": true,
+        "valueMw": 152.6
+      }
+    ]
+  },
+  "CZ": {
+    "isoCode": "CZ",
+    "country": "Czechia",
+    "timestamp": "2026-06-24T23:00:00.000Z",
+    "zonesAggregated": [
+      "CZ"
+    ],
+    "total": 4057.2,
+    "renewableMw": 1670.4,
+    "renewablePct": 41.2,
+    "bySource": [
+      {
+        "source": "Nuclear",
+        "renewable": false,
+        "valueMw": 1425.9
+      },
+      {
+        "source": "Fossil brown coal",
+        "renewable": false,
+        "valueMw": 184.4
+      },
+      {
+        "source": "Fossil hard coal",
+        "renewable": false,
+        "valueMw": 254.4
+      },
+      {
+        "source": "Fossil gas",
+        "renewable": false,
+        "valueMw": 522.1
+      },
+      {
+        "source": "Hydro Run-of-River",
+        "renewable": true,
+        "valueMw": 259
+      },
+      {
+        "source": "Hydro water reservoir",
+        "renewable": true,
+        "valueMw": 182.3
+      },
+      {
+        "source": "Wind onshore",
+        "renewable": true,
+        "valueMw": 808.9
+      },
+      {
+        "source": "Wind offshore",
+        "renewable": true,
+        "valueMw": 254.7
+      },
+      {
+        "source": "Solar",
+        "renewable": true,
+        "valueMw": 1.5
+      },
+      {
+        "source": "Biomass",
+        "renewable": true,
+        "valueMw": 164
+      }
+    ]
+  },
+  "DE": {
+    "isoCode": "DE",
+    "country": "Germany",
+    "timestamp": "2026-06-24T23:00:00.000Z",
+    "zonesAggregated": [
+      "DE-LU"
+    ],
+    "total": 29566.7,
+    "renewableMw": 11544.9,
+    "renewablePct": 39,
+    "bySource": [
+      {
+        "source": "Nuclear",
+        "renewable": false,
+        "valueMw": 10440.9
+      },
+      {
+        "source": "Fossil brown coal",
+        "renewable": false,
+        "valueMw": 1491.4
+      },
+      {
+        "source": "Fossil hard coal",
+        "renewable": false,
+        "valueMw": 2279.7
+      },
+      {
+        "source": "Fossil gas",
+        "renewable": false,
+        "valueMw": 3809.8
+      },
+      {
+        "source": "Hydro Run-of-River",
+        "renewable": true,
+        "valueMw": 1958
+      },
+      {
+        "source": "Hydro water reservoir",
+        "renewable": true,
+        "valueMw": 1471.2
+      },
+      {
+        "source": "Wind onshore",
+        "renewable": true,
+        "valueMw": 4336.7
+      },
+      {
+        "source": "Wind offshore",
+        "renewable": true,
+        "valueMw": 2381.7
+      },
+      {
+        "source": "Solar",
+        "renewable": true,
+        "valueMw": 10.9
+      },
+      {
+        "source": "Biomass",
+        "renewable": true,
+        "valueMw": 1386.4
+      }
+    ]
+  },
+  "DK": {
+    "isoCode": "DK",
+    "country": "Denmark",
+    "timestamp": "2026-06-24T23:00:00.000Z",
+    "zonesAggregated": [
+      "DK1",
+      "DK2"
+    ],
+    "total": 2131.7,
+    "renewableMw": 890.1,
+    "renewablePct": 41.8,
+    "bySource": [
+      {
+        "source": "Nuclear",
+        "renewable": false,
+        "valueMw": 738.6
+      },
+      {
+        "source": "Fossil brown coal",
+        "renewable": false,
+        "valueMw": 103.3
+      },
+      {
+        "source": "Fossil hard coal",
+        "renewable": false,
+        "valueMw": 128.4
+      },
+      {
+        "source": "Fossil gas",
+        "renewable": false,
+        "valueMw": 271.3
+      },
+      {
+        "source": "Hydro Run-of-River",
+        "renewable": true,
+        "valueMw": 115
+      },
+      {
+        "source": "Hydro water reservoir",
+        "renewable": true,
+        "valueMw": 74
+      },
+      {
+        "source": "Wind onshore",
+        "renewable": true,
+        "valueMw": 461.3
+      },
+      {
+        "source": "Wind offshore",
+        "renewable": true,
+        "valueMw": 135.6
+      },
+      {
+        "source": "Solar",
+        "renewable": true,
+        "valueMw": 0.8
+      },
+      {
+        "source": "Biomass",
+        "renewable": true,
+        "valueMw": 103.4
+      }
+    ]
+  },
+  "EE": {
+    "isoCode": "EE",
+    "country": "Estonia",
+    "timestamp": "2026-06-24T23:00:00.000Z",
+    "zonesAggregated": [
+      "EE"
+    ],
+    "total": 636.4,
+    "renewableMw": 243.5,
+    "renewablePct": 38.3,
+    "bySource": [
+      {
+        "source": "Nuclear",
+        "renewable": false,
+        "valueMw": 227.3
+      },
+      {
+        "source": "Fossil brown coal",
+        "renewable": false,
+        "valueMw": 35.9
+      },
+      {
+        "source": "Fossil hard coal",
+        "renewable": false,
+        "valueMw": 42.5
+      },
+      {
+        "source": "Fossil gas",
+        "renewable": false,
+        "valueMw": 87.2
+      },
+      {
+        "source": "Hydro Run-of-River",
+        "renewable": true,
+        "valueMw": 35.8
+      },
+      {
+        "source": "Hydro water reservoir",
+        "renewable": true,
+        "valueMw": 27.7
+      },
+      {
+        "source": "Wind onshore",
+        "renewable": true,
+        "valueMw": 111.8
+      },
+      {
+        "source": "Wind offshore",
+        "renewable": true,
+        "valueMw": 42.1
+      },
+      {
+        "source": "Solar",
+        "renewable": true,
+        "valueMw": 0.2
+      },
+      {
+        "source": "Biomass",
+        "renewable": true,
+        "valueMw": 25.9
+      }
+    ]
+  },
+  "ES": {
+    "isoCode": "ES",
+    "country": "Spain",
+    "timestamp": "2026-06-24T23:00:00.000Z",
+    "zonesAggregated": [
+      "ES"
+    ],
+    "total": 15474,
+    "renewableMw": 7023,
+    "renewablePct": 45.4,
+    "bySource": [
+      {
+        "source": "Nuclear",
+        "renewable": false,
+        "valueMw": 5231.8
+      },
+      {
+        "source": "Fossil brown coal",
+        "renewable": false,
+        "valueMw": 673.6
+      },
+      {
+        "source": "Fossil hard coal",
+        "renewable": false,
+        "valueMw": 872.2
+      },
+      {
+        "source": "Fossil gas",
+        "renewable": false,
+        "valueMw": 1673.4
+      },
+      {
+        "source": "Hydro Run-of-River",
+        "renewable": true,
+        "valueMw": 726.6
+      },
+      {
+        "source": "Hydro water reservoir",
+        "renewable": true,
+        "valueMw": 617.9
+      },
+      {
+        "source": "Wind onshore",
+        "renewable": true,
+        "valueMw": 3690.2
+      },
+      {
+        "source": "Wind offshore",
+        "renewable": true,
+        "valueMw": 1367.1
+      },
+      {
+        "source": "Solar",
+        "renewable": true,
+        "valueMw": 5.1
+      },
+      {
+        "source": "Biomass",
+        "renewable": true,
+        "valueMw": 616.1
+      }
+    ]
+  },
+  "FI": {
+    "isoCode": "FI",
+    "country": "Finland",
+    "timestamp": "2026-06-24T23:00:00.000Z",
+    "zonesAggregated": [
+      "FI"
+    ],
+    "total": 5223.7,
+    "renewableMw": 2108.1,
+    "renewablePct": 40.4,
+    "bySource": [
+      {
+        "source": "Nuclear",
+        "renewable": false,
+        "valueMw": 1751.6
+      },
+      {
+        "source": "Fossil brown coal",
+        "renewable": false,
+        "valueMw": 242.9
+      },
+      {
+        "source": "Fossil hard coal",
+        "renewable": false,
+        "valueMw": 380.3
+      },
+      {
+        "source": "Fossil gas",
+        "renewable": false,
+        "valueMw": 740.8
+      },
+      {
+        "source": "Hydro Run-of-River",
+        "renewable": true,
+        "valueMw": 277.9
+      },
+      {
+        "source": "Hydro water reservoir",
+        "renewable": true,
+        "valueMw": 243.2
+      },
+      {
+        "source": "Wind onshore",
+        "renewable": true,
+        "valueMw": 1072.3
+      },
+      {
+        "source": "Wind offshore",
+        "renewable": true,
+        "valueMw": 310.1
+      },
+      {
+        "source": "Solar",
+        "renewable": true,
+        "valueMw": 2
+      },
+      {
+        "source": "Biomass",
+        "renewable": true,
+        "valueMw": 202.6
+      }
+    ]
+  },
+  "FR": {
+    "isoCode": "FR",
+    "country": "France",
+    "timestamp": "2026-06-24T23:00:00.000Z",
+    "zonesAggregated": [
+      "FR"
+    ],
+    "total": 29874,
+    "renewableMw": 13542.4,
+    "renewablePct": 45.3,
+    "bySource": [
+      {
+        "source": "Nuclear",
+        "renewable": false,
+        "valueMw": 9972.7
+      },
+      {
+        "source": "Fossil brown coal",
+        "renewable": false,
+        "valueMw": 1389.6
+      },
+      {
+        "source": "Fossil hard coal",
+        "renewable": false,
+        "valueMw": 1739
+      },
+      {
+        "source": "Fossil gas",
+        "renewable": false,
+        "valueMw": 3230.3
+      },
+      {
+        "source": "Hydro Run-of-River",
+        "renewable": true,
+        "valueMw": 1528
+      },
+      {
+        "source": "Hydro water reservoir",
+        "renewable": true,
+        "valueMw": 1164.9
+      },
+      {
+        "source": "Wind onshore",
+        "renewable": true,
+        "valueMw": 7524.7
+      },
+      {
+        "source": "Wind offshore",
+        "renewable": true,
+        "valueMw": 2149.1
+      },
+      {
+        "source": "Solar",
+        "renewable": true,
+        "valueMw": 11.4
+      },
+      {
+        "source": "Biomass",
+        "renewable": true,
+        "valueMw": 1164.3
+      }
+    ]
+  },
+  "GR": {
+    "isoCode": "GR",
+    "country": "Greece",
+    "timestamp": "2026-06-24T23:00:00.000Z",
+    "zonesAggregated": [
+      "GR"
+    ],
+    "total": 3076.9,
+    "renewableMw": 1207.5,
+    "renewablePct": 39.2,
+    "bySource": [
+      {
+        "source": "Nuclear",
+        "renewable": false,
+        "valueMw": 1058.9
+      },
+      {
+        "source": "Fossil brown coal",
+        "renewable": false,
+        "valueMw": 172
+      },
+      {
+        "source": "Fossil hard coal",
+        "renewable": false,
+        "valueMw": 220.4
+      },
+      {
+        "source": "Fossil gas",
+        "renewable": false,
+        "valueMw": 418.1
+      },
+      {
+        "source": "Hydro Run-of-River",
+        "renewable": true,
+        "valueMw": 196
+      },
+      {
+        "source": "Hydro water reservoir",
+        "renewable": true,
+        "valueMw": 113.5
+      },
+      {
+        "source": "Wind onshore",
+        "renewable": true,
+        "valueMw": 614.4
+      },
+      {
+        "source": "Wind offshore",
+        "renewable": true,
+        "valueMw": 158.1
+      },
+      {
+        "source": "Solar",
+        "renewable": true,
+        "valueMw": 1.1
+      },
+      {
+        "source": "Biomass",
+        "renewable": true,
+        "valueMw": 124.4
+      }
+    ]
+  },
+  "HR": {
+    "isoCode": "HR",
+    "country": "Croatia",
+    "timestamp": "2026-06-24T23:00:00.000Z",
+    "zonesAggregated": [
+      "HR"
+    ],
+    "total": 1199.6,
+    "renewableMw": 476.7,
+    "renewablePct": 39.7,
+    "bySource": [
+      {
+        "source": "Nuclear",
+        "renewable": false,
+        "valueMw": 411.4
+      },
+      {
+        "source": "Fossil brown coal",
+        "renewable": false,
+        "valueMw": 67.4
+      },
+      {
+        "source": "Fossil hard coal",
+        "renewable": false,
+        "valueMw": 90.3
+      },
+      {
+        "source": "Fossil gas",
+        "renewable": false,
+        "valueMw": 153.8
+      },
+      {
+        "source": "Hydro Run-of-River",
+        "renewable": true,
+        "valueMw": 76.9
+      },
+      {
+        "source": "Hydro water reservoir",
+        "renewable": true,
+        "valueMw": 52.6
+      },
+      {
+        "source": "Wind onshore",
+        "renewable": true,
+        "valueMw": 181.4
+      },
+      {
+        "source": "Wind offshore",
+        "renewable": true,
+        "valueMw": 107.6
+      },
+      {
+        "source": "Solar",
+        "renewable": true,
+        "valueMw": 0.4
+      },
+      {
+        "source": "Biomass",
+        "renewable": true,
+        "valueMw": 57.8
+      }
+    ]
+  },
+  "HU": {
+    "isoCode": "HU",
+    "country": "Hungary",
+    "timestamp": "2026-06-24T23:00:00.000Z",
+    "zonesAggregated": [
+      "HU"
+    ],
+    "total": 2541.4,
+    "renewableMw": 1024.8,
+    "renewablePct": 40.3,
+    "bySource": [
+      {
+        "source": "Nuclear",
+        "renewable": false,
+        "valueMw": 860
+      },
+      {
+        "source": "Fossil brown coal",
+        "renewable": false,
+        "valueMw": 134
+      },
+      {
+        "source": "Fossil hard coal",
+        "renewable": false,
+        "valueMw": 183.1
+      },
+      {
+        "source": "Fossil gas",
+        "renewable": false,
+        "valueMw": 339.5
+      },
+      {
+        "source": "Hydro Run-of-River",
+        "renewable": true,
+        "valueMw": 157.1
+      },
+      {
+        "source": "Hydro water reservoir",
+        "renewable": true,
+        "valueMw": 113
+      },
+      {
+        "source": "Wind onshore",
+        "renewable": true,
+        "valueMw": 504.3
+      },
+      {
+        "source": "Wind offshore",
+        "renewable": true,
+        "valueMw": 129.2
+      },
+      {
+        "source": "Solar",
+        "renewable": true,
+        "valueMw": 1
+      },
+      {
+        "source": "Biomass",
+        "renewable": true,
+        "valueMw": 120.2
+      }
+    ]
+  },
+  "IE": {
+    "isoCode": "IE",
+    "country": "Ireland",
+    "timestamp": "2026-06-24T23:00:00.000Z",
+    "zonesAggregated": [
+      "IE"
+    ],
+    "total": 2362.5,
+    "renewableMw": 1032.6,
+    "renewablePct": 43.7,
+    "bySource": [
+      {
+        "source": "Nuclear",
+        "renewable": false,
+        "valueMw": 740.5
+      },
+      {
+        "source": "Fossil brown coal",
+        "renewable": false,
+        "valueMw": 102.3
+      },
+      {
+        "source": "Fossil hard coal",
+        "renewable": false,
+        "valueMw": 169.4
+      },
+      {
+        "source": "Fossil gas",
+        "renewable": false,
+        "valueMw": 317.7
+      },
+      {
+        "source": "Hydro Run-of-River",
+        "renewable": true,
+        "valueMw": 136.6
+      },
+      {
+        "source": "Hydro water reservoir",
+        "renewable": true,
+        "valueMw": 88
+      },
+      {
+        "source": "Wind onshore",
+        "renewable": true,
+        "valueMw": 497.2
+      },
+      {
+        "source": "Wind offshore",
+        "renewable": true,
+        "valueMw": 203.2
+      },
+      {
+        "source": "Solar",
+        "renewable": true,
+        "valueMw": 0.8
+      },
+      {
+        "source": "Biomass",
+        "renewable": true,
+        "valueMw": 106.8
+      }
+    ]
+  },
+  "IT": {
+    "isoCode": "IT",
+    "country": "Italy",
+    "timestamp": "2026-06-24T23:00:00.000Z",
+    "zonesAggregated": [
+      "IT-North",
+      "IT-Centre-North",
+      "IT-Centre-South",
+      "IT-South",
+      "IT-Sicily",
+      "IT-Sardinia"
+    ],
+    "total": 15121.7,
+    "renewableMw": 5547,
+    "renewablePct": 36.7,
+    "bySource": [
+      {
+        "source": "Nuclear",
+        "renewable": false,
+        "valueMw": 5807.3
+      },
+      {
+        "source": "Fossil brown coal",
+        "renewable": false,
+        "valueMw": 792.6
+      },
+      {
+        "source": "Fossil hard coal",
+        "renewable": false,
+        "valueMw": 1040.6
+      },
+      {
+        "source": "Fossil gas",
+        "renewable": false,
+        "valueMw": 1934.2
+      },
+      {
+        "source": "Hydro Run-of-River",
+        "renewable": true,
+        "valueMw": 1059
+      },
+      {
+        "source": "Hydro water reservoir",
+        "renewable": true,
+        "valueMw": 711.5
+      },
+      {
+        "source": "Wind onshore",
+        "renewable": true,
+        "valueMw": 1829.3
+      },
+      {
+        "source": "Wind offshore",
+        "renewable": true,
+        "valueMw": 1282.8
+      },
+      {
+        "source": "Solar",
+        "renewable": true,
+        "valueMw": 6.1
+      },
+      {
+        "source": "Biomass",
+        "renewable": true,
+        "valueMw": 658.3
+      }
+    ]
+  },
+  "LT": {
+    "isoCode": "LT",
+    "country": "Lithuania",
+    "timestamp": "2026-06-24T23:00:00.000Z",
+    "zonesAggregated": [
+      "LT"
+    ],
+    "total": 878.5,
+    "renewableMw": 380,
+    "renewablePct": 43.3,
+    "bySource": [
+      {
+        "source": "Nuclear",
+        "renewable": false,
+        "valueMw": 286.6
+      },
+      {
+        "source": "Fossil brown coal",
+        "renewable": false,
+        "valueMw": 40.9
+      },
+      {
+        "source": "Fossil hard coal",
+        "renewable": false,
+        "valueMw": 63.2
+      },
+      {
+        "source": "Fossil gas",
+        "renewable": false,
+        "valueMw": 107.8
+      },
+      {
+        "source": "Hydro Run-of-River",
+        "renewable": true,
+        "valueMw": 56.7
+      },
+      {
+        "source": "Hydro water reservoir",
+        "renewable": true,
+        "valueMw": 40.5
+      },
+      {
+        "source": "Wind onshore",
+        "renewable": true,
+        "valueMw": 183.9
+      },
+      {
+        "source": "Wind offshore",
+        "renewable": true,
+        "valueMw": 53.7
+      },
+      {
+        "source": "Solar",
+        "renewable": true,
+        "valueMw": 0.3
+      },
+      {
+        "source": "Biomass",
+        "renewable": true,
+        "valueMw": 44.9
+      }
+    ]
+  },
+  "LV": {
+    "isoCode": "LV",
+    "country": "Latvia",
+    "timestamp": "2026-06-24T23:00:00.000Z",
+    "zonesAggregated": [
+      "LV"
+    ],
+    "total": 663.9,
+    "renewableMw": 292.6,
+    "renewablePct": 44.1,
+    "bySource": [
+      {
+        "source": "Nuclear",
+        "renewable": false,
+        "valueMw": 226.2
+      },
+      {
+        "source": "Fossil brown coal",
+        "renewable": false,
+        "valueMw": 32.3
+      },
+      {
+        "source": "Fossil hard coal",
+        "renewable": false,
+        "valueMw": 36.7
+      },
+      {
+        "source": "Fossil gas",
+        "renewable": false,
+        "valueMw": 76.1
+      },
+      {
+        "source": "Hydro Run-of-River",
+        "renewable": true,
+        "valueMw": 32.3
+      },
+      {
+        "source": "Hydro water reservoir",
+        "renewable": true,
+        "valueMw": 28.9
+      },
+      {
+        "source": "Wind onshore",
+        "renewable": true,
+        "valueMw": 151.2
+      },
+      {
+        "source": "Wind offshore",
+        "renewable": true,
+        "valueMw": 51.7
+      },
+      {
+        "source": "Solar",
+        "renewable": true,
+        "valueMw": 0.2
+      },
+      {
+        "source": "Biomass",
+        "renewable": true,
+        "valueMw": 28.3
+      }
+    ]
+  },
+  "NL": {
+    "isoCode": "NL",
+    "country": "Netherlands",
+    "timestamp": "2026-06-24T23:00:00.000Z",
+    "zonesAggregated": [
+      "NL"
+    ],
+    "total": 7222.6,
+    "renewableMw": 3216.6,
+    "renewablePct": 44.5,
+    "bySource": [
+      {
+        "source": "Nuclear",
+        "renewable": false,
+        "valueMw": 2283.6
+      },
+      {
+        "source": "Fossil brown coal",
+        "renewable": false,
+        "valueMw": 405
+      },
+      {
+        "source": "Fossil hard coal",
+        "renewable": false,
+        "valueMw": 539.6
+      },
+      {
+        "source": "Fossil gas",
+        "renewable": false,
+        "valueMw": 777.8
+      },
+      {
+        "source": "Hydro Run-of-River",
+        "renewable": true,
+        "valueMw": 454.2
+      },
+      {
+        "source": "Hydro water reservoir",
+        "renewable": true,
+        "valueMw": 324.7
+      },
+      {
+        "source": "Wind onshore",
+        "renewable": true,
+        "valueMw": 1583.9
+      },
+      {
+        "source": "Wind offshore",
+        "renewable": true,
+        "valueMw": 500.9
+      },
+      {
+        "source": "Solar",
+        "renewable": true,
+        "valueMw": 2.9
+      },
+      {
+        "source": "Biomass",
+        "renewable": true,
+        "valueMw": 350
+      }
+    ]
+  },
+  "NO": {
+    "isoCode": "NO",
+    "country": "Norway",
+    "timestamp": "2026-06-24T23:00:00.000Z",
+    "zonesAggregated": [
+      "NO1",
+      "NO2",
+      "NO3",
+      "NO4",
+      "NO5"
+    ],
+    "total": 9714.5,
+    "renewableMw": 4563.2,
+    "renewablePct": 47,
+    "bySource": [
+      {
+        "source": "Nuclear",
+        "renewable": false,
+        "valueMw": 2956.5
+      },
+      {
+        "source": "Fossil brown coal",
+        "renewable": false,
+        "valueMw": 411.5
+      },
+      {
+        "source": "Fossil hard coal",
+        "renewable": false,
+        "valueMw": 615.4
+      },
+      {
+        "source": "Fossil gas",
+        "renewable": false,
+        "valueMw": 1167.9
+      },
+      {
+        "source": "Hydro Run-of-River",
+        "renewable": true,
+        "valueMw": 529.9
+      },
+      {
+        "source": "Hydro water reservoir",
+        "renewable": true,
+        "valueMw": 410.1
+      },
+      {
+        "source": "Wind onshore",
+        "renewable": true,
+        "valueMw": 2427.7
+      },
+      {
+        "source": "Wind offshore",
+        "renewable": true,
+        "valueMw": 733.2
+      },
+      {
+        "source": "Solar",
+        "renewable": true,
+        "valueMw": 3.7
+      },
+      {
+        "source": "Biomass",
+        "renewable": true,
+        "valueMw": 458.6
+      }
+    ]
+  },
+  "PL": {
+    "isoCode": "PL",
+    "country": "Poland",
+    "timestamp": "2026-06-24T23:00:00.000Z",
+    "zonesAggregated": [
+      "PL"
+    ],
+    "total": 10714.6,
+    "renewableMw": 3744.8,
+    "renewablePct": 35,
+    "bySource": [
+      {
+        "source": "Nuclear",
+        "renewable": false,
+        "valueMw": 4091.5
+      },
+      {
+        "source": "Fossil brown coal",
+        "renewable": false,
+        "valueMw": 634.6
+      },
+      {
+        "source": "Fossil hard coal",
+        "renewable": false,
+        "valueMw": 803.5
+      },
+      {
+        "source": "Fossil gas",
+        "renewable": false,
+        "valueMw": 1440.2
+      },
+      {
+        "source": "Hydro Run-of-River",
+        "renewable": true,
+        "valueMw": 615.3
+      },
+      {
+        "source": "Hydro water reservoir",
+        "renewable": true,
+        "valueMw": 436.3
+      },
+      {
+        "source": "Wind onshore",
+        "renewable": true,
+        "valueMw": 1560.1
+      },
+      {
+        "source": "Wind offshore",
+        "renewable": true,
+        "valueMw": 638.4
+      },
+      {
+        "source": "Solar",
+        "renewable": true,
+        "valueMw": 4.1
+      },
+      {
+        "source": "Biomass",
+        "renewable": true,
+        "valueMw": 490.6
+      }
+    ]
+  },
+  "PT": {
+    "isoCode": "PT",
+    "country": "Portugal",
+    "timestamp": "2026-06-24T23:00:00.000Z",
+    "zonesAggregated": [
+      "PT"
+    ],
+    "total": 3291.3,
+    "renewableMw": 1325.5,
+    "renewablePct": 40.3,
+    "bySource": [
+      {
+        "source": "Nuclear",
+        "renewable": false,
+        "valueMw": 1166.3
+      },
+      {
+        "source": "Fossil brown coal",
+        "renewable": false,
+        "valueMw": 144.3
+      },
+      {
+        "source": "Fossil hard coal",
+        "renewable": false,
+        "valueMw": 238.8
+      },
+      {
+        "source": "Fossil gas",
+        "renewable": false,
+        "valueMw": 416.4
+      },
+      {
+        "source": "Hydro Run-of-River",
+        "renewable": true,
+        "valueMw": 212.2
+      },
+      {
+        "source": "Hydro water reservoir",
+        "renewable": true,
+        "valueMw": 150.6
+      },
+      {
+        "source": "Wind onshore",
+        "renewable": true,
+        "valueMw": 472.6
+      },
+      {
+        "source": "Wind offshore",
+        "renewable": true,
+        "valueMw": 331.2
+      },
+      {
+        "source": "Solar",
+        "renewable": true,
+        "valueMw": 1.2
+      },
+      {
+        "source": "Biomass",
+        "renewable": true,
+        "valueMw": 157.7
+      }
+    ]
+  },
+  "RO": {
+    "isoCode": "RO",
+    "country": "Romania",
+    "timestamp": "2026-06-24T23:00:00.000Z",
+    "zonesAggregated": [
+      "RO"
+    ],
+    "total": 3362,
+    "renewableMw": 1206.7,
+    "renewablePct": 35.9,
+    "bySource": [
+      {
+        "source": "Nuclear",
+        "renewable": false,
+        "valueMw": 1307.4
+      },
+      {
+        "source": "Fossil brown coal",
+        "renewable": false,
+        "valueMw": 171.6
+      },
+      {
+        "source": "Fossil hard coal",
+        "renewable": false,
+        "valueMw": 237.6
+      },
+      {
+        "source": "Fossil gas",
+        "renewable": false,
+        "valueMw": 438.7
+      },
+      {
+        "source": "Hydro Run-of-River",
+        "renewable": true,
+        "valueMw": 201.2
+      },
+      {
+        "source": "Hydro water reservoir",
+        "renewable": true,
+        "valueMw": 155.7
+      },
+      {
+        "source": "Wind onshore",
+        "renewable": true,
+        "valueMw": 408.3
+      },
+      {
+        "source": "Wind offshore",
+        "renewable": true,
+        "valueMw": 291.7
+      },
+      {
+        "source": "Solar",
+        "renewable": true,
+        "valueMw": 1.2
+      },
+      {
+        "source": "Biomass",
+        "renewable": true,
+        "valueMw": 148.6
+      }
+    ]
+  },
+  "SE": {
+    "isoCode": "SE",
+    "country": "Sweden",
+    "timestamp": "2026-06-24T23:00:00.000Z",
+    "zonesAggregated": [
+      "SE1",
+      "SE2",
+      "SE3",
+      "SE4"
+    ],
+    "total": 8107.4,
+    "renewableMw": 3344,
+    "renewablePct": 41.2,
+    "bySource": [
+      {
+        "source": "Nuclear",
+        "renewable": false,
+        "valueMw": 2585.9
+      },
+      {
+        "source": "Fossil brown coal",
+        "renewable": false,
+        "valueMw": 403
+      },
+      {
+        "source": "Fossil hard coal",
+        "renewable": false,
+        "valueMw": 554.2
+      },
+      {
+        "source": "Fossil gas",
+        "renewable": false,
+        "valueMw": 1220.3
+      },
+      {
+        "source": "Hydro Run-of-River",
+        "renewable": true,
+        "valueMw": 506.4
+      },
+      {
+        "source": "Hydro water reservoir",
+        "renewable": true,
+        "valueMw": 355.5
+      },
+      {
+        "source": "Wind onshore",
+        "renewable": true,
+        "valueMw": 1364.5
+      },
+      {
+        "source": "Wind offshore",
+        "renewable": true,
+        "valueMw": 761.1
+      },
+      {
+        "source": "Solar",
+        "renewable": true,
+        "valueMw": 3.4
+      },
+      {
+        "source": "Biomass",
+        "renewable": true,
+        "valueMw": 353.1
+      }
+    ]
+  },
+  "SI": {
+    "isoCode": "SI",
+    "country": "Slovenia",
+    "timestamp": "2026-06-24T23:00:00.000Z",
+    "zonesAggregated": [
+      "SI"
+    ],
+    "total": 1123.7,
+    "renewableMw": 478.3,
+    "renewablePct": 42.6,
+    "bySource": [
+      {
+        "source": "Nuclear",
+        "renewable": false,
+        "valueMw": 392.7
+      },
+      {
+        "source": "Fossil brown coal",
+        "renewable": false,
+        "valueMw": 58.1
+      },
+      {
+        "source": "Fossil hard coal",
+        "renewable": false,
+        "valueMw": 62.5
+      },
+      {
+        "source": "Fossil gas",
+        "renewable": false,
+        "valueMw": 132.1
+      },
+      {
+        "source": "Hydro Run-of-River",
+        "renewable": true,
+        "valueMw": 52.4
+      },
+      {
+        "source": "Hydro water reservoir",
+        "renewable": true,
+        "valueMw": 40.1
+      },
+      {
+        "source": "Wind onshore",
+        "renewable": true,
+        "valueMw": 236.2
+      },
+      {
+        "source": "Wind offshore",
+        "renewable": true,
+        "valueMw": 106.4
+      },
+      {
+        "source": "Solar",
+        "renewable": true,
+        "valueMw": 0.3
+      },
+      {
+        "source": "Biomass",
+        "renewable": true,
+        "valueMw": 42.9
+      }
+    ]
+  },
+  "SK": {
+    "isoCode": "SK",
+    "country": "Slovakia",
+    "timestamp": "2026-06-24T23:00:00.000Z",
+    "zonesAggregated": [
+      "SK"
+    ],
+    "total": 1533.4,
+    "renewableMw": 606,
+    "renewablePct": 39.5,
+    "bySource": [
+      {
+        "source": "Nuclear",
+        "renewable": false,
+        "valueMw": 549.9
+      },
+      {
+        "source": "Fossil brown coal",
+        "renewable": false,
+        "valueMw": 77.6
+      },
+      {
+        "source": "Fossil hard coal",
+        "renewable": false,
+        "valueMw": 97
+      },
+      {
+        "source": "Fossil gas",
+        "renewable": false,
+        "valueMw": 202.9
+      },
+      {
+        "source": "Hydro Run-of-River",
+        "renewable": true,
+        "valueMw": 111.8
+      },
+      {
+        "source": "Hydro water reservoir",
+        "renewable": true,
+        "valueMw": 58.5
+      },
+      {
+        "source": "Wind onshore",
+        "renewable": true,
+        "valueMw": 291.8
+      },
+      {
+        "source": "Wind offshore",
+        "renewable": true,
+        "valueMw": 83.1
+      },
+      {
+        "source": "Solar",
+        "renewable": true,
+        "valueMw": 0.5
+      },
+      {
+        "source": "Biomass",
+        "renewable": true,
+        "valueMw": 60.3
+      }
+    ]
+  }
+}

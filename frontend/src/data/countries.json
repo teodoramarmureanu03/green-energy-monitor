@@ -1,0 +1,301 @@
+[
+  {
+    "id": "at",
+    "isoCode": "AT",
+    "name": "Austria",
+    "lat": 47.5,
+    "lng": 14.5,
+    "multiZone": false,
+    "zones": [
+      "AT"
+    ]
+  },
+  {
+    "id": "be",
+    "isoCode": "BE",
+    "name": "Belgium",
+    "lat": 50.5,
+    "lng": 4.5,
+    "multiZone": false,
+    "zones": [
+      "BE"
+    ]
+  },
+  {
+    "id": "bg",
+    "isoCode": "BG",
+    "name": "Bulgaria",
+    "lat": 42.7,
+    "lng": 25.5,
+    "multiZone": false,
+    "zones": [
+      "BG"
+    ]
+  },
+  {
+    "id": "ch",
+    "isoCode": "CH",
+    "name": "Switzerland",
+    "lat": 46.8,
+    "lng": 8.2,
+    "multiZone": false,
+    "zones": [
+      "CH"
+    ]
+  },
+  {
+    "id": "cz",
+    "isoCode": "CZ",
+    "name": "Czechia",
+    "lat": 49.8,
+    "lng": 15.5,
+    "multiZone": false,
+    "zones": [
+      "CZ"
+    ]
+  },
+  {
+    "id": "de",
+    "isoCode": "DE",
+    "name": "Germany",
+    "lat": 51.2,
+    "lng": 10.4,
+    "multiZone": false,
+    "zones": [
+      "DE-LU"
+    ]
+  },
+  {
+    "id": "dk",
+    "isoCode": "DK",
+    "name": "Denmark",
+    "lat": 56,
+    "lng": 9.5,
+    "multiZone": true,
+    "zones": [
+      "DK1",
+      "DK2"
+    ]
+  },
+  {
+    "id": "ee",
+    "isoCode": "EE",
+    "name": "Estonia",
+    "lat": 58.6,
+    "lng": 25,
+    "multiZone": false,
+    "zones": [
+      "EE"
+    ]
+  },
+  {
+    "id": "es",
+    "isoCode": "ES",
+    "name": "Spain",
+    "lat": 40,
+    "lng": -3.7,
+    "multiZone": false,
+    "zones": [
+      "ES"
+    ]
+  },
+  {
+    "id": "fi",
+    "isoCode": "FI",
+    "name": "Finland",
+    "lat": 61.9,
+    "lng": 25.7,
+    "multiZone": false,
+    "zones": [
+      "FI"
+    ]
+  },
+  {
+    "id": "fr",
+    "isoCode": "FR",
+    "name": "France",
+    "lat": 46.6,
+    "lng": 2.2,
+    "multiZone": false,
+    "zones": [
+      "FR"
+    ]
+  },
+  {
+    "id": "gr",
+    "isoCode": "GR",
+    "name": "Greece",
+    "lat": 39,
+    "lng": 22,
+    "multiZone": false,
+    "zones": [
+      "GR"
+    ]
+  },
+  {
+    "id": "hr",
+    "isoCode": "HR",
+    "name": "Croatia",
+    "lat": 45.1,
+    "lng": 15.5,
+    "multiZone": false,
+    "zones": [
+      "HR"
+    ]
+  },
+  {
+    "id": "hu",
+    "isoCode": "HU",
+    "name": "Hungary",
+    "lat": 47.2,
+    "lng": 19.5,
+    "multiZone": false,
+    "zones": [
+      "HU"
+    ]
+  },
+  {
+    "id": "ie",
+    "isoCode": "IE",
+    "name": "Ireland",
+    "lat": 53.4,
+    "lng": -8.2,
+    "multiZone": false,
+    "zones": [
+      "IE"
+    ]
+  },
+  {
+    "id": "it",
+    "isoCode": "IT",
+    "name": "Italy",
+    "lat": 42.8,
+    "lng": 12.6,
+    "multiZone": true,
+    "zones": [
+      "IT-North",
+      "IT-Centre-North",
+      "IT-Centre-South",
+      "IT-South",
+      "IT-Sicily",
+      "IT-Sardinia"
+    ]
+  },
+  {
+    "id": "lt",
+    "isoCode": "LT",
+    "name": "Lithuania",
+    "lat": 55.2,
+    "lng": 23.9,
+    "multiZone": false,
+    "zones": [
+      "LT"
+    ]
+  },
+  {
+    "id": "lv",
+    "isoCode": "LV",
+    "name": "Latvia",
+    "lat": 56.9,
+    "lng": 24.6,
+    "multiZone": false,
+    "zones": [
+      "LV"
+    ]
+  },
+  {
+    "id": "nl",
+    "isoCode": "NL",
+    "name": "Netherlands",
+    "lat": 52.1,
+    "lng": 5.3,
+    "multiZone": false,
+    "zones": [
+      "NL"
+    ]
+  },
+  {
+    "id": "no",
+    "isoCode": "NO",
+    "name": "Norway",
+    "lat": 60.5,
+    "lng": 8.5,
+    "multiZone": true,
+    "zones": [
+      "NO1",
+      "NO2",
+      "NO3",
+      "NO4",
+      "NO5"
+    ]
+  },
+  {
+    "id": "pl",
+    "isoCode": "PL",
+    "name": "Poland",
+    "lat": 51.9,
+    "lng": 19.1,
+    "multiZone": false,
+    "zones": [
+      "PL"
+    ]
+  },
+  {
+    "id": "pt",
+    "isoCode": "PT",
+    "name": "Portugal",
+    "lat": 39.4,
+    "lng": -8.2,
+    "multiZone": false,
+    "zones": [
+      "PT"
+    ]
+  },
+  {
+    "id": "ro",
+    "isoCode": "RO",
+    "name": "Romania",
+    "lat": 45.9,
+    "lng": 24.9,
+    "multiZone": false,
+    "zones": [
+      "RO"
+    ]
+  },
+  {
+    "id": "se",
+    "isoCode": "SE",
+    "name": "Sweden",
+    "lat": 62,
+    "lng": 15,
+    "multiZone": true,
+    "zones": [
+      "SE1",
+      "SE2",
+      "SE3",
+      "SE4"
+    ]
+  },
+  {
+    "id": "si",
+    "isoCode": "SI",
+    "name": "Slovenia",
+    "lat": 46.1,
+    "lng": 14.8,
+    "multiZone": false,
+    "zones": [
+      "SI"
+    ]
+  },
+  {
+    "id": "sk",
+    "isoCode": "SK",
+    "name": "Slovakia",
+    "lat": 48.7,
+    "lng": 19.5,
+    "multiZone": false,
+    "zones": [
+      "SK"
+    ]
+  }
+]
