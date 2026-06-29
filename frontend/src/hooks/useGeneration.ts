@@ -22,12 +22,8 @@ export function useGeneration(isoCode: string | null): UseGenerationResult {
 
   useEffect(() => {
     // dacă nu e selectată nicio țară, golim totul
-    if (!isoCode) {
-      setData(null);
-      setError(null);
-      setLoading(false);
-      return;
-    }
+    // dacă nu e selectată nicio țară, nu facem nimic
+    if (!isoCode) return;
 
     let cancelled = false; // ca să nu setăm starea după ce s-a schimbat țara
     setLoading(true);

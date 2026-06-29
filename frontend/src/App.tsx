@@ -36,3 +36,15 @@ export default function App() {
     </div>
   );
 }*/
+
+
+import { EuropeMap } from "@/components/map/EuropeMap";
+
+export default function App() {
+  return (
+    <div style={{ padding: 20 }}>
+      <h1 style={{ fontSize: 24, marginBottom: 16 }}>Europe Map test</h1>
+      <EuropeMap onSelectCountry={(iso) => alert("Ai apăsat: " + iso)} />
+    </div>
+  );
+}
