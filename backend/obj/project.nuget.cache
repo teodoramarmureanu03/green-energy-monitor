@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "5wSxu2N7BsQ=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\TeodoraMarmureanu\\OneDrive - Enevo\\Desktop\\green-energy-monitor\\backend\\backend.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\TeodoraMarmureanu\\.nuget\\packages\\microsoft.aspnetcore.openapi\\10.0.9\\microsoft.aspnetcore.openapi.10.0.9.nupkg.sha512",
+    "C:\\Users\\TeodoraMarmureanu\\.nuget\\packages\\microsoft.openapi\\2.0.0\\microsoft.openapi.2.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}
