@@ -18,12 +18,10 @@ import { useEffect, useMemo, useState } from "react";
 import { ComposableMap, Geographies, Geography } from "@vnedyalk0v/react19-simple-maps";
 import { useCountries } from "@/hooks/useCountries";
 import { fetchGeneration } from "@/lib/api";
-import { shareToColor, flagEmoji } from "@/lib/utils";
+import { shareToColor } from "@/lib/utils";
 import type { CountryGeneration } from "@/types/contract";
 import europeMap from "@/assets/europe.json";
  
-// ⬇️ ÎNLOCUIEȘTE cu calea/URL-ul fișierului tău de hartă.
-// Poți importa local:  import europe from "@/assets/europe.json"; și pune GEO_URL = europe;
 const GEO_URL = europeMap as unknown as string;
  
 
@@ -35,16 +33,25 @@ const ISO3_TO_ISO2: Record<string, string> = {
   SVN: "SI", SVK: "SK",
 };
 
-function geoIso(geo: any): string | null {
+// Forma unei țări din fișierul hărții (ce câmpuri are în "properties")
+interface GeoProperties {
+  iso_a3?: string;
+  name?: string;
+}
+
+interface GeoFeature {
+  rsmKey: string;  //o cheie adaugata pt fiecare tara, un fel de id unic
+  properties: GeoProperties;
+}
+
+function geoIso(geo: GeoFeature): string | null {
   const iso3 = geo.properties?.iso_a3?.toUpperCase();
-  return iso3 ? ISO3_TO_ISO2[iso3] ?? null : null;
+  if (!iso3) 
+    return null;
+  return ISO3_TO_ISO2[iso3] ?? null;
 }
  
-export function EuropeMap({
-  onSelectCountry,
-}: {
-  onSelectCountry?: (iso: string) => void;
-}) {
+export function EuropeMap({onSelectCountry,}: {onSelectCountry?: (iso: string) => void;}) {
   const { countries } = useCountries();
   const [hoverIso, setHoverIso] = useState<string | null>(null);
   const [hoverData, setHoverData] = useState<CountryGeneration | null>(null);
@@ -95,10 +102,16 @@ export function EuropeMap({
   return (
     <div className="relative">
       <ComposableMap
-        projection="geoAzimuthalEqualArea"
-        projectionConfig={{ rotate: [-10, -52, 0], scale: 750 }}
-        style={{ width: "100%", height: 520 }}
-      >
+  projection="geoMercator"
+  width={800}
+  height={520}
+  projectionConfig={{
+    // @ts-expect-error pt a evita o eroare de tip la compilare
+          center: [13, 52],
+          scale: 700,
+        }}
+  style={{ width: "100%", height: "auto" }}
+>
         <Geographies geography={GEO_URL}>
           {({ geographies }: { geographies: any[] }) =>
             geographies.map((geo) => {
@@ -123,7 +136,7 @@ export function EuropeMap({
                       outline: "none",
                     },
                     hover: {
-                      fill: isHover ? "#22c55e" : "#d4d4d8",
+                      fill: isHover ? "#71717a" : "#d4d4d8",
                       stroke: "#fff",
                       strokeWidth: 0.75,
                       outline: "none",
@@ -142,7 +155,7 @@ export function EuropeMap({
       {hoverData && (
         <div className="pointer-events-none absolute left-1/2 top-6 w-[200px] -translate-x-1/2 rounded-lg border border-zinc-200 bg-white p-3 shadow-lg">
           <div className="text-[13px] font-semibold text-zinc-800">
-            {flagEmoji(hoverData.isoCode)} {hoverData.country}
+            {hoverData.country}
           </div>
           <div className="mb-2 text-[11px] text-zinc-500">
             Renewable share <b className="text-zinc-900">{hoverData.renewablePct}%</b>
@@ -155,7 +168,7 @@ export function EuropeMap({
       <div className="mt-3.5 flex items-center gap-2.5 text-[11px] text-zinc-500">
         <span>Low share</span>
         <div className="flex h-3 overflow-hidden rounded border border-zinc-200">
-          {["#e4e4e7", "#d9f99d", "#86efac", "#22c55e", "#15803d"].map((c) => (
+          {[ "#d9f99d", "#86efac", "#22c55e", "#15803d"].map((c) => (
             <div key={c} className="h-full w-8" style={{ background: c }} />
           ))}
         </div>

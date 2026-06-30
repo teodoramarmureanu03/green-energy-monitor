@@ -25,8 +25,30 @@ function aggregateSources(bySource: SourceBreakdown[]) {
 
 function fmt(n: number) { return Math.round(n).toLocaleString("en-GB"); }
 
-function flagEmoji(iso: string) {
-  return iso.toUpperCase().split("").map((c) => String.fromCodePoint(0x1f1e0 + c.charCodeAt(0) - 65)).join("");
+// Badge cu codul țării (merge pe orice sistem, spre deosebire de steagurile emoji
+// care nu se afișează pe Windows).
+function CountryBadge({ iso }: { iso: string }) {
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minWidth: 34,
+        height: 24,
+        padding: "0 8px",
+        background: "#e5e7eb",
+        color: "#374151",
+        borderRadius: 6,
+        fontSize: 12,
+        fontWeight: 700,
+        fontFamily: "monospace",
+        letterSpacing: "0.5px",
+      }}
+    >
+      {iso.toUpperCase()}
+    </span>
+  );
 }
 
 // ---- Pinned card ----
@@ -47,7 +69,7 @@ function PinnedCard({ iso, data, onRemove, onOpen }: {
         style={{ position: "absolute", top: 14, right: 14, background: "#f3f4f6", border: "none", width: 24, height: 24, borderRadius: "50%", fontSize: 14, color: TEXT_MUTED, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
         aria-label="Unpin"
       >×</button>
-      <div style={{ fontSize: 28, marginBottom: 6 }}>{flagEmoji(iso)}</div>
+      <div style={{ marginBottom: 6 }}><CountryBadge iso={iso} /></div>
       <div style={{ fontSize: 16, fontWeight: 700, color: TEXT_DARK, marginBottom: 14 }}>{data?.country ?? iso}</div>
       {data ? (
         <>
@@ -94,7 +116,7 @@ function RankRow({ rank, country, generation, maxMw, isPinned, onPin, onOpen }: 
       </td>
       <td style={{ padding: "14px 8px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <span style={{ fontSize: 22 }}>{flagEmoji(country.isoCode)}</span>
+          <CountryBadge iso={country.isoCode} />
           <span style={{ fontSize: 14, fontWeight: 600, color: TEXT_DARK }}>{country.name}</span>
         </div>
       </td>
