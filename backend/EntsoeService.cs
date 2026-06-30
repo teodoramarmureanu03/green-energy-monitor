@@ -35,8 +35,8 @@ public class EntsoeService
     {
         // ziua de ieri -> azi, în format yyyyMMddHHmm (UTC)
         var now = DateTime.UtcNow;
-        var start = now.AddDays(-1).ToString("yyyyMMdd") + "0000";
-        var end = now.ToString("yyyyMMdd") + "0000";
+        var start = now.AddDays(-1).ToString("yyyyMMdd") + "0000";  // ieri 00:00
+        var end = now.AddDays(1).ToString("yyyyMMdd") + "0000";     // mâine 00:00
 
         var url = "https://web-api.tp.entsoe.eu/api"
             + "?documentType=A75&processType=A16"
@@ -67,7 +67,7 @@ public class EntsoeService
             if (points.Count == 0) continue;
 
             var lastQty = points
-                .Select(p => double.Parse(p.Element(ns + "quantity")!.Value))
+                .Select(p => double.Parse(p.Element(ns + "quantity")!.Value, System.Globalization.CultureInfo.InvariantCulture))
                 .Last();
 
             var (name, renewable) = SourceMap[psr];
