@@ -1,7 +1,10 @@
 using backend.Models;
+using backend;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var apiKey = builder.Configuration["EntsoeApiKey"] ?? "";
+var entsoe = new EntsoeService(apiKey);
 // CORS — permite frontend-ului (Vite, pe portul 5173) să ne ceară date.
 // Fără asta, browserul blochează cererile din frontend.
 builder.Services.AddCors(options =>
@@ -21,8 +24,26 @@ app.MapGet("/api/countries", () => new[]
     new CountryInfo { Id = "fr", IsoCode = "FR", Name = "France" },
 });
 
+app.MapGet("/api/generation/{iso}", async (string iso) =>
+{
+    if (iso.ToUpper() == "DE")
+    {
+        return Results.Ok(await entsoe.GetGermanyAsync());
+    }
+    // restul țărilor — deocamdată date fixe (le adăugăm după)
+    return Results.Ok(new CountryGeneration
+    {
+        IsoCode = iso.ToUpper(),
+        Country = iso.ToUpper(),
+        Total = 0,
+        BySource = new()
+    });
+});
+
+
+
 // Endpoint 2: datele unei țări (hardcodate, doar ca test de legătură)
-app.MapGet("/api/generation/{iso}", (string iso) => new CountryGeneration
+/*app.MapGet("/api/generation/{iso}", (string iso) => new CountryGeneration
 {
     IsoCode = iso.ToUpper(),
     Country = iso.ToUpper(),
@@ -37,6 +58,6 @@ app.MapGet("/api/generation/{iso}", (string iso) => new CountryGeneration
         new() { Source = "Solar", Renewable = true, ValueMw = 2000 },
         new() { Source = "Nuclear", Renewable = false, ValueMw = 5000 },
     }
-});
+});*/
 
 app.Run();
