@@ -49,6 +49,7 @@ export const shadows = {
   ambientHero: "0 4px 20px rgba(0,0,0,0.12)",
   inputSubtle: "0 1px 4px rgba(0,0,0,0.06)",
   tooltipDark: "0 4px 16px rgba(0,0,0,0.3)",
+  hoverLift: "0 6px 20px rgba(0,0,0,0.1)",
 } as const;
 
 export const fontFamily = "Roboto, system-ui, sans-serif";

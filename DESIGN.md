@@ -117,7 +117,7 @@ This is an instrument, not a brochure — and it now reads as a sibling product 
 
 It still explicitly rejects the eco-marketing playbook: no leaf illustrations, no gradient hero blobs, no stock-photo wind turbines, no hopeful-pastel color washes. Green means "this is the Enevo family," not "we care about nature" — the seriousness comes from the same credentials-and-precision register the parent sites use (stats, capacity figures, comparison), not from sustainability iconography.
 
-The system is still young: colors and type sizes are currently duplicated as local constants across four different screen files rather than shared tokens, and the previously-declared body font (`Inter`) was never installed. This document captures the target system post-realignment; migrating the actual component code to it is the next step.
+Colors, shadows, and the font family now live in one shared module (`frontend/src/lib/tokens.ts`), mirrored as CSS custom properties in `index.css` for the handful of elements that need real `:hover`/`:focus-visible` states inline styles can't express. Roboto is installed and wired up; the old `Inter` reference is gone.
 
 **Key Characteristics:**
 - Forest Green (Enevo's exact `#12541d`) is the primary brand signal; Sentry Teal (`#03bdc2`) is the one sanctioned secondary accent, borrowed directly from the sibling product.
@@ -175,17 +175,18 @@ Restrained, corporate-neutral-led palette: one committed green plus one committe
 - **Label** (500, 12px, letter-spacing 0.06em, uppercase): KPI card eyebrow labels ("WIND CAPACITY"), the sidebar's "Navigation" section header. Reserved for short, data-adjacent labels — not for marketing kickers.
 
 ### Named Rules
-**The Sibling-Brand Font Rule.** Typography now matches Enevo Group's own choice (Roboto) rather than an unrelated product font, reinforcing that this app is part of the same family. Roboto is **not yet installed** in `frontend/`; add it (`@fontsource/roboto` with weights 300/400/500/700, or the same Google Fonts `<link>` Enevo uses) and remove the currently-uninstalled `Inter` reference in `App.tsx`. This supersedes the earlier recommendation to adopt the already-installed-but-unused `@fontsource-variable/geist` — explicit sibling-brand alignment now wins over "what's already a dependency."
+**The Sibling-Brand Font Rule.** Typography matches Enevo Group's own choice (Roboto) rather than an unrelated product font, reinforcing that this app is part of the same family. Roboto is installed (`@fontsource/roboto`, weights 300/400/500/700, imported in `main.tsx`); `@fontsource-variable/geist` was removed as a dependency once it was clear Roboto was the sibling-brand-aligned choice.
 
 ## 4. Elevation
 
-The system is flat by default with one soft ambient shadow reserved for raised content — never used to fake gloss or glassmorphism. There is no defined hover-elevation state anywhere yet: cards do not currently lift or deepen their shadow on hover.
+The system is flat by default with one soft ambient shadow reserved for raised content — never used to fake gloss or glassmorphism. Clickable cards and rows lift on hover (Hover Lift, below); everything else stays flat.
 
 ### Shadow Vocabulary
 - **Ambient Card** (`box-shadow: 0 2px 8px rgba(0,0,0,0.06)`): the resting shadow for every card-shaped surface (KPI cards, section cards, the map container).
 - **Ambient Hero** (`box-shadow: 0 4px 20px rgba(0,0,0,0.12)`): the home-screen hero banner (now on the Indigo Deep → Steel Navy gradient) and any similarly prominent, full-width surface.
 - **Input Subtle** (`box-shadow: 0 1px 4px rgba(0,0,0,0.06)`): form controls at rest (the country-select dropdown).
 - **Tooltip Dark** (`box-shadow: 0 4px 16px rgba(0,0,0,0.3)`): the dark chart-tooltip popover — the one place a heavier shadow is justified, since the tooltip floats over a chart rather than sitting in the page flow.
+- **Hover Lift** (`box-shadow: 0 6px 20px rgba(0,0,0,0.1)`): the one hover-elevation shadow in the system, used only on clickable cards/rows (pinned country cards, ranking rows) to signal interactivity. Pairs with a 2px upward `translateY` on hover, back to Ambient Card on active/press.
 
 ### Named Rules
 **The Flat-By-Default Rule.** Every surface is flat at rest; Ambient Card is the ceiling for anything embedded in page flow. Only floating overlays (tooltips) earn a heavier shadow.
@@ -196,22 +197,24 @@ The system is flat by default with one soft ambient shadow reserved for raised c
 - **Shape:** 8px radius (`{rounded.sm}`).
 - **Primary pill** ("← Back to map"): Sage Tint background, Forest text, Border Sage 1px border, 7–14px padding.
 - **Nav item (sidebar):** no visible button chrome at rest; active state is a solid Zinc-900 fill with white text and a Sentry Teal–tinted icon (replacing the old Meadow-green icon tint); inactive is transparent with Zinc-600 text, hover fades to Zinc-100.
-- **Hover / Focus:** only the sidebar nav item currently defines a hover treatment. Buttons elsewhere have no documented hover/focus/disabled state — flagged in Do's and Don'ts as a gap to close before shipping. New focus rings across the system should use Sentry Teal, not Forest, to keep "interactive" and "brand status" visually distinct.
+- **Hover / Focus:** every button, pill, select, and interactive row/card has a hover and `:focus-visible` state. A single global rule (`:focus-visible { outline: 2px solid var(--sentry-teal) }` in `index.css`) rings every focusable element in Sentry Teal — never Forest — keeping "interactive" and "brand status" visually distinct. Elements whose color varies per-instance (the Pin button, sort toggles) pass their color through CSS custom properties so the shared `.pill-btn` / `.pin-btn` / `.sort-btn` classes can still own hover/active overrides; a plain inline `style.background` would otherwise always beat a class's `:hover` rule.
 
 ### Cards / Containers
 - **Corner style:** 16px radius (`{rounded.lg}`), uniform across KPI cards, section cards, the map container, and flip cards.
-- **Background:** Surface white, except flip-card fronts (migrate to Indigo Deep, replacing `navy-legacy`) and the home hero (Indigo Deep → Steel Navy gradient).
-- **Shadow strategy:** Ambient Card at rest (see Elevation). No hover state defined yet.
+- **Background:** Surface white, except flip-card fronts and the home hero, both on Indigo Deep (solid or → Steel Navy gradient).
+- **Shadow strategy:** Ambient Card at rest. Clickable cards (pinned country cards) use Hover Lift on hover and drop back to Ambient Card on active/press — see Elevation.
 - **Border:** 1px Border Sage on every light-surface card; KPI cards add a 4px colored top border keyed to their data category (Wind Blue, Solar Amber, Forest Mid, Investment Violet).
 - **Internal padding:** 22–24px (`{spacing.lg}`-adjacent).
+- **Responsive:** KPI and chart grids use `repeat(auto-fit, minmax(_, 1fr))` rather than a fixed column count, so they reflow to 2 or 1 columns on narrow viewports without a breakpoint.
 
 ### Inputs / Fields
-- **Style:** Surface background, Border Sage 1.5px stroke, 10px radius (`{rounded.md}`), Input Subtle shadow.
-- **Focus / Error / Disabled:** not yet defined anywhere in the codebase — the country-select dropdown only has a default state. When added, focus should ring in Sentry Teal per the Buttons note above.
+- **Style:** Surface background, Border Sage 1.5px stroke, 10px radius (`{rounded.md}`), Input Subtle shadow. Shared via the `.select-field` class in `index.css`.
+- **Focus / Hover:** hover darkens the border toward Forest Soft; focus rings in Sentry Teal via the global `:focus-visible` rule.
+- **Error / Disabled:** still undefined — the country-select dropdown has no error or disabled variant yet. Add one before a form with real validation ships.
 
 ### Navigation
-- **Style:** persistent 260px left sidebar, Zinc-50→white vertical gradient background, Zinc-200 right border. Logo mark: Forest→Forest Mid gradient square with a white leaf icon (retire the old green-500→emerald-600 Tailwind default in favor of the real Forest tokens). Live clock in a bordered Surface panel using tabular numerals. Nav items per Buttons above. Section label ("Navigation") uses the Label type role in Zinc-400.
-- **Mobile treatment:** none defined yet — the sidebar is fixed-width with no collapse/drawer behavior. Worth designing before this ships to smaller viewports.
+- **Style:** persistent left sidebar, Zinc-50→white vertical gradient background, Zinc-200 right border. Logo mark: Forest→Forest Mid gradient square with a white leaf icon. Live clock in a bordered Surface panel using tabular numerals. Nav items per Buttons above. Section label ("Navigation") uses the Label type role in Zinc-400.
+- **Responsive:** the sidebar collapses to a 72px icon-only rail below the `lg` breakpoint (labels, clock, hint, and attribution hide; icons and active state stay) rather than a fixed 260px width at every size. Every icon carries a `title` attribute so the label is still available on hover/screen reader in collapsed mode.
 
 ### Skeleton Loaders
 A shimmer gradient (`linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%)`) fills placeholder blocks shaped like the real KPI/chart grid while data loads — used instead of a spinner, per product-register convention. Unaffected by this palette shift; it's already neutral gray.
@@ -225,10 +228,10 @@ The home screen's energy-type cards: a 3D `rotateY` flip on click, front face no
 - **Do** treat Forest (`#12541d`) as the primary brand signal and Sentry Teal (`#03bdc2`) as the only secondary/interactive accent; keep the Tertiary data palette exclusively for chart and category encoding.
 - **Do** use the 16px card radius (`{rounded.lg}`) on every card-shaped surface, with no exceptions.
 - **Do** keep the map/chart palette colorblind-safe — pair color with icons or text labels the way the KPI cards already do (icon + label + color), never color alone.
-- **Do** install Roboto (`@fontsource/roboto`, weights 300/400/500/700, or Enevo's own Google Fonts link) to match the parent-brand typography, and remove the uninstalled `Inter` reference in `App.tsx`.
-- **Do** migrate the home hero and flip-card fronts from the retired green gradient / `navy-legacy` to the Indigo Deep → Steel Navy pairing.
-- **Do** consolidate the color and type constants currently duplicated as local `const` blocks in `DashboardScreen.tsx`, `ComparisonScreen.tsx`, `EuropeSummary.tsx`, and `HomeScreen.tsx` into one shared tokens module built on these new values.
-- **Do** define hover/focus/disabled states for buttons and inputs before adding more of either — right now most only have a default state.
+- **Do** give every interactive element hover, focus, and (where it applies) active states — the shared classes in `index.css` (`.pill-btn`, `.sort-btn`, `.select-field`, `.card-interactive`, `.row-interactive`, `.icon-btn`, `.pin-btn`) plus the global `:focus-visible` rule are the toolkit; reach for them before writing a new one-off.
+- **Do** route per-instance dynamic colors through CSS custom properties (`style={{ '--pin-bg': ... }}`) when the element also needs a class-driven hover/active state — a plain inline `style.background`/`style.border` always wins over a class's `:hover` rule, silently killing the interaction.
+- **Do** use `repeat(auto-fit, minmax(_, 1fr))` for card/chart grids instead of a fixed column count, so layouts reflow on narrow viewports without a media query.
+- **Do** make every clickable non-button element (a card, a table row) keyboard-operable: `tabIndex={0}`, an `onKeyDown` handler for Enter/Space, and an `aria-label` describing the action.
 
 ### Don't:
 - **Don't** drift back to the bright, all-green "eco app" wash this system started as — Forest is one accent among dark corporate neutrals now, not the dominant hue.
@@ -237,4 +240,6 @@ The home screen's energy-type cards: a 3D `rotateY` flip on click, front face no
 - **Don't** use Sentry Teal for data encoding — it's reserved for interactive/info UI chrome; Hydro Cyan remains the only cyan-family data color, even though the two sit close in hue.
 - **Don't** add new one-off dark surfaces. Indigo Deep and Charcoal are the only two; nothing else should be invented.
 - **Don't** reference a font family string that isn't an installed dependency.
-- **Don't** ship the current placeholder brand assets as final: `favicon.svg` is a generic purple lightning-bolt icon unrelated to the brand (Enevo/SentryOT green-and-navy or teal), and `icons.svg` plus `App.css` are leftover Vite-template cruft with no live usage — replace or remove before this is considered launch-ready.
+- **Don't** animate `width`/`height` for progress-style fills — use a fixed-size track with `transform: scaleX(...)` and `transform-origin: left` (the `.progress-fill` class) so the browser skips layout entirely.
+- **Don't** nest a real `<button>` inside another `<button>` for "clickable card with an inner action" patterns (e.g. a pinned card with its own unpin control) — invalid HTML, and browsers silently break out of it. Use `role="button"` + `tabIndex` + `onKeyDown` on the outer element instead.
+- **Don't** ship the current placeholder brand assets as final: `favicon.svg` is a generic purple lightning-bolt icon unrelated to the brand (Enevo/SentryOT green-and-navy or teal), and `icons.svg` is leftover Vite-template cruft with no live usage — replace or remove before this is considered launch-ready.

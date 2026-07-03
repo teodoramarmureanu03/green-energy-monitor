@@ -57,17 +57,27 @@ function PinnedCard({ iso, data, onRemove, onOpen }: {
 }) {
   const { windMw, solarMw } = data ? aggregateSources(data.bySource) : { windMw: 0, solarMw: 0 };
   const total = windMw + solarMw;
+  const displayName = data?.country ?? iso;
   return (
-    <div onClick={onOpen} style={{
-      background: CARD_BG, border: `1px solid ${BORDER}`, borderRadius: 16,
-      padding: "18px 20px", cursor: "pointer", position: "relative",
-      boxShadow: shadows.ambientCard, borderTop: `3px solid ${GREEN_MID}`,
-      transition: "box-shadow 0.15s",
-    }}>
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onOpen}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen(); } }}
+      aria-label={`Open dashboard for ${displayName}`}
+      className="card-interactive"
+      style={{
+        background: CARD_BG, border: `1px solid ${BORDER}`, borderRadius: 16,
+        padding: "18px 20px", position: "relative",
+        borderTop: `3px solid ${GREEN_MID}`,
+      }}
+    >
       <button
+        type="button"
         onClick={(e) => { e.stopPropagation(); onRemove(); }}
-        style={{ position: "absolute", top: 14, right: 14, background: "#f3f4f6", border: "none", width: 24, height: 24, borderRadius: "50%", fontSize: 14, color: TEXT_MUTED, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
-        aria-label="Unpin"
+        className="icon-btn"
+        style={{ position: "absolute", top: 14, right: 14, background: "#f3f4f6", width: 28, height: 28, borderRadius: "50%", fontSize: 14, color: TEXT_MUTED }}
+        aria-label={`Unpin ${displayName}`}
       >×</button>
       <div style={{ marginBottom: 6 }}><CountryBadge iso={iso} /></div>
       <div style={{ fontSize: 16, fontWeight: 700, color: TEXT_DARK, marginBottom: 14 }}>{data?.country ?? iso}</div>
@@ -106,8 +116,12 @@ function RankRow({ rank, country, generation, maxMw, isPinned, onPin, onOpen }: 
 
   return (
     <tr
+      tabIndex={0}
       onClick={onOpen}
-      style={{ cursor: "pointer", borderBottom: `1px solid ${BORDER}`, background: rank <= 3 ? rankBg : "transparent" }}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen(); } }}
+      aria-label={`Open dashboard for ${country.name}`}
+      className="row-interactive"
+      style={{ borderBottom: `1px solid ${BORDER}`, background: rank <= 3 ? rankBg : "transparent" }}
     >
       <td style={{ padding: "14px 16px", width: 48 }}>
         <span style={{ fontSize: 13, fontWeight: 700, color: rankColor }}>
@@ -131,18 +145,24 @@ function RankRow({ rank, country, generation, maxMw, isPinned, onPin, onOpen }: 
       <td style={{ padding: "14px 20px", minWidth: 220 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ flex: 1, height: 8, background: "#f3f4f6", borderRadius: 4, overflow: "hidden" }}>
-            <div style={{ width: `${barW}%`, height: "100%", background: `linear-gradient(90deg, ${GREEN_MID}, ${GREEN_DARK})`, borderRadius: 4, transition: "width 0.5s" }} />
+            <div className="progress-fill" style={{ width: "100%", height: "100%", background: `linear-gradient(90deg, ${GREEN_MID}, ${GREEN_DARK})`, borderRadius: 4, transform: `scaleX(${barW / 100})` }} />
           </div>
           <span style={{ fontSize: 13, fontWeight: 700, color: GREEN_DARK, width: 80, textAlign: "right" }}>{fmt(totalRenewable)} MW</span>
         </div>
       </td>
-      <td style={{ padding: "14px 16px", textAlign: "right" }} onClick={(e) => { e.stopPropagation(); onPin(); }}>
-        <button style={{
-          fontSize: 12, fontWeight: 600, padding: "5px 14px", borderRadius: 8, cursor: "pointer",
-          background: isPinned ? GREEN_LIGHT : "#f9fafb",
-          color: isPinned ? GREEN_DARK : TEXT_MUTED,
-          border: `1.5px solid ${isPinned ? GREEN_MID : "#e5e7eb"}`,
-        }}>
+      <td style={{ padding: "14px 16px", textAlign: "right" }} onClick={(e) => e.stopPropagation()}>
+        <button
+          type="button"
+          onClick={onPin}
+          className="pin-btn"
+          aria-pressed={isPinned}
+          aria-label={isPinned ? `Unpin ${country.name}` : `Pin ${country.name}`}
+          style={{
+            "--pin-bg": isPinned ? GREEN_LIGHT : "#f9fafb",
+            "--pin-color": isPinned ? GREEN_DARK : TEXT_MUTED,
+            "--pin-border": isPinned ? GREEN_MID : "#e5e7eb",
+          } as React.CSSProperties}
+        >
           {isPinned ? "★ Pinned" : "☆ Pin"}
         </button>
       </td>
@@ -209,13 +229,11 @@ export function ComparisonScreen({ onOpenCountry }: { onOpenCountry: (iso: strin
           {(["total", "wind", "solar"] as SortKey[]).map((key) => (
             <button
               key={key}
+              type="button"
               onClick={() => setSortBy(key)}
-              style={{
-                fontSize: 13, fontWeight: sortBy === key ? 600 : 400, padding: "7px 16px",
-                borderRadius: 8, border: "none", cursor: "pointer",
-                background: sortBy === key ? GREEN_LIGHT : "transparent",
-                color: sortBy === key ? GREEN_DARK : TEXT_MUTED,
-              }}
+              className="sort-btn"
+              data-active={sortBy === key || undefined}
+              aria-pressed={sortBy === key}
             >
               {key === "total" ? "⚡ Total" : key === "wind" ? "💨 Wind" : "☀️ Solar"}
             </button>
@@ -227,7 +245,7 @@ export function ComparisonScreen({ onOpenCountry }: { onOpenCountry: (iso: strin
       {pinnedIsos.length > 0 && (
         <div>
           <p style={{ fontSize: 12, fontWeight: 600, color: TEXT_MUTED, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 12 }}>📌 Pinned countries</p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: 16 }}>
             {pinnedIsos.map((iso) => (
               <PinnedCard key={iso} iso={iso} data={generationMap[iso] ?? null} onRemove={() => togglePin(iso)} onOpen={() => onOpenCountry(iso)} />
             ))}
@@ -242,7 +260,8 @@ export function ComparisonScreen({ onOpenCountry }: { onOpenCountry: (iso: strin
             🌱 Loading country data…
           </div>
         ) : (
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", minWidth: 640, borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: colors.mist, borderBottom: `1px solid ${BORDER}` }}>
                 {[
@@ -267,6 +286,7 @@ export function ComparisonScreen({ onOpenCountry }: { onOpenCountry: (iso: strin
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

@@ -27,7 +27,7 @@ export default function App() {
     }}>
       <Sidebar active={screen} onNavigate={setScreen} />
 
-      <main style={{ flex: 1, overflowX: "auto", padding: "36px 40px" }}>
+      <main className="min-w-0 flex-1 overflow-x-auto px-5 py-6 sm:px-8 sm:py-8 lg:px-10 lg:py-9">
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
 
           {/* Home page — no EuropeSummary banner */}

@@ -1,19 +1,3 @@
-// ============================================================================
-// EuropeMap — harta Europei interactivă (react-simple-maps).
-//
-// CE FACE:
-//  - desenează țările Europei dintr-un fișier GeoJSON/TopoJSON
-//  - colorează fiecare țară după % regenerabil (choropleth)
-//  - la hover: schimbă culoarea + arată un tooltip cu mixul țării
-//  - la click: anunță în sus codul ISO (onSelectCountry) — așa deschizi Dashboard-ul
-//
-// CE TREBUIE SĂ FACI TU (Teodora):
-//  1. Pune fișierul hărții în src/assets/europe.json
-//     (caută pe Google „europe topojson github" — ex. repo-ul „world-atlas"
-//      sau un GeoJSON cu țările Europei). Pune URL-ul/calea în GEO_URL mai jos.
-//  2. Verifică ce câmp conține codul/țara în fișierul tău (poate fi
-//     geo.properties.ISO_A2, .iso_a2, .NAME etc.) și ajustează `geoIso()`.
-// ============================================================================
 import { useEffect, useMemo, useState } from "react";
 import { ComposableMap, Geographies, Geography } from "@vnedyalk0v/react19-simple-maps";
 import { useCountries } from "@/hooks/useCountries";
@@ -160,11 +144,11 @@ export function EuropeMap({onSelectCountry,}: {onSelectCountry?: (iso: string) =
           <div className="mb-2 text-[11px] text-zinc-500">
             Renewable share <b className="text-zinc-900">{hoverData.renewablePct}%</b>
           </div>
-          <div className="text-[11px] text-zinc-500">Click pentru dashboard →</div>
+          <div className="text-[11px] text-zinc-500">Click to open dashboard →</div>
         </div>
       )}
- 
-      {/* legendă */}
+
+      {/* legend */}
       <div className="mt-3.5 flex items-center gap-2.5 text-[11px] text-zinc-500">
         <span>Low share</span>
         <div className="flex h-3 overflow-hidden rounded border border-zinc-200">
@@ -177,17 +161,3 @@ export function EuropeMap({onSelectCountry,}: {onSelectCountry?: (iso: string) =
     </div>
   );
 }
- 
-// NOTĂ pentru colorarea tuturor țărilor din start (nu doar la hover):
-// în loc de pctByIso gol, încarcă toate datele o dată într-un useEffect:
-//
-//   useEffect(() => {
-//     Promise.all(countries.map(c => fetchGeneration(c.isoCode).catch(() => null)))
-//       .then(list => {
-//         const m = new Map<string, number>();
-//         list.forEach(d => d && m.set(d.isoCode, d.renewablePct));
-//         setAllPct(m);
-//       });
-//   }, [countries]);
-//
-// și folosește setAllPct/allPct în loc de pctByIso.

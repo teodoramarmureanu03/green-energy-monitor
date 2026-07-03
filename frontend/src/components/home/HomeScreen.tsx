@@ -22,7 +22,7 @@ const CARDS: EnergyCard[] = [
     id: "solar",
     title: "Solar energy",
     emoji: "☀️",
-    color: "#f59e0b",
+    color: colors.solarAmber,
     shortDesc: "Capturing sunlight to generate electricity",
     facts: [
       "Photovoltaic panels convert sunlight directly into electricity.",
@@ -36,7 +36,7 @@ const CARDS: EnergyCard[] = [
     id: "wind",
     title: "Wind energy",
     emoji: "💨",
-    color: "#3b82f6",
+    color: colors.windBlue,
     shortDesc: "Harnessing the power of moving air",
     facts: [
       "Wind turbines can operate onshore and offshore.",
@@ -50,7 +50,7 @@ const CARDS: EnergyCard[] = [
     id: "hydro",
     title: "Hydroelectric energy",
     emoji: "💧",
-    color: "#06b6d4",
+    color: colors.hydroCyan,
     shortDesc: "Generating power from flowing water",
     facts: [
       "Hydropower is the largest renewable electricity source worldwide.",
@@ -64,7 +64,7 @@ const CARDS: EnergyCard[] = [
     id: "geothermal",
     title: "Geothermal energy",
     emoji: "🌋",
-    color: "#ef4444",
+    color: colors.geothermalRed,
     shortDesc: "Using Earth's internal heat",
     facts: [
       "Geothermal plants emit very little CO₂.",
@@ -78,7 +78,7 @@ const CARDS: EnergyCard[] = [
     id: "biomass",
     title: "Biomass energy",
     emoji: "🌿",
-    color: "#16a34a",
+    color: colors.biomassGreen,
     shortDesc: "Energy from organic biological materials",
     facts: [
       "Biomass includes wood, crop waste, and organic waste.",
@@ -92,7 +92,7 @@ const CARDS: EnergyCard[] = [
     id: "tidal",
     title: "Tidal and marine energy",
     emoji: "🌊",
-    color: "#0ea5e9",
+    color: colors.tidalSky,
     shortDesc: "Power from ocean tides and waves",
     facts: [
       "Tidal energy is highly predictable — follows lunar cycles.",
@@ -108,17 +108,24 @@ function FlipCard({ card }: { card: EnergyCard }) {
   const [flipped, setFlipped] = useState(false);
 
   return (
-    <div
+    <button
+      type="button"
       onClick={() => setFlipped((f) => !f)}
-      style={{ perspective: 1000, cursor: "pointer", height: 200 }}
+      aria-pressed={flipped}
+      aria-label={flipped ? `${card.title} facts — press to flip back` : `${card.title}: ${card.shortDesc} — press to see facts`}
+      style={{
+        display: "block", width: "100%", padding: 0, margin: 0, border: "none",
+        background: "none", font: "inherit", textAlign: "inherit",
+        perspective: 1000, cursor: "pointer", height: 200,
+      }}
     >
       <div
+        className="flip-card-inner"
         style={{
           position: "relative",
           width: "100%",
           height: "100%",
           transformStyle: "preserve-3d",
-          transition: "transform 0.55s cubic-bezier(0.4,0,0.2,1)",
           transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)",
         }}
       >
@@ -188,12 +195,12 @@ function FlipCard({ card }: { card: EnergyCard }) {
             ))}
           </ul>
 
-          <div style={{ marginTop: "auto", fontSize: 9, color: "#9ca3af", textAlign: "right" }}>
+          <div style={{ marginTop: "auto", fontSize: 9, color: colors.muted, textAlign: "right" }}>
             Tap to flip back
           </div>
         </div>
       </div>
-    </div>
+    </button>
   );
 }
 
@@ -241,7 +248,7 @@ export function HomeScreen() {
       {/* Grid */}
       <div style={{
         display: "grid",
-        gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+        gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
         gap: 16,
       }}>
         {CARDS.map((card) => (

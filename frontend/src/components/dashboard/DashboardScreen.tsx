@@ -43,7 +43,7 @@ function KpiCard({ label, value, unit, sub, topColor, icon, iconBg }: {
       boxShadow: shadows.ambientCard,
     }}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 12 }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: TEXT_MUTED, textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</span>
+        <span style={{ fontSize: 12, fontWeight: 500, color: TEXT_MUTED, textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</span>
         <div style={{ width: 36, height: 36, borderRadius: 10, background: iconBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>
           {icon}
         </div>
@@ -61,9 +61,9 @@ function Card({ title, children, style }: { title: string; children: React.React
   return (
     <div style={{
       background: CARD_BG, borderRadius: 16, padding: "24px",
-      border: `1px solid ${BORDER}`, boxShadow: "0 2px 8px rgba(0,0,0,0.06)", ...style,
+      border: `1px solid ${BORDER}`, boxShadow: shadows.ambientCard, ...style,
     }}>
-      <h3 style={{ fontSize: 15, fontWeight: 600, color: TEXT_DARK, marginBottom: 20 }}>{title}</h3>
+      <h3 style={{ fontSize: 15, fontWeight: 500, color: TEXT_DARK, marginBottom: 20 }}>{title}</h3>
       {children}
     </div>
   );
@@ -85,10 +85,10 @@ function Skeleton() {
   const shimmer = { background: "linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%)", borderRadius: 12 };
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,minmax(0,1fr))", gap: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 16 }}>
         {[...Array(4)].map((_, i) => <div key={i} style={{ ...shimmer, height: 120 }} />)}
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(320px,1fr))", gap: 16 }}>
         <div style={{ ...shimmer, height: 280 }} />
         <div style={{ ...shimmer, height: 280 }} />
       </div>
@@ -115,12 +115,8 @@ export function DashboardScreen({ initialIso }: DashboardScreenProps) {
         <select
           value={selectedIso}
           onChange={(e) => setSelectedIso(e.target.value)}
-          style={{
-            fontSize: 14, fontWeight: 500, padding: "10px 16px", borderRadius: 10,
-            border: `1.5px solid ${BORDER}`, background: CARD_BG, color: TEXT_DARK,
-            cursor: "pointer", boxShadow: shadows.inputSubtle,
-            minWidth: 160,
-          }}
+          className="select-field"
+          style={{ minWidth: 160 }}
         >
           {countries.map((c) => <option key={c.isoCode} value={c.isoCode}>{c.name}</option>)}
         </select>
@@ -169,7 +165,7 @@ function DashboardContent({ data, countryName }: { data: CountryGeneration; coun
       </div>
 
       {/* KPI row */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,minmax(0,1fr))", gap: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 16 }}>
         <KpiCard label="Wind capacity" value={fmt(windMw)} unit="MW" sub="Onshore + offshore" topColor={WIND_COLOR} icon="💨" iconBg="#eff6ff" />
         <KpiCard label="Solar capacity" value={fmt(solarMw)} unit="MW" sub="Photovoltaic" topColor={SOLAR_COLOR} icon="☀️" iconBg="#fffbeb" />
         <KpiCard label="Wind + solar total" value={fmt(total)} unit="MW" sub="Combined renewables" topColor={GREEN_MID} icon="⚡" iconBg={GREEN_LIGHT} />
@@ -177,7 +173,7 @@ function DashboardContent({ data, countryName }: { data: CountryGeneration; coun
       </div>
 
       {/* Charts */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(320px,1fr))", gap: 16 }}>
         {/* Donut */}
         <Card title="Solar vs wind mix">
           <div style={{ display: "flex", gap: 16, marginBottom: 12 }}>
@@ -245,7 +241,7 @@ function DashboardContent({ data, countryName }: { data: CountryGeneration; coun
                 <div style={{ fontSize: 28, fontWeight: 700, color }}>{pct}%</div>
               </div>
               <div style={{ height: 10, background: "#f3f4f6", borderRadius: 6, overflow: "hidden" }}>
-                <div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: 6, transition: "width 0.7s ease" }} />
+                <div className="progress-fill" style={{ width: "100%", height: "100%", background: color, borderRadius: 6, transform: `scaleX(${pct / 100})` }} />
               </div>
             </div>
           ))}
