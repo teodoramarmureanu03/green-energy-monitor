@@ -6,19 +6,19 @@ import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
 } from "recharts";
+import { colors, shadows } from "@/lib/tokens";
 
-// ---- Design tokens ----
-const WIND_COLOR = "#2563eb";
-const SOLAR_COLOR = "#f59e0b";
-const GREEN_DARK = "#15803d";
-const GREEN_MID = "#22c55e";
-const GREEN_LIGHT = "#dcfce7";
-const CARD_BG = "#ffffff";
-//const PAGE_BG = "#f0faf4";
-const TEXT_DARK = "#111827";
-const TEXT_MID = "#374151";
-const TEXT_MUTED = "#6b7280";
-const BORDER = "#d1fae5";
+// ---- Design tokens (see src/lib/tokens.ts / DESIGN.md) ----
+const WIND_COLOR = colors.windBlue;
+const SOLAR_COLOR = colors.solarAmber;
+const GREEN_DARK = colors.forest;
+const GREEN_MID = colors.forestMid;
+const GREEN_LIGHT = colors.sageTint;
+const CARD_BG = colors.surface;
+const TEXT_DARK = colors.ink;
+const TEXT_MID = colors.slate;
+const TEXT_MUTED = colors.muted;
+const BORDER = colors.borderSage;
 
 function aggregateSources(bySource: SourceBreakdown[]) {
   let windMw = 0, solarMw = 0;
@@ -40,7 +40,7 @@ function KpiCard({ label, value, unit, sub, topColor, icon, iconBg }: {
     <div style={{
       background: CARD_BG, borderRadius: 16, padding: "22px 24px",
       border: `1px solid ${BORDER}`, borderTop: `4px solid ${topColor}`,
-      boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+      boxShadow: shadows.ambientCard,
     }}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 12 }}>
         <span style={{ fontSize: 12, fontWeight: 600, color: TEXT_MUTED, textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</span>
@@ -73,7 +73,7 @@ function Card({ title, children, style }: { title: string; children: React.React
 function ChartTooltip({ active, payload }: { active?: boolean; payload?: { name: string; value: number }[] }) {
   if (!active || !payload?.length) return null;
   return (
-    <div style={{ background: "#1f2937", borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#fff", boxShadow: "0 4px 16px rgba(0,0,0,0.3)" }}>
+    <div style={{ background: colors.charcoal, borderRadius: 10, padding: "10px 14px", fontSize: 13, color: "#fff", boxShadow: shadows.tooltipDark }}>
       <div style={{ fontWeight: 600, marginBottom: 2 }}>{payload[0].name}</div>
       <div style={{ color: "rgba(255,255,255,0.7)" }}>{fmt(payload[0].value)} MW</div>
     </div>
@@ -118,7 +118,7 @@ export function DashboardScreen({ initialIso }: DashboardScreenProps) {
           style={{
             fontSize: 14, fontWeight: 500, padding: "10px 16px", borderRadius: 10,
             border: `1.5px solid ${BORDER}`, background: CARD_BG, color: TEXT_DARK,
-            cursor: "pointer", boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+            cursor: "pointer", boxShadow: shadows.inputSubtle,
             minWidth: 160,
           }}
         >
@@ -128,7 +128,7 @@ export function DashboardScreen({ initialIso }: DashboardScreenProps) {
 
       {loading && <Skeleton />}
       {error && (
-        <div style={{ background: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626", borderRadius: 12, padding: "16px 20px", fontSize: 14 }}>
+        <div style={{ background: colors.errorBg, border: `1px solid ${colors.errorBorder}`, color: colors.errorRed, borderRadius: 12, padding: "16px 20px", fontSize: 14 }}>
           ⚠️ {error}
         </div>
       )}
@@ -173,7 +173,7 @@ function DashboardContent({ data, countryName }: { data: CountryGeneration; coun
         <KpiCard label="Wind capacity" value={fmt(windMw)} unit="MW" sub="Onshore + offshore" topColor={WIND_COLOR} icon="💨" iconBg="#eff6ff" />
         <KpiCard label="Solar capacity" value={fmt(solarMw)} unit="MW" sub="Photovoltaic" topColor={SOLAR_COLOR} icon="☀️" iconBg="#fffbeb" />
         <KpiCard label="Wind + solar total" value={fmt(total)} unit="MW" sub="Combined renewables" topColor={GREEN_MID} icon="⚡" iconBg={GREEN_LIGHT} />
-        <KpiCard label="Share of output" value={shareOfTotal} unit="%" sub={`of ${fmt(data.total)} MW total`} topColor="#8b5cf6" icon="📊" iconBg="#f5f3ff" />
+        <KpiCard label="Share of output" value={shareOfTotal} unit="%" sub={`of ${fmt(data.total)} MW total`} topColor={colors.investmentViolet} icon="📊" iconBg="#f5f3ff" />
       </div>
 
       {/* Charts */}

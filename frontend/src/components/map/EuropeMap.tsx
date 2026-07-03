@@ -18,7 +18,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ComposableMap, Geographies, Geography } from "@vnedyalk0v/react19-simple-maps";
 import { useCountries } from "@/hooks/useCountries";
 import { fetchGeneration } from "@/lib/api";
-import { shareToColor } from "@/lib/utils";
+import { colors, shareToColor } from "@/lib/tokens";
 import type { CountryGeneration } from "@/types/contract";
 import europeMap from "@/assets/europe.json";
  
@@ -142,7 +142,7 @@ export function EuropeMap({onSelectCountry,}: {onSelectCountry?: (iso: string) =
                       outline: "none",
                       cursor: iso && known.has(iso) ? "pointer" : "default",
                     },
-                    pressed: { fill: "#16a34a", outline: "none" },
+                    pressed: { fill: colors.forestMid, outline: "none" },
                   }}
                 />
               );
@@ -168,7 +168,7 @@ export function EuropeMap({onSelectCountry,}: {onSelectCountry?: (iso: string) =
       <div className="mt-3.5 flex items-center gap-2.5 text-[11px] text-zinc-500">
         <span>Low share</span>
         <div className="flex h-3 overflow-hidden rounded border border-zinc-200">
-          {[ "#d9f99d", "#86efac", "#22c55e", "#15803d"].map((c) => (
+          {[colors.forestPale, colors.forestSoft, colors.forestMid, colors.forest].map((c) => (
             <div key={c} className="h-full w-8" style={{ background: c }} />
           ))}
         </div>

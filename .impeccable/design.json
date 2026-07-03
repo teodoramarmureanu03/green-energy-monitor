@@ -1,0 +1,139 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-03T00:00:00.000Z",
+  "title": "Design System: EU Renewables Monitor",
+  "extensions": {
+    "colorMeta": {
+      "forest": { "role": "primary", "displayName": "Forest", "canonical": "#12541d", "tonalRamp": ["#eaf3ea", "#c9e0cb", "#a3cca7", "#79b57f", "#4d9d55", "#2c7f34", "#1c6b2a", "#12541d", "#0c3d15", "#082a0e"] },
+      "forest-mid": { "role": "primary", "displayName": "Forest Mid", "canonical": "#1c6b2a", "tonalRamp": ["#eaf3ea", "#c9e0cb", "#a3cca7", "#79b57f", "#4d9d55", "#2c7f34", "#1c6b2a", "#12541d", "#0c3d15", "#082a0e"] },
+      "sage-tint": { "role": "primary", "displayName": "Sage Tint", "canonical": "#dde9df", "tonalRamp": ["#eaf3ea", "#c9e0cb", "#a3cca7", "#79b57f", "#4d9d55", "#2c7f34", "#1c6b2a", "#12541d", "#0c3d15", "#082a0e"] },
+      "indigo-deep": { "role": "secondary", "displayName": "Indigo Deep", "canonical": "#192168", "tonalRamp": ["#0a0c29", "#131a4d", "#192168", "#242e86", "#3641a8", "#5560c6", "#7f8ad8", "#aeb5e7", "#d4d8f3", "#eceefa"] },
+      "steel-navy": { "role": "secondary", "displayName": "Steel Navy", "canonical": "#22364e", "tonalRamp": ["#0d151e", "#16232f", "#22364e", "#2d4867", "#3d5f85", "#5a7ea3", "#8aa3bd", "#b9cad9", "#dae3ec", "#eef2f6"] },
+      "charcoal": { "role": "secondary", "displayName": "Charcoal", "canonical": "#32373c", "tonalRamp": ["#0e0f11", "#1a1c1e", "#282b2f", "#32373c", "#454b51", "#5e666d", "#8a929a", "#b6bcc2", "#dadde0", "#f2f3f4"] },
+      "sentry-teal": { "role": "tertiary", "displayName": "Sentry Teal", "canonical": "#03bdc2", "tonalRamp": ["#e0fafb", "#b3f1f3", "#7fe6e9", "#4bdadf", "#1ecdd3", "#03bdc2", "#029a9e", "#02797c", "#015a5c", "#013d3e"] },
+      "surface": { "role": "neutral", "displayName": "Surface White", "canonical": "#ffffff", "tonalRamp": ["#f9fafb", "#f3f4f6", "#e5e7eb", "#d1d5db", "#9ca3af", "#6b7280", "#4b5563", "#374151", "#1f2937", "#ffffff"] },
+      "ink": { "role": "neutral", "displayName": "Ink", "canonical": "#111827", "tonalRamp": ["#f9fafb", "#f3f4f6", "#e5e7eb", "#d1d5db", "#9ca3af", "#6b7280", "#4b5563", "#374151", "#1f2937", "#111827"] },
+      "slate": { "role": "neutral", "displayName": "Slate", "canonical": "#374151", "tonalRamp": ["#f9fafb", "#f3f4f6", "#e5e7eb", "#d1d5db", "#9ca3af", "#6b7280", "#4b5563", "#374151", "#1f2937", "#111827"] },
+      "muted": { "role": "neutral", "displayName": "Muted", "canonical": "#6b7280", "tonalRamp": ["#f9fafb", "#f3f4f6", "#e5e7eb", "#d1d5db", "#9ca3af", "#6b7280", "#4b5563", "#374151", "#1f2937", "#111827"] },
+      "mist": { "role": "neutral", "displayName": "Mist", "canonical": "#f4f6f4", "tonalRamp": ["#12541d", "#2c7f34", "#4d9d55", "#79b57f", "#a3cca7", "#c9e0cb", "#dde9df", "#e9f0e9", "#f4f6f4", "#ffffff"] },
+      "border-sage": { "role": "neutral", "displayName": "Border Sage", "canonical": "#dde3de", "tonalRamp": ["#eaf3ea", "#dde3de", "#c9e0cb", "#a3cca7", "#79b57f", "#4d9d55", "#2c7f34", "#1c6b2a", "#12541d", "#0c3d15"] },
+      "zinc-50": { "role": "neutral", "displayName": "Zinc 50 (chrome)", "canonical": "#fafafa", "tonalRamp": ["#fafafa", "#f4f4f5", "#e4e4e7", "#d4d4d8", "#a1a1aa", "#71717a", "#52525b", "#3f3f46", "#27272a", "#18181b"] },
+      "zinc-200": { "role": "neutral", "displayName": "Zinc 200 (chrome)", "canonical": "#e4e4e7", "tonalRamp": ["#fafafa", "#f4f4f5", "#e4e4e7", "#d4d4d8", "#a1a1aa", "#71717a", "#52525b", "#3f3f46", "#27272a", "#18181b"] },
+      "zinc-400": { "role": "neutral", "displayName": "Zinc 400 (chrome)", "canonical": "#a1a1aa", "tonalRamp": ["#fafafa", "#f4f4f5", "#e4e4e7", "#d4d4d8", "#a1a1aa", "#71717a", "#52525b", "#3f3f46", "#27272a", "#18181b"] },
+      "zinc-600": { "role": "neutral", "displayName": "Zinc 600 (chrome)", "canonical": "#52525b", "tonalRamp": ["#fafafa", "#f4f4f5", "#e4e4e7", "#d4d4d8", "#a1a1aa", "#71717a", "#52525b", "#3f3f46", "#27272a", "#18181b"] },
+      "zinc-900": { "role": "neutral", "displayName": "Zinc 900 (chrome)", "canonical": "#18181b", "tonalRamp": ["#fafafa", "#f4f4f5", "#e4e4e7", "#d4d4d8", "#a1a1aa", "#71717a", "#52525b", "#3f3f46", "#27272a", "#18181b"] },
+      "wind-blue": { "role": "tertiary", "displayName": "Wind Blue", "canonical": "#2563eb", "tonalRamp": ["#eff6ff", "#dbeafe", "#bfdbfe", "#93c5fd", "#60a5fa", "#3b82f6", "#2563eb", "#1d4ed8", "#1e40af", "#1e3a8a"] },
+      "solar-amber": { "role": "tertiary", "displayName": "Solar Amber", "canonical": "#f59e0b", "tonalRamp": ["#fffbeb", "#fef3c7", "#fde68a", "#fcd34d", "#fbbf24", "#f59e0b", "#d97706", "#b45309", "#92400e", "#78350f"] },
+      "hydro-cyan": { "role": "tertiary", "displayName": "Hydro Cyan", "canonical": "#06b6d4", "tonalRamp": ["#ecfeff", "#cffafe", "#a5f3fc", "#67e8f9", "#22d3ee", "#06b6d4", "#0891b2", "#0e7490", "#155e75", "#164e63"] },
+      "geothermal-red": { "role": "tertiary", "displayName": "Geothermal Red", "canonical": "#ef4444", "tonalRamp": ["#fef2f2", "#fee2e2", "#fecaca", "#fca5a5", "#f87171", "#ef4444", "#dc2626", "#b91c1c", "#991b1b", "#7f1d1d"] },
+      "biomass-green": { "role": "tertiary", "displayName": "Biomass Green", "canonical": "#16a34a", "tonalRamp": ["#f0fdf4", "#dcfce7", "#bbf7d0", "#86efac", "#4ade80", "#22c55e", "#16a34a", "#15803d", "#166534", "#14532d"] },
+      "tidal-sky": { "role": "tertiary", "displayName": "Tidal Sky", "canonical": "#0ea5e9", "tonalRamp": ["#f0f9ff", "#e0f2fe", "#bae6fd", "#7dd3fc", "#38bdf8", "#0ea5e9", "#0284c7", "#0369a1", "#075985", "#0c4a6e"] },
+      "investment-violet": { "role": "tertiary", "displayName": "Investment Violet", "canonical": "#8b5cf6", "tonalRamp": ["#f5f3ff", "#ede9fe", "#ddd6fe", "#c4b5fd", "#a78bfa", "#8b5cf6", "#7c3aed", "#6d28d9", "#5b21b6", "#4c1d95"] },
+      "error-red": { "role": "neutral", "displayName": "Error Red", "canonical": "#dc2626", "tonalRamp": ["#fef2f2", "#fee2e2", "#fecaca", "#fca5a5", "#f87171", "#ef4444", "#dc2626", "#b91c1c", "#991b1b", "#7f1d1d"] },
+      "error-bg": { "role": "neutral", "displayName": "Error Background", "canonical": "#fef2f2", "tonalRamp": ["#fef2f2", "#fee2e2", "#fecaca", "#fca5a5", "#f87171", "#ef4444", "#dc2626", "#b91c1c", "#991b1b", "#7f1d1d"] },
+      "error-border": { "role": "neutral", "displayName": "Error Border", "canonical": "#fecaca", "tonalRamp": ["#fef2f2", "#fee2e2", "#fecaca", "#fca5a5", "#f87171", "#ef4444", "#dc2626", "#b91c1c", "#991b1b", "#7f1d1d"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Home-screen hero headline only." },
+      "headline": { "displayName": "Headline", "purpose": "Page-level titles (Country Dashboard, Europe Map)." },
+      "title": { "displayName": "Title", "purpose": "Section headers; a 500/15px compact variant covers in-card titles." },
+      "body": { "displayName": "Body", "purpose": "Descriptions, chart legends, form labels." },
+      "label": { "displayName": "Label", "purpose": "KPI eyebrow labels and sidebar section headers; not for marketing kickers." }
+    },
+    "shadows": [
+      { "name": "ambient-card", "value": "0 2px 8px rgba(0,0,0,0.06)", "purpose": "Resting shadow for every card-shaped surface." },
+      { "name": "ambient-hero", "value": "0 4px 20px rgba(0,0,0,0.12)", "purpose": "Prominent full-width surfaces (home hero, now on Indigo Deep -> Steel Navy)." },
+      { "name": "input-subtle", "value": "0 1px 4px rgba(0,0,0,0.06)", "purpose": "Form controls at rest." },
+      { "name": "tooltip-dark", "value": "0 4px 16px rgba(0,0,0,0.3)", "purpose": "Floating dark chart-tooltip popover." }
+    ],
+    "motion": [
+      { "name": "flip-card", "value": "transform 0.55s cubic-bezier(0.4,0,0.2,1)", "purpose": "Home-screen energy-type card flip." },
+      { "name": "progress-fill", "value": "width 0.7s ease", "purpose": "Investment-snapshot progress bar fill on data load." }
+    ],
+    "breakpoints": []
+  },
+  "components": [
+    {
+      "name": "Primary Pill Button",
+      "kind": "button",
+      "refersTo": "pill-badge",
+      "description": "The 'Back to map' navigation pill on the dashboard screen.",
+      "html": "<button class=\"ds-pill-btn\">&larr; Back to map</button>",
+      "css": ".ds-pill-btn { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: #12541d; background: #dde9df; border: 1px solid #dde3de; border-radius: 8px; padding: 7px 14px; cursor: pointer; transition: background 0.15s ease; } .ds-pill-btn:hover { background: #c9e0cb; } .ds-pill-btn:focus-visible { outline: 2px solid #03bdc2; outline-offset: 2px; }"
+    },
+    {
+      "name": "KPI Card",
+      "kind": "card",
+      "refersTo": "kpi-card",
+      "description": "A metric card with a category-colored top border, used four-up on the country dashboard.",
+      "html": "<div class=\"ds-kpi-card\"><div class=\"ds-kpi-head\"><span class=\"ds-kpi-label\">Wind capacity</span><div class=\"ds-kpi-icon\">&#128168;</div></div><div class=\"ds-kpi-value\">42,180<span class=\"ds-kpi-unit\">MW</span></div><div class=\"ds-kpi-sub\">Onshore + offshore</div></div>",
+      "css": ".ds-kpi-card { background: #ffffff; border-radius: 16px; padding: 22px 24px; border: 1px solid #dde3de; border-top: 4px solid #2563eb; box-shadow: 0 2px 8px rgba(0,0,0,0.06); } .ds-kpi-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; } .ds-kpi-label { font-size: 12px; font-weight: 500; color: #6b7280; text-transform: uppercase; letter-spacing: 0.06em; } .ds-kpi-icon { width: 36px; height: 36px; border-radius: 10px; background: #eff6ff; display: flex; align-items: center; justify-content: center; font-size: 18px; } .ds-kpi-value { font-size: 32px; font-weight: 700; color: #111827; line-height: 1; margin-bottom: 6px; } .ds-kpi-unit { font-size: 16px; font-weight: 500; color: #6b7280; margin-left: 4px; } .ds-kpi-sub { font-size: 12px; color: #6b7280; }"
+    },
+    {
+      "name": "Section Card",
+      "kind": "card",
+      "refersTo": "section-card",
+      "description": "The generic bordered card used for charts and the investment-snapshot panel.",
+      "html": "<div class=\"ds-section-card\"><h3 class=\"ds-section-title\">Solar vs wind mix</h3><p class=\"ds-section-body\">Chart content renders here.</p></div>",
+      "css": ".ds-section-card { background: #ffffff; border-radius: 16px; padding: 24px; border: 1px solid #dde3de; box-shadow: 0 2px 8px rgba(0,0,0,0.06); } .ds-section-title { font-size: 15px; font-weight: 500; color: #111827; margin: 0 0 20px 0; } .ds-section-body { font-size: 14px; color: #6b7280; margin: 0; }"
+    },
+    {
+      "name": "Country Select Input",
+      "kind": "input",
+      "refersTo": "select-input",
+      "description": "The country switcher dropdown on the dashboard header.",
+      "html": "<select class=\"ds-select\"><option>Germany</option><option>France</option></select>",
+      "css": ".ds-select { font-size: 14px; font-weight: 500; padding: 10px 16px; border-radius: 10px; border: 1.5px solid #dde3de; background: #ffffff; color: #111827; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.06); min-width: 160px; } .ds-select:focus-visible { outline: 2px solid #03bdc2; outline-offset: 1px; border-color: #03bdc2; }"
+    },
+    {
+      "name": "Sidebar Nav Item",
+      "kind": "nav",
+      "refersTo": "nav-item",
+      "description": "Persistent left-nav item; active state is a solid dark fill, not an underline or side stripe. Active icon now tints Sentry Teal instead of the old Tailwind emerald.",
+      "html": "<button class=\"ds-nav-item ds-nav-item--active\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" class=\"ds-nav-icon\"><path d=\"M9 20l-5.447-2.724A1 1 0 0 1 3 16.382V5.618a1 1 0 0 1 1.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0 0 21 18.382V7.618a1 1 0 0 0-.553-.894L15 4m0 13V4m0 0L9 7\"/></svg>Europe Map</button>",
+      "css": ".ds-nav-item { display: flex; align-items: center; gap: 12px; width: 100%; border: none; cursor: pointer; border-radius: 8px; padding: 10px 12px; text-align: left; font-size: 13px; font-weight: 500; background: transparent; color: #52525b; transition: background 0.15s ease, color 0.15s ease; } .ds-nav-item:hover { background: #f4f4f5; color: #18181b; } .ds-nav-item--active { background: #18181b; color: #ffffff; } .ds-nav-item--active .ds-nav-icon { color: #03bdc2; } .ds-nav-item:not(.ds-nav-item--active) .ds-nav-icon { color: #a1a1aa; }"
+    },
+    {
+      "name": "Flip Card (front)",
+      "kind": "custom",
+      "refersTo": "kpi-card",
+      "description": "Home-screen energy-type card, front face; flips on click via 3D transform. Front migrated from navy-legacy to Indigo Deep.",
+      "html": "<div class=\"ds-flip-front\"><span class=\"ds-flip-emoji\">&#9728;&#65039;</span><p class=\"ds-flip-title\">Solar energy</p><p class=\"ds-flip-desc\">Capturing sunlight to generate electricity</p><span class=\"ds-flip-cta\">Tap to learn more &rarr;</span></div>",
+      "css": ".ds-flip-front { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; height: 200px; padding: 16px 20px; background: #192168; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); text-align: center; } .ds-flip-emoji { font-size: 36px; } .ds-flip-title { font-size: 15px; font-weight: 700; color: #ffffff; letter-spacing: -0.2px; margin: 0; } .ds-flip-desc { font-size: 11px; color: rgba(255,255,255,0.5); margin: 0; } .ds-flip-cta { font-size: 10px; color: rgba(255,255,255,0.3); margin-top: 4px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Grid Readout",
+    "overview": "This is an instrument, not a brochure — and it now reads as a sibling product to its parent brands rather than a standalone consumer eco-app. enevogroup.com and sentryot.com set the identity: corporate, credentials-forward, dark-neutral-led, with green (Enevo) or teal (SentryOT) as one disciplined accent rather than the dominant hue. This system pulls Forest Green directly from Enevo's palette, adds SentryOT's teal as the second brand-level accent, and pairs both against Indigo Deep and Charcoal -- Enevo's own dark neutrals -- instead of the all-green, mint-washed look this app started with. It still explicitly rejects the eco-marketing playbook: no leaf illustrations, no gradient hero blobs, no stock-photo wind turbines, no hopeful-pastel color washes. Green means \"this is the Enevo family,\" not \"we care about nature.\" The system is still young: colors and type sizes are currently duplicated as local constants across four different screen files rather than shared tokens, and the previously-declared body font (Inter) was never installed.",
+    "keyCharacteristics": [
+      "Forest Green (Enevo's exact #12541d) is the primary brand signal; Sentry Teal (#03bdc2) is the one sanctioned secondary accent, borrowed directly from the sibling product.",
+      "Dark corporate neutrals -- Indigo Deep and Charcoal, both lifted from Enevo's own palette -- replace the old all-green hero gradient as the system's dark surface.",
+      "Flat at rest; the only elevation is a soft ambient shadow under cards, never a floating/glassy effect.",
+      "Data density over illustration: KPI cards, donut/bar charts, and choropleth fills are the actual content, not supporting decoration."
+    ],
+    "rules": [
+      { "name": "The Two-Accent Rule", "body": "Forest Green (matching Enevo Group) is the brand's primary signal color; Sentry Teal (matching SentryOT) is the sole secondary/interactive accent. Every other hue in the Tertiary set -- wind blue, solar amber, hydro cyan, geothermal red, biomass green, tidal sky, investment violet -- exists solely to encode a data category and must never be reused for UI chrome, buttons, or navigation.", "section": "colors" },
+      { "name": "The Corporate Darks Rule", "body": "Indigo Deep and Charcoal, both lifted from Enevo's own site, are the only sanctioned dark surfaces. The previous all-green 'Deep Pine' gradient and the one-off navy-legacy (#1e3a5f) used on flip-card fronts are both retired.", "section": "colors" },
+      { "name": "The Sibling-Brand Font Rule", "body": "Typography now matches Enevo Group's own choice (Roboto) rather than an unrelated product font. Roboto is not yet installed in frontend/; add it (@fontsource/roboto, weights 300/400/500/700) and remove the currently-uninstalled Inter reference in App.tsx. This supersedes the earlier recommendation to adopt @fontsource-variable/geist.", "section": "typography" },
+      { "name": "The Flat-By-Default Rule", "body": "Every surface is flat at rest; Ambient Card is the ceiling for anything embedded in page flow. Only floating overlays (tooltips) earn a heavier shadow.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do treat Forest (#12541d) as the primary brand signal and Sentry Teal (#03bdc2) as the only secondary/interactive accent; keep the Tertiary data palette exclusively for chart and category encoding.",
+      "Do use the 16px card radius ({rounded.lg}) on every card-shaped surface, with no exceptions.",
+      "Do keep the map/chart palette colorblind-safe -- pair color with icons or text labels the way the KPI cards already do (icon + label + color), never color alone.",
+      "Do install Roboto (@fontsource/roboto, weights 300/400/500/700, or Enevo's own Google Fonts link) to match the parent-brand typography, and remove the uninstalled Inter reference in App.tsx.",
+      "Do migrate the home hero and flip-card fronts from the retired green gradient / navy-legacy to the Indigo Deep -> Steel Navy pairing.",
+      "Do consolidate the color and type constants currently duplicated as local const blocks in DashboardScreen.tsx, ComparisonScreen.tsx, EuropeSummary.tsx, and HomeScreen.tsx into one shared tokens module built on these new values.",
+      "Do define hover/focus/disabled states for buttons and inputs before adding more of either -- right now most only have a default state."
+    ],
+    "donts": [
+      "Don't drift back to the bright, all-green \"eco app\" wash this system started as -- Forest is one accent among dark corporate neutrals now, not the dominant hue.",
+      "Don't introduce generic green/eco marketing aesthetics: leaf illustrations, gradient hero blobs, or stock nature photography (per PRODUCT.md's anti-references).",
+      "Don't use alarm-driven red framing as a default; Error Red is reserved strictly for actual fetch/data failures.",
+      "Don't use Sentry Teal for data encoding -- it's reserved for interactive/info UI chrome; Hydro Cyan remains the only cyan-family data color.",
+      "Don't add new one-off dark surfaces. Indigo Deep and Charcoal are the only two; nothing else should be invented.",
+      "Don't reference a font family string that isn't an installed dependency.",
+      "Don't ship the current placeholder brand assets as final: favicon.svg is a generic purple lightning-bolt icon unrelated to the brand, and icons.svg plus App.css are leftover Vite-template cruft with no live usage -- replace or remove before this is considered launch-ready."
+    ]
+  }
+}

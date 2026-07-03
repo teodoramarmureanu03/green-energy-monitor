@@ -2,17 +2,17 @@ import { useState, useMemo } from "react";
 import { useCountries } from "@/hooks/useCountries";
 import { useGeneration } from "@/hooks/useGeneration";
 import type { Country, CountryGeneration, SourceBreakdown } from "@/types/contract";
+import { colors, shadows } from "@/lib/tokens";
 
-const WIND_COLOR = "#2563eb";
-const SOLAR_COLOR = "#f59e0b";
-const GREEN_DARK = "#15803d";
-const GREEN_MID = "#22c55e";
-const GREEN_LIGHT = "#dcfce7";
-const CARD_BG = "#ffffff";
-const BORDER = "#d1fae5";
-const TEXT_DARK = "#111827";
-//const TEXT_MID = "#374151";
-const TEXT_MUTED = "#6b7280";
+const WIND_COLOR = colors.windBlue;
+const SOLAR_COLOR = colors.solarAmber;
+const GREEN_DARK = colors.forest;
+const GREEN_MID = colors.forestMid;
+const GREEN_LIGHT = colors.sageTint;
+const CARD_BG = colors.surface;
+const BORDER = colors.borderSage;
+const TEXT_DARK = colors.ink;
+const TEXT_MUTED = colors.muted;
 
 function aggregateSources(bySource: SourceBreakdown[]) {
   let windMw = 0, solarMw = 0;
@@ -61,7 +61,7 @@ function PinnedCard({ iso, data, onRemove, onOpen }: {
     <div onClick={onOpen} style={{
       background: CARD_BG, border: `1px solid ${BORDER}`, borderRadius: 16,
       padding: "18px 20px", cursor: "pointer", position: "relative",
-      boxShadow: "0 2px 8px rgba(0,0,0,0.06)", borderTop: `3px solid ${GREEN_MID}`,
+      boxShadow: shadows.ambientCard, borderTop: `3px solid ${GREEN_MID}`,
       transition: "box-shadow 0.15s",
     }}>
       <button
@@ -204,7 +204,7 @@ export function ComparisonScreen({ onOpenCountry }: { onOpenCountry: (iso: strin
           <h1 style={{ fontSize: 28, fontWeight: 700, color: TEXT_DARK, letterSpacing: "-0.5px" }}>Country Comparison</h1>
           <p style={{ fontSize: 14, color: TEXT_MUTED, marginTop: 4 }}>Ranked by solar & wind capacity · Click a country to open its dashboard</p>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, background: CARD_BG, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "6px 8px", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, background: CARD_BG, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "6px 8px", boxShadow: shadows.inputSubtle }}>
           <span style={{ fontSize: 12, color: TEXT_MUTED, paddingLeft: 6 }}>Sort by:</span>
           {(["total", "wind", "solar"] as SortKey[]).map((key) => (
             <button
@@ -236,7 +236,7 @@ export function ComparisonScreen({ onOpenCountry }: { onOpenCountry: (iso: strin
       )}
 
       {/* Table */}
-      <div style={{ background: CARD_BG, border: `1px solid ${BORDER}`, borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+      <div style={{ background: CARD_BG, border: `1px solid ${BORDER}`, borderRadius: 16, overflow: "hidden", boxShadow: shadows.ambientCard }}>
         {loading ? (
           <div style={{ padding: 48, textAlign: "center", fontSize: 14, color: TEXT_MUTED }}>
             🌱 Loading country data…
@@ -244,7 +244,7 @@ export function ComparisonScreen({ onOpenCountry }: { onOpenCountry: (iso: strin
         ) : (
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
-              <tr style={{ background: "#f0faf4", borderBottom: `1px solid ${BORDER}` }}>
+              <tr style={{ background: colors.mist, borderBottom: `1px solid ${BORDER}` }}>
                 {[
                   { label: "#", align: "left" as const, color: TEXT_MUTED },
                   { label: "Country", align: "left" as const, color: TEXT_MUTED },

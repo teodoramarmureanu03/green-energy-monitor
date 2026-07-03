@@ -5,8 +5,7 @@ import { EuropeMap } from "@/components/map/EuropeMap";
 import { Sidebar, type Screen } from "@/components/layout/Sidebar";
 import { EuropeSummary } from "@/components/EuropeSummary";
 import { HomeScreen } from "@/components/home/HomeScreen";
-
-const MAIN_BG = "#f0faf4";
+import { colors, fontFamily, shadows } from "@/lib/tokens";
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>("home");
@@ -24,7 +23,7 @@ export default function App() {
   return (
     <div style={{
       display: "flex", minHeight: "100vh",
-      background: MAIN_BG, fontFamily: "Inter, system-ui, sans-serif",
+      background: colors.mist, fontFamily,
     }}>
       <Sidebar active={screen} onNavigate={setScreen} />
 
@@ -44,8 +43,8 @@ export default function App() {
                 onClick={goToMap}
                 style={{
                   display: "inline-flex", alignItems: "center", gap: 8,
-                  fontSize: 13, fontWeight: 500, color: "#15803d",
-                  background: "#dcfce7", border: "1px solid #bbf7d0",
+                  fontSize: 13, fontWeight: 500, color: colors.forest,
+                  background: colors.sageTint, border: `1px solid ${colors.borderSage}`,
                   borderRadius: 8, padding: "7px 14px", cursor: "pointer",
                   width: "fit-content",
                 }}
@@ -65,16 +64,16 @@ export default function App() {
           {screen === "map" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               <div>
-                <h1 style={{ fontSize: 28, fontWeight: 700, color: "#111827", letterSpacing: "-0.5px" }}>
+                <h1 style={{ fontSize: 28, fontWeight: 700, color: colors.ink, letterSpacing: "-0.5px" }}>
                   Europe Map
                 </h1>
-                <p style={{ fontSize: 14, color: "#6b7280", marginTop: 4 }}>
+                <p style={{ fontSize: 14, color: colors.muted, marginTop: 4 }}>
                   Click a country to open its solar & wind investment dashboard
                 </p>
               </div>
               <div style={{
-                background: "#ffffff", borderRadius: 16, padding: 24,
-                border: "1px solid #d1fae5", boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                background: colors.surface, borderRadius: 16, padding: 24,
+                border: `1px solid ${colors.borderSage}`, boxShadow: shadows.ambientCard,
                 width: "100%", minHeight: 560,
               }}>
                 <EuropeMap onSelectCountry={openCountry} />

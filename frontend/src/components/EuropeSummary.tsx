@@ -4,6 +4,7 @@
 // ============================================================================
 import { useEffect, useState } from "react";
 import { fetchCountries, fetchGeneration } from "@/lib/api";
+import { colors, gradients, shadows } from "@/lib/tokens";
 
 export function EuropeSummary() {
   const [loading, setLoading] = useState(true);
@@ -44,12 +45,12 @@ export function EuropeSummary() {
   return (
     <div
       style={{
-        background: "linear-gradient(135deg, #0d2b1d, #1a4a30)",
+        background: gradients.heroDark,
         color: "#fff",
         borderRadius: 16,
         padding: 24,
         marginBottom: 20,
-        boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
+        boxShadow: shadows.ambientHero,
       }}
     >
       <div style={{ fontSize: 13, opacity: 0.8, marginBottom: 12 }}>
@@ -70,7 +71,7 @@ export function EuropeSummary() {
           </div>
 
           <div>
-            <div style={{ fontSize: 32, fontWeight: 700, color: "#4ade80" }}>
+            <div style={{ fontSize: 32, fontWeight: 700, color: colors.sentryTeal }}>
               {pct}%
             </div>
             <div style={{ fontSize: 12, opacity: 0.75, marginTop: 4 }}>

@@ -39,7 +39,7 @@ export function Sidebar({
     <nav className="sticky top-0 flex h-screen w-[260px] flex-shrink-0 flex-col border-r border-zinc-200 bg-linear-to-b from-zinc-50 to-white px-3.5 py-5">
       {/* logo */}
       <div className="mb-5 flex items-center gap-2.5 border-b border-zinc-200 px-1 pb-4">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-linear-to-br from-green-500 to-emerald-600 text-white shadow-sm">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-linear-to-br from-[#12541d] to-[#1c6b2a] text-white shadow-sm">
           <Leaf className="h-5 w-5" />
         </div>
         <div className="leading-tight">
@@ -74,14 +74,14 @@ export function Sidebar({
                 : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
             )}
           >
-            <Icon className={cn("h-[18px] w-[18px] flex-shrink-0", isActive ? "text-green-400" : "text-zinc-400")} />
+            <Icon className={cn("h-[18px] w-[18px] flex-shrink-0", isActive ? "text-[#03bdc2]" : "text-zinc-400")} />
             {item.label}
           </button>
         );
       })}
 
       {/* hint */}
-      <div className="mx-2 mt-3 rounded-lg border border-green-100 bg-green-50 px-3 py-2.5 text-[11px] leading-relaxed text-green-700">
+      <div className="mx-2 mt-3 rounded-lg border border-[#dde3de] bg-[#dde9df] px-3 py-2.5 text-[11px] leading-relaxed text-[#12541d]">
         💡 Click any country on the map to open its investment dashboard.
       </div>
 

@@ -1,10 +1,11 @@
 import { useState } from "react";
+import { colors, gradients, shadows } from "@/lib/tokens";
 
-const CARD_FRONT_BG = "#1e3a5f";
+const CARD_FRONT_BG = colors.indigoDeep;
 const CARD_FRONT_TEXT = "#ffffff";
-const CARD_BACK_BG = "#f0faf4";
-const CARD_BACK_TEXT = "#111827";
-const ACCENT = "#22c55e";
+const CARD_BACK_BG = colors.mist;
+const CARD_BACK_TEXT = colors.ink;
+const ACCENT = colors.sentryTeal;
 
 interface EnergyCard {
   id: string;
@@ -201,21 +202,21 @@ export function HomeScreen() {
     <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
       {/* Hero */}
       <div style={{
-        background: "linear-gradient(135deg, #0d2b1d, #1a4a30)",
+        background: gradients.heroDark,
         borderRadius: 20, padding: "40px 48px",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.12)",
+        boxShadow: shadows.ambientHero,
       }}>
         <div style={{ maxWidth: 600 }}>
           <div style={{
             display: "inline-flex", alignItems: "center", gap: 8,
-            background: "rgba(34,197,94,0.15)", borderRadius: 20,
+            background: "rgba(3,189,194,0.15)", borderRadius: 20,
             padding: "4px 14px", marginBottom: 16,
           }}>
             <span style={{ width: 8, height: 8, borderRadius: "50%", background: ACCENT, display: "inline-block" }} />
             <span style={{ fontSize: 12, color: ACCENT, fontWeight: 600 }}>Renewable Investment Advisor</span>
           </div>
           <h1 style={{
-            fontSize: 36, fontWeight: 800, color: "#fff",
+            fontSize: 36, fontWeight: 700, color: "#fff",
             letterSpacing: "-0.5px", lineHeight: 1.2, marginBottom: 12,
           }}>
             The future of energy is renewable
@@ -229,10 +230,10 @@ export function HomeScreen() {
 
       {/* Section title */}
       <div>
-        <h2 style={{ fontSize: 20, fontWeight: 700, color: "#111827", letterSpacing: "-0.3px" }}>
+        <h2 style={{ fontSize: 20, fontWeight: 500, color: colors.ink, letterSpacing: "-0.3px" }}>
           Renewable energy types
         </h2>
-        <p style={{ fontSize: 13, color: "#6b7280", marginTop: 4 }}>
+        <p style={{ fontSize: 13, color: colors.muted, marginTop: 4 }}>
           Click a card to flip it and learn more
         </p>
       </div>
@@ -248,7 +249,7 @@ export function HomeScreen() {
         ))}
       </div>
 
-      <p style={{ fontSize: 11, textAlign: "center", color: "#9ca3af", marginTop: 8 }}>
+      <p style={{ fontSize: 11, textAlign: "center", color: colors.muted, marginTop: 8 }}>
         Data: Energy-Charts.info (CC BY 4.0) · Global capacity figures from IRENA 2023
       </p>
     </div>
