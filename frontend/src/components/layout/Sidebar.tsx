@@ -1,29 +1,20 @@
-// ============================================================================
-// Sidebar — bara laterală, versiune îmbunătățită.
-//  - iconițe reale (lucide-react) în loc de buline
-//  - ceas live cu data și ora, actualizat din secundă în secundă
-//  - design mai rafinat (gradient subtil pe logo, stări hover/active mai clare)
-//  - atribuirea Energy-Charts păstrată jos
-// ============================================================================
 import { useEffect, useState } from "react";
-import { LayoutDashboard, GitCompareArrows, Map, Leaf } from "lucide-react";
+import { GitCompareArrows, Map, Leaf, Home } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type Screen = "dashboard" | "comparison" | "map";
+export type Screen = "home" | "dashboard" | "comparison" | "map";
 
-// fiecare ecran cu eticheta și iconița lui
 const ITEMS: { id: Screen; label: string; icon: React.ElementType }[] = [
-  { id: "dashboard", label: "Country Dashboard", icon: LayoutDashboard },
-  { id: "comparison", label: "Country Comparison", icon: GitCompareArrows },
+  { id: "home", label: "Home", icon: Home },
   { id: "map", label: "Europe Map", icon: Map },
+  { id: "comparison", label: "Country Comparison", icon: GitCompareArrows },
 ];
 
-// ---- mic hook pentru ceasul live ----
 function useNow() {
   const [now, setNow] = useState(new Date());
   useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 1000); // tic-tac la 1s
-    return () => clearInterval(id); // curățăm când dispare componenta
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
   }, []);
   return now;
 }
@@ -37,22 +28,16 @@ export function Sidebar({
 }) {
   const now = useNow();
 
-  // format frumos pentru dată și oră
   const timeStr = now.toLocaleTimeString("en-EN", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
   });
   const dateStr = now.toLocaleDateString("en-EN", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
+    weekday: "long", day: "numeric", month: "long", year: "numeric",
   });
 
   return (
     <nav className="sticky top-0 flex h-screen w-[260px] flex-shrink-0 flex-col border-r border-zinc-200 bg-linear-to-b from-zinc-50 to-white px-3.5 py-5">
-      {/* logo + nume */}
+      {/* logo */}
       <div className="mb-5 flex items-center gap-2.5 border-b border-zinc-200 px-1 pb-4">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-linear-to-br from-green-500 to-emerald-600 text-white shadow-sm">
           <Leaf className="h-5 w-5" />
@@ -63,7 +48,7 @@ export function Sidebar({
         </div>
       </div>
 
-      {/* ceas live */}
+      {/* live clock */}
       <div className="mb-5 rounded-lg border border-zinc-200 bg-white px-3 py-2.5 shadow-sm">
         <div className="font-mono text-2xl font-semibold tabular-nums text-zinc-800">
           {timeStr}
@@ -72,13 +57,12 @@ export function Sidebar({
       </div>
 
       <div className="px-2 pb-2 text-[11px] font-semibold uppercase tracking-wide text-zinc-400">
-        Screens
+        Navigation
       </div>
 
-      {/* butoane de navigare cu iconițe */}
       {ITEMS.map((item) => {
         const Icon = item.icon;
-        const isActive = active === item.id;
+        const isActive = active === item.id || (item.id === "map" && active === "dashboard");
         return (
           <button
             key={item.id}
@@ -90,28 +74,23 @@ export function Sidebar({
                 : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
             )}
           >
-            <Icon
-              className={cn(
-                "h-[18px] w-[18px] flex-shrink-0",
-                isActive ? "text-green-400" : "text-zinc-400"
-              )}
-            />
+            <Icon className={cn("h-[18px] w-[18px] flex-shrink-0", isActive ? "text-green-400" : "text-zinc-400")} />
             {item.label}
           </button>
         );
       })}
 
-      {/* atribuire obligatorie Energy-Charts (CC BY 4.0) */}
+      {/* hint */}
+      <div className="mx-2 mt-3 rounded-lg border border-green-100 bg-green-50 px-3 py-2.5 text-[11px] leading-relaxed text-green-700">
+        💡 Click any country on the map to open its investment dashboard.
+      </div>
+
+      {/* attribution */}
       <div className="mt-auto border-t border-zinc-200 px-2 pt-4 text-[10px] leading-relaxed text-zinc-400">
         Data:{" "}
-        <a
-          href="https://energy-charts.info"
-          target="_blank"
-          rel="noreferrer"
-          className="underline hover:text-zinc-600"
-        >
-          Renewables.info
-        </a>{" "}
+        <a href="https://energy-charts.info" target="_blank" rel="noreferrer" className="underline hover:text-zinc-600">
+          Energy-Charts.info
+        </a>
       </div>
     </nav>
   );

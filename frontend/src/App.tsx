@@ -4,23 +4,21 @@ import { ComparisonScreen } from "@/components/comparison/ComparisonScreen";
 import { EuropeMap } from "@/components/map/EuropeMap";
 import { Sidebar, type Screen } from "@/components/layout/Sidebar";
 import { EuropeSummary } from "@/components/EuropeSummary";
+import { HomeScreen } from "@/components/home/HomeScreen";
 
-//type Screen = "dashboard" | "comparison" | "map";
-
-//const SIDEBAR_BG = "#0d2b1d";
-//const SIDEBAR_ACTIVE = "#1a4a30";
-//const ACCENT_GREEN = "#22c55e";
 const MAIN_BG = "#f0faf4";
 
-
 export default function App() {
-  const [screen, setScreen] = useState<Screen>("dashboard");
-  const [selectedIso, setSelectedIso] = useState("DE");
+  const [screen, setScreen] = useState<Screen>("home");
+  const [selectedIso, setSelectedIso] = useState<string | null>(null);
 
-  // When a country is clicked (from map or comparison) → jump to dashboard
   function openCountry(iso: string) {
     setSelectedIso(iso);
     setScreen("dashboard");
+  }
+
+  function goToMap() {
+    setScreen("map");
   }
 
   return (
@@ -32,24 +30,46 @@ export default function App() {
 
       <main style={{ flex: 1, overflowX: "auto", padding: "36px 40px" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-        <EuropeSummary /> 
-          {screen === "dashboard" && (
-            // key forces remount when country changes (from map or comparison click)
-            <DashboardScreen key={selectedIso} initialIso={selectedIso} />
+
+          {/* Home page — no EuropeSummary banner */}
+          {screen === "home" && <HomeScreen />}
+
+          {/* All other screens show the Europe summary banner */}
+          {screen !== "home" && <EuropeSummary />}
+
+          {/* Dashboard — only reachable by clicking a country */}
+          {screen === "dashboard" && selectedIso && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+              <button
+                onClick={goToMap}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 8,
+                  fontSize: 13, fontWeight: 500, color: "#15803d",
+                  background: "#dcfce7", border: "1px solid #bbf7d0",
+                  borderRadius: 8, padding: "7px 14px", cursor: "pointer",
+                  width: "fit-content",
+                }}
+              >
+                ← Back to map
+              </button>
+              <DashboardScreen key={selectedIso} initialIso={selectedIso} />
+            </div>
           )}
 
+          {/* Comparison */}
           {screen === "comparison" && (
             <ComparisonScreen onOpenCountry={openCountry} />
           )}
 
-          {screen === "map" && ( 
+          {/* Map */}
+          {screen === "map" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               <div>
                 <h1 style={{ fontSize: 28, fontWeight: 700, color: "#111827", letterSpacing: "-0.5px" }}>
                   Europe Map
                 </h1>
                 <p style={{ fontSize: 14, color: "#6b7280", marginTop: 4 }}>
-                  Click a country to open its investment dashboard
+                  Click a country to open its solar & wind investment dashboard
                 </p>
               </div>
               <div style={{

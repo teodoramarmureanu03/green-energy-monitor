@@ -83,19 +83,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\TeodoraMarmureanu\\.nuget\\packages\\": {}
+    "C:\\Users\\AndreeaFuior\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\TeodoraMarmureanu\\OneDrive - Enevo\\Desktop\\green-energy-monitor\\backend\\backend.csproj",
+      "projectUniqueName": "C:\\Users\\AndreeaFuior\\OneDrive - Enevo\\Desktop\\green-energy-monitor\\backend\\backend.csproj",
       "projectName": "backend",
-      "projectPath": "C:\\Users\\TeodoraMarmureanu\\OneDrive - Enevo\\Desktop\\green-energy-monitor\\backend\\backend.csproj",
-      "packagesPath": "C:\\Users\\TeodoraMarmureanu\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\TeodoraMarmureanu\\OneDrive - Enevo\\Desktop\\green-energy-monitor\\backend\\obj\\",
+      "projectPath": "C:\\Users\\AndreeaFuior\\OneDrive - Enevo\\Desktop\\green-energy-monitor\\backend\\backend.csproj",
+      "packagesPath": "C:\\Users\\AndreeaFuior\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\AndreeaFuior\\OneDrive - Enevo\\Desktop\\green-energy-monitor\\backend\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\TeodoraMarmureanu\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\AndreeaFuior\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net10.0"
@@ -568,5 +568,17 @@
         }
       }
     }
-  }
+  },
+  "logs": [
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'Microsoft.OpenApi' 2.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-v5pm-xwqc-g5wc",
+      "libraryId": "Microsoft.OpenApi",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    }
+  ]
 }
