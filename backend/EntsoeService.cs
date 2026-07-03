@@ -1,6 +1,8 @@
 using System.Xml.Linq;
 using System.Globalization;
+using System.Text.Json;
 using backend.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace backend;
 
@@ -8,15 +10,16 @@ public class EntsoeService
 {
     private readonly HttpClient _http = new();
     private readonly string _apiKey;
-    // cache în memorie: iso -> (date, momentul când au fost luate)
-    private static readonly Dictionary<string, (CountryGeneration data, DateTime time)> _cache = new();
-    private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(15);
-    public EntsoeService(string apiKey)
+    private readonly IServiceScopeFactory _scopeFactory;
+    private static readonly TimeSpan RefreshInterval = TimeSpan.FromMinutes(15);
+
+    public EntsoeService(string apiKey, IServiceScopeFactory scopeFactory)
     {
         _apiKey = apiKey;
+        _scopeFactory = scopeFactory;
     }
 
-    // Traducere cod sursă ENTSO-E -> nume + dacă e regenerabil
+    // Source code -> (display name, is renewable)
     private static readonly Dictionary<string, (string Name, bool Renewable)> SourceMap = new()
     {
         ["B01"] = ("Biomass", true),
@@ -38,7 +41,7 @@ public class EntsoeService
         ["B20"] = ("Other", false),
     };
 
-    // Traducere cod ISO -> cod(uri) EIC ale zonelor. Țările multi-zonă au mai multe.
+    // ISO code -> EIC zone codes
     private static readonly Dictionary<string, string[]> ZoneCodes = new()
     {
         ["AT"] = new[] { "10YAT-APG------L" },
@@ -57,107 +60,139 @@ public class EntsoeService
         ["HU"] = new[] { "10YHU-MAVIR----U" },
         ["IE"] = new[] { "10Y1001A1001A59C" },
         ["IT"] = new[] {
-            "10Y1001A1001A73I", // IT-North
-            "10Y1001A1001A70O", // IT-Centre-North
-            "10Y1001A1001A71M", // IT-Centre-South
-            "10Y1001A1001A788", // IT-South
-            "10Y1001A1001A75E", // IT-Sicily
-            "10Y1001A1001A74G", // IT-Sardinia
+            "10Y1001A1001A73I",
+            "10Y1001A1001A70O",
+            "10Y1001A1001A71M",
+            "10Y1001A1001A788",
+            "10Y1001A1001A75E",
+            "10Y1001A1001A74G",
         },
         ["LT"] = new[] { "10YLT-1001A0008Q" },
         ["LV"] = new[] { "10YLV-1001A00074" },
         ["NL"] = new[] { "10YNL----------L" },
         ["NO"] = new[] {
-            "10YNO-1--------2", // NO1
-            "10YNO-2--------T", // NO2
-            "10YNO-3--------J", // NO3
-            "10YNO-4--------9", // NO4
-            "10Y1001A1001A48H", // NO5
+            "10YNO-1--------2",
+            "10YNO-2--------T",
+            "10YNO-3--------J",
+            "10YNO-4--------9",
+            "10Y1001A1001A48H",
         },
         ["PL"] = new[] { "10YPL-AREA-----S" },
         ["PT"] = new[] { "10YPT-REN------W" },
         ["RO"] = new[] { "10YRO-TEL------P" },
         ["SE"] = new[] {
-            "10Y1001A1001A44P", // SE1
-            "10Y1001A1001A45N", // SE2
-            "10Y1001A1001A46L", // SE3
-            "10Y1001A1001A47J", // SE4
+            "10Y1001A1001A44P",
+            "10Y1001A1001A45N",
+            "10Y1001A1001A46L",
+            "10Y1001A1001A47J",
         },
         ["SI"] = new[] { "10YSI-ELES-----O" },
         ["SK"] = new[] { "10YSK-SEPS-----K" },
     };
 
-    // Metodă generală — pentru orice țară
+    // Called by the API endpoint — reads from DB, returns cached data
     public async Task<CountryGeneration> GetGenerationAsync(string iso, string countryName)
-{
-    iso = iso.ToUpper();
-
-    // MODIFICARE 1: verificăm cache-ul întâi. Dacă avem date recente, le folosim.
-    if (_cache.ContainsKey(iso))
     {
-        var cached = _cache[iso];
-        if (DateTime.UtcNow - cached.time < CacheDuration)
-            return cached.data;
-    }
+        iso = iso.ToUpper();
 
-    if (!ZoneCodes.ContainsKey(iso))
-        throw new Exception($"Nu am cod EIC pentru {iso}");
+        using var scope = _scopeFactory.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<EnergyDbContext>();
 
-    var zones = ZoneCodes[iso];
+        // Try to get from database first
+        var record = await db.GenerationRecords
+            .FirstOrDefaultAsync(r => r.IsoCode == iso);
 
-    // adunăm producția pe surse din TOATE zonele țării
-    var totalBySource = new Dictionary<string, double>();
-
-    foreach (var zone in zones)
-    {
-        var xml = await FetchZoneXml(zone);
-        var zoneData = ParseZone(xml);
-        // adunăm în totalBySource
-        foreach (var kv in zoneData)
+        // If we have fresh data (less than 15 minutes old), return it
+        if (record != null && DateTime.UtcNow - record.FetchedAt < RefreshInterval)
         {
-            if (!totalBySource.ContainsKey(kv.Key))
-                totalBySource[kv.Key] = 0;
-            totalBySource[kv.Key] += kv.Value;
+            return MapRecordToDto(record);
         }
+
+        // Otherwise fetch fresh data from ENTSO-E and save to DB
+        return await FetchAndSaveAsync(iso, countryName, db, record);
     }
 
-    // construim lista bySource
-    var bySource = new List<SourceBreakdown>();
-    foreach (var kv in totalBySource)
+    // Fetches from ENTSO-E, saves to DB, returns the DTO
+    public async Task<CountryGeneration> FetchAndSaveAsync(
+        string iso, string countryName, EnergyDbContext db, GenerationRecord? existing)
     {
-        if (!SourceMap.ContainsKey(kv.Key)) continue;
-        var (name, renewable) = SourceMap[kv.Key];
-        bySource.Add(new SourceBreakdown
+        if (!ZoneCodes.ContainsKey(iso))
+            throw new Exception($"No EIC code for {iso}");
+
+        var zones = ZoneCodes[iso];
+        var totalBySource = new Dictionary<string, double>();
+
+        foreach (var zone in zones)
         {
-            Source = name,
-            Renewable = renewable,
-            ValueMw = Math.Round(kv.Value, 1)
-        });
+            var xml = await FetchZoneXml(zone);
+            var zoneData = ParseZone(xml);
+            foreach (var kv in zoneData)
+            {
+                if (!totalBySource.ContainsKey(kv.Key))
+                    totalBySource[kv.Key] = 0;
+                totalBySource[kv.Key] += kv.Value;
+            }
+        }
+
+        var bySource = new List<SourceBreakdown>();
+        foreach (var kv in totalBySource)
+        {
+            if (!SourceMap.ContainsKey(kv.Key)) continue;
+            var (name, renewable) = SourceMap[kv.Key];
+            bySource.Add(new SourceBreakdown
+            {
+                Source = name,
+                Renewable = renewable,
+                ValueMw = Math.Round(kv.Value, 1)
+            });
+        }
+
+        var total = bySource.Sum(s => s.ValueMw);
+        var renewableMw = bySource.Where(s => s.Renewable).Sum(s => s.ValueMw);
+        var pct = total > 0 ? Math.Round(renewableMw / total * 100, 1) : 0;
+
+        // Save or update the record in the database
+        if (existing == null)
+        {
+            existing = new GenerationRecord { IsoCode = iso };
+            db.GenerationRecords.Add(existing);
+        }
+
+        existing.CountryName = countryName;
+        existing.FetchedAt = DateTime.UtcNow;
+        existing.Total = Math.Round(total, 1);
+        existing.RenewableMw = Math.Round(renewableMw, 1);
+        existing.RenewablePct = pct;
+        existing.BySourceJson = JsonSerializer.Serialize(bySource);
+        existing.ZonesAggregatedJson = JsonSerializer.Serialize(zones.ToList());
+
+        // Save to PostgreSQL
+        await db.SaveChangesAsync();
+
+        return MapRecordToDto(existing);
     }
 
-    var total = bySource.Sum(s => s.ValueMw);
-    var renewableMw = bySource.Where(s => s.Renewable).Sum(s => s.ValueMw);
-    var pct = total > 0 ? Math.Round(renewableMw / total * 100, 1) : 0;
-
-    // MODIFICARE 2: punem rezultatul într-o variabilă (în loc de return direct)
-    var result = new CountryGeneration
+    // Converts a DB record back into the API response DTO
+    private static CountryGeneration MapRecordToDto(GenerationRecord record)
     {
-        IsoCode = iso,
-        Country = countryName,
-        Timestamp = DateTime.UtcNow.ToString("o"),
-        ZonesAggregated = zones.ToList(),
-        Total = Math.Round(total, 1),
-        RenewableMw = Math.Round(renewableMw, 1),
-        RenewablePct = pct,
-        BySource = bySource
-    };
+        var bySource = JsonSerializer.Deserialize<List<SourceBreakdown>>(record.BySourceJson)
+                       ?? new List<SourceBreakdown>();
+        var zones = JsonSerializer.Deserialize<List<string>>(record.ZonesAggregatedJson)
+                    ?? new List<string>();
 
-    // MODIFICARE 3: salvăm în cache înainte de return
-    _cache[iso] = (result, DateTime.UtcNow);
-    return result;
-}
+        return new CountryGeneration
+        {
+            IsoCode = record.IsoCode,
+            Country = record.CountryName,
+            Timestamp = record.FetchedAt.ToString("o"),
+            ZonesAggregated = zones,
+            Total = record.Total,
+            RenewableMw = record.RenewableMw,
+            RenewablePct = record.RenewablePct,
+            BySource = bySource
+        };
+    }
 
-    // cere XML-ul pentru o zonă
     private async Task<string> FetchZoneXml(string zoneCode)
     {
         var now = DateTime.UtcNow;
@@ -173,7 +208,6 @@ public class EntsoeService
         return await _http.GetStringAsync(url);
     }
 
-    // parsează un XML de zonă -> dicționar cod sursă -> ultima valoare
     private Dictionary<string, double> ParseZone(string xmlText)
     {
         var result = new Dictionary<string, double>();

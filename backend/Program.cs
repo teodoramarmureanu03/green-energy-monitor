@@ -1,19 +1,37 @@
 using backend.Models;
 using backend;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// CORS — permite frontend-ului (Vite pe 5173) să ceară date
+// CORS — allow frontend (Vite on 5173)
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(p =>
         p.WithOrigins("http://localhost:5173")
          .AllowAnyHeader()
          .AllowAnyMethod()));
 
-// citim cheia ENTSO-E și cream serviciul
-var apiKey = builder.Configuration["EntsoeApiKey"] ?? "";
-var entsoe = new EntsoeService(apiKey);
+// Register PostgreSQL DbContext via EF Core
+builder.Services.AddDbContext<EnergyDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// dicționar iso -> nume (pentru toate țările)
+var apiKey = builder.Configuration["EntsoeApiKey"] ?? "";
+
+var app = builder.Build();
+
+// Run EF Core migrations automatically on startup — creates tables if they don't exist
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<EnergyDbContext>();
+    db.Database.Migrate();
+}
+
+// Create EntsoeService with access to the DI scope factory (needed to get DbContext in background tasks)
+var entsoe = new EntsoeService(apiKey, app.Services.GetRequiredService<IServiceScopeFactory>());
+
+app.UseCors();
+
+// Country list
 var countryNames = new Dictionary<string, string>
 {
     ["AT"] = "Austria", ["BE"] = "Belgium", ["BG"] = "Bulgaria",
@@ -27,10 +45,7 @@ var countryNames = new Dictionary<string, string>
     ["SI"] = "Slovenia", ["SK"] = "Slovakia",
 };
 
-var app = builder.Build();
-app.UseCors();
-
-// Endpoint 1: lista tuturor țărilor
+// Endpoint 1: list of countries
 app.MapGet("/api/countries", () =>
     countryNames.Select(kv => new CountryInfo
     {
@@ -39,12 +54,12 @@ app.MapGet("/api/countries", () =>
         Name = kv.Value
     }));
 
-// Endpoint 2: datele de generație pentru o țară
+// Endpoint 2: generation data for a country — reads from DB, fetches from ENTSO-E only if stale
 app.MapGet("/api/generation/{iso}", async (string iso) =>
 {
     iso = iso.ToUpper();
     if (!countryNames.ContainsKey(iso))
-        return Results.NotFound($"Țară necunoscută: {iso}");
+        return Results.NotFound($"Unknown country: {iso}");
 
     try
     {
@@ -53,29 +68,61 @@ app.MapGet("/api/generation/{iso}", async (string iso) =>
     }
     catch (Exception ex)
     {
-        return Results.Problem($"Eroare pentru {iso}: {ex.Message}");
+        return Results.Problem($"Error for {iso}: {ex.Message}");
     }
 });
 
-// La pornire, încălzim cache-ul: cerem fiecare țară cu pauză, ca să nu ne banăm.
-// Rulează în fundal, nu blochează pornirea serverului.
-// La pornire, umplem cache-ul cu pauze, ca sa nu suprasolicitam ENTSO-E.
+// Background cache warm-up: fetch all countries on startup with 2s delay between each
+// Data is saved to PostgreSQL so it survives restarts
 _ = Task.Run(async () =>
 {
+    // Wait a few seconds for the app to fully start
+    await Task.Delay(3000);
+
     foreach (var kv in countryNames)
     {
         try
         {
             await entsoe.GetGenerationAsync(kv.Key, kv.Value);
-            Console.WriteLine($"Cache incarcat: {kv.Key}");
+            Console.WriteLine($"Cached: {kv.Key}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Eroare la {kv.Key}: {ex.Message}");
+            Console.WriteLine($"Error for {kv.Key}: {ex.Message}");
         }
-        await Task.Delay(2000); // pauza de 2 secunde intre tari
+        await Task.Delay(2000);
     }
-    Console.WriteLine("Cache complet incarcat!");
+    Console.WriteLine("All countries cached in PostgreSQL.");
+});
+
+// Background refresh: re-fetch all countries every 15 minutes
+_ = Task.Run(async () =>
+{
+    while (true)
+    {
+        await Task.Delay(TimeSpan.FromMinutes(15));
+        Console.WriteLine("Starting 15-minute refresh...");
+
+        using var scope = app.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<EnergyDbContext>();
+
+        foreach (var kv in countryNames)
+        {
+            try
+            {
+                var existing = await db.GenerationRecords
+                    .FirstOrDefaultAsync(r => r.IsoCode == kv.Key);
+                await entsoe.FetchAndSaveAsync(kv.Key, kv.Value, db, existing);
+                Console.WriteLine($"Refreshed: {kv.Key}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Refresh error for {kv.Key}: {ex.Message}");
+            }
+            await Task.Delay(2000);
+        }
+        Console.WriteLine("15-minute refresh complete.");
+    }
 });
 
 app.Run();
