@@ -196,8 +196,9 @@
 /* ---- Instrument-strip stat row: dividers only make sense side-by-side ---- */
 .stat-strip {
   display: flex;
-  flex-wrap: wrap;
-  row-gap: 28px;
+  flex-wrap: nowrap;
+  gap: 0;
+  align-items: flex-start;
 }
 .stat-strip-item {
   padding-right: 0;
