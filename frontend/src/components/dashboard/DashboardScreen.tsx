@@ -7,21 +7,17 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList,
 } from "recharts";
 import { colors, shadows } from "@/lib/tokens";
-import { Wind, Sun, Zap, BarChart2, MapPin } from "lucide-react";
 
 // ---- Enevo brand colors ----
-const WIND_COLOR   = colors.indigoDeep;  // #192168
-const SOLAR_COLOR  = colors.sentryTeal;  // #03bdc2
-const KPI_WIND     = colors.indigoDeep;
-const KPI_SOLAR    = colors.sentryTeal;
-const KPI_SHARE    = "#6d4c9e";
-const GREEN_DARK   = colors.forest;
-const GREEN_LIGHT  = colors.sageTint;
-const CARD_BG      = colors.surface;
-const TEXT_DARK    = colors.ink;
-const TEXT_MID     = colors.slate;
-const TEXT_MUTED   = colors.muted;
-const BORDER       = colors.borderSage;
+const WIND_COLOR  = colors.indigoDeep;   // #192168
+const SOLAR_COLOR = colors.sentryTeal;   // #03bdc2
+const GREEN_DARK  = colors.forest;
+const GREEN_LIGHT = colors.sageTint;
+const CARD_BG     = colors.surface;
+const TEXT_DARK   = colors.ink;
+const TEXT_MID    = colors.slate;
+const TEXT_MUTED  = colors.muted;
+const BORDER      = "#b8cdb8";
 
 function aggregateSources(bySource: SourceBreakdown[]) {
   let windMw = 0, solarMw = 0;
@@ -35,59 +31,21 @@ function aggregateSources(bySource: SourceBreakdown[]) {
 function fmt(n: number) { return Math.round(n).toLocaleString("en-GB"); }
 function fmtK(n: number) { return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(Math.round(n)); }
 
-// ---- Custom label rendered inside donut slices ----
-function DonutLabel(props: {
-  cx?: number; cy?: number; midAngle?: number; innerRadius?: number;
-  outerRadius?: number; name?: string; value?: number; percent?: number;
-}) {
-  const { cx = 0, cy = 0, midAngle = 0, innerRadius = 0, outerRadius = 0, name, value, percent = 0 } = props;
-  if (percent < 0.05) return null; // hide tiny slices
-
-  const RADIAN = Math.PI / 180;
-  const radius = innerRadius + (outerRadius - innerRadius) * 0.55;
-  const x = cx + radius * Math.cos(-midAngle * RADIAN);
-  const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-  return (
-    <g>
-      <text x={x} y={y - 9} textAnchor="middle" fill="#fff" fontSize={11} fontWeight={600} opacity={0.85}>
-        {name}
-      </text>
-      <text x={x} y={y + 8} textAnchor="middle" fill="#fff" fontSize={15} fontWeight={700}>
-        {fmtK(value ?? 0)} MW
-      </text>
-      <text x={x} y={y + 23} textAnchor="middle" fill="rgba(255,255,255,0.75)" fontSize={11}>
-        {(percent * 100).toFixed(0)}%
-      </text>
-    </g>
-  );
-}
-
-// ---- Custom bar label (value on top) ----
-function BarTopLabel(props: { x?: number; y?: number; width?: number; value?: number }) {
-  const { x = 0, y = 0, width = 0, value = 0 } = props;
-  return (
-    <text x={x + width / 2} y={y - 8} textAnchor="middle" fill={TEXT_MID} fontSize={13} fontWeight={600}>
-      {fmtK(value)} MW
-    </text>
-  );
-}
-
 // ---- Hero KPI card ----
-function HeroKpiCard({ label, value, unit, sub }: {
-  label: string; value: string; unit: string; sub: string;
+function HeroKpiCard({ label, value, unit, sub, icon }: {
+  label: string; value: string; unit: string; sub: string; icon: string;
 }) {
   return (
     <div style={{
       background: `linear-gradient(135deg, ${colors.indigoDeep} 0%, ${colors.steelNavy} 100%)`,
       borderRadius: 20, padding: "28px 32px", color: "#fff",
       display: "flex", flexDirection: "column", justifyContent: "space-between",
-      minHeight: 148, boxShadow: shadows.ambientHero,
+      minHeight: 168, boxShadow: shadows.ambientHero,
     }}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
         <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</span>
-        <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <Zap size={18} color={colors.sentryTeal} strokeWidth={2} />
+        <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>
+          {icon}
         </div>
       </div>
       <div>
@@ -101,42 +59,47 @@ function HeroKpiCard({ label, value, unit, sub }: {
 }
 
 // ---- Secondary KPI card ----
-function KpiCard({ label, value, unit, sub, accentColor, icon, iconBg }: {
+function KpiCard({ label, value, unit, sub, topColor, icon, iconBg }: {
   label: string; value: string; unit: string; sub: string;
-  accentColor: string; icon: React.ReactNode; iconBg: string;
+  topColor: string; icon: string; iconBg: string;
 }) {
   return (
     <div style={{
-      background: CARD_BG, borderRadius: 20, padding: "22px 24px",
-      border: `1px solid ${BORDER}`, borderTop: `3px solid ${accentColor}`,
+      background: CARD_BG, borderRadius: 20, padding: "20px 24px 24px",
+      minHeight: 168, display: "flex", flexDirection: "column", justifyContent: "space-between",
+      border: `1.5px solid ${BORDER}`, borderTop: `6px solid ${topColor}`,
       boxShadow: shadows.ambientCard,
     }}>
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 14 }}>
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
         <span style={{ fontSize: 11, fontWeight: 600, color: TEXT_MUTED, textTransform: "uppercase", letterSpacing: "0.07em" }}>{label}</span>
-        <div style={{ width: 32, height: 32, borderRadius: 9, background: iconBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ width: 32, height: 32, borderRadius: 9, background: iconBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>
           {icon}
         </div>
       </div>
-      <div style={{ fontSize: 28, fontWeight: 700, color: TEXT_DARK, lineHeight: 1, marginBottom: 4 }}>
-        {value}<span style={{ fontSize: 13, fontWeight: 500, color: TEXT_MUTED, marginLeft: 4 }}>{unit}</span>
+      <div>
+        <div style={{ fontSize: 28, fontWeight: 700, color: TEXT_DARK, lineHeight: 1, marginBottom: 4 }}>
+          {value}<span style={{ fontSize: 13, fontWeight: 500, color: TEXT_MUTED, marginLeft: 4 }}>{unit}</span>
+        </div>
+        <div style={{ fontSize: 12, color: TEXT_MUTED }}>{sub}</div>
       </div>
-      <div style={{ fontSize: 12, color: TEXT_MUTED }}>{sub}</div>
     </div>
   );
 }
 
+// ---- Section card ----
 function Card({ title, children, style }: { title: string; children: React.ReactNode; style?: React.CSSProperties }) {
   return (
     <div style={{
       background: CARD_BG, borderRadius: 20, padding: "24px 28px",
-      border: `1px solid ${BORDER}`, boxShadow: shadows.ambientCard, ...style,
+      border: `1.5px solid ${BORDER}`, boxShadow: shadows.ambientCard, ...style,
     }}>
-      <h3 style={{ fontSize: 15, fontWeight: 600, color: TEXT_DARK, letterSpacing: "-0.1px", marginBottom: 20 }}>{title}</h3>
+      <h3 style={{ fontSize: 15, fontWeight: 600, color: TEXT_DARK, marginBottom: 20 }}>{title}</h3>
       {children}
     </div>
   );
 }
 
+// ---- Custom tooltip ----
 function ChartTooltip({ active, payload }: { active?: boolean; payload?: { name: string; value: number }[] }) {
   if (!active || !payload?.length) return null;
   return (
@@ -147,12 +110,71 @@ function ChartTooltip({ active, payload }: { active?: boolean; payload?: { name:
   );
 }
 
+// ---- Bar top label ----
+function BarTopLabel(props: { x?: number; y?: number; width?: number; value?: number }) {
+  const { x = 0, y = 0, width = 0, value = 0 } = props;
+  return (
+    <text x={x + width / 2} y={y - 8} textAnchor="middle" fill={TEXT_MID} fontSize={13} fontWeight={600}>
+      {fmtK(value)} MW
+    </text>
+  );
+}
+
+// ---- Pie slice label ----
+// Large slices (>15%): label inside the slice
+// Small slices (5-15%): label outside with a connector line
+function PieSliceLabel(props: {
+  cx?: number; cy?: number; midAngle?: number;
+  innerRadius?: number; outerRadius?: number;
+  name?: string; value?: number; percent?: number;
+}) {
+  const { cx = 0, cy = 0, midAngle = 0, innerRadius = 0, outerRadius = 0, name = "", value = 0, percent = 0 } = props;
+  if (percent < 0.04) return null;
+  const RADIAN = Math.PI / 180;
+  const k = value >= 1000 ? `${(value / 1000).toFixed(1)}k` : String(Math.round(value));
+  const pctStr = `${(percent * 100).toFixed(0)}%`;
+
+  if (percent >= 0.15) {
+    // Inside label
+    const r = innerRadius + (outerRadius - innerRadius) * 0.58;
+    const x = cx + r * Math.cos(-midAngle * RADIAN);
+    const y = cy + r * Math.sin(-midAngle * RADIAN);
+    return (
+      <g>
+        <text x={x} y={y - 10} textAnchor="middle" fill="#fff" fontSize={12} fontWeight={600} opacity={0.85}>{name}</text>
+        <text x={x} y={y + 6}  textAnchor="middle" fill="#fff" fontSize={16} fontWeight={700}>{k} MW</text>
+        <text x={x} y={y + 22} textAnchor="middle" fill="rgba(255,255,255,0.8)" fontSize={12}>{pctStr}</text>
+      </g>
+    );
+  }
+
+  // Outside label with line
+  const sin = Math.sin(-midAngle * RADIAN);
+  const cos = Math.cos(-midAngle * RADIAN);
+  const mx = cx + (outerRadius + 20) * cos;
+  const my = cy + (outerRadius + 20) * sin;
+  const ex = cx + (outerRadius + 55) * cos;
+  const ey = cy + (outerRadius + 55) * sin;
+  const textAnchor = cos >= 0 ? "start" : "end";
+
+  return (
+    <g>
+      <line x1={cx + outerRadius * cos} y1={cy + outerRadius * sin} x2={mx} y2={my} stroke="#999" strokeWidth={1.5} />
+      <line x1={mx} y1={my} x2={ex} y2={ey} stroke="#999" strokeWidth={1.5} />
+      <circle cx={ex} cy={ey} r={2} fill="#999" />
+      <text x={ex + (cos >= 0 ? 6 : -6)} y={ey - 7} textAnchor={textAnchor} fill={TEXT_DARK} fontSize={12} fontWeight={700}>{name}</text>
+      <text x={ex + (cos >= 0 ? 6 : -6)} y={ey + 8} textAnchor={textAnchor} fill={TEXT_MUTED} fontSize={11}>{k} MW · {pctStr}</text>
+    </g>
+  );
+}
+
+// ---- Skeleton ----
 function Skeleton() {
   const s = { background: "linear-gradient(90deg,#f3f4f6 25%,#e5e7eb 50%,#f3f4f6 75%)", borderRadius: 16 };
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
       <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 16 }}>
-        {[0,1,2,3].map((i) => <div key={i} style={{ ...s, height: 148 }} />)}
+        {[0,1,2,3].map((i) => <div key={i} style={{ ...s, height: 168 }} />)}
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
         <div style={{ ...s, height: 300 }} /><div style={{ ...s, height: 300 }} />
@@ -183,7 +205,7 @@ export function DashboardScreen({ initialIso }: DashboardScreenProps) {
       {loading && <Skeleton />}
       {error && (
         <div style={{ background: colors.errorBg, border: `1px solid ${colors.errorBorder}`, color: colors.errorRed, borderRadius: 14, padding: "14px 18px", fontSize: 14 }}>
-          {error}
+          ⚠️ {error}
         </div>
       )}
       {data && !loading && <DashboardContent data={data} countryName={countryName} />}
@@ -212,8 +234,6 @@ function DashboardContent({ data, countryName }: { data: CountryGeneration; coun
     { name: "Solar", mw: Math.round(solarMw) },
   ].filter((d) => d.mw > 0);
 
-  const PIE_COLORS = [WIND_COLOR, SOLAR_COLOR];
-
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       {/* Country badge */}
@@ -222,70 +242,66 @@ function DashboardContent({ data, countryName }: { data: CountryGeneration; coun
         background: GREEN_LIGHT, color: GREEN_DARK,
         borderRadius: 7, padding: "6px 12px", fontSize: 12, fontWeight: 600, width: "fit-content",
       }}>
-        <MapPin size={13} strokeWidth={2.5} />
-        {countryName} · Updated {updatedAt}
+        📍 {countryName} · Updated {updatedAt}
       </div>
 
-      {/* KPI grid */}
+      {/* KPI row — all 4 on one line */}
       <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 16 }}>
-        <HeroKpiCard label="Wind + solar total" value={fmt(total)} unit="MW" sub="Combined renewable capacity for this country" />
-        <KpiCard label="Wind capacity" value={fmt(windMw)} unit="MW" sub="Onshore + offshore"
-          accentColor={KPI_WIND} iconBg="#eef0f8"
-          icon={<Wind size={16} color={KPI_WIND} strokeWidth={2} />} />
-        <KpiCard label="Solar capacity" value={fmt(solarMw)} unit="MW" sub="Photovoltaic"
-          accentColor={KPI_SOLAR} iconBg="#e6f9fa"
-          icon={<Sun size={16} color={KPI_SOLAR} strokeWidth={2} />} />
-        <KpiCard label="Share of output" value={shareOfTotal} unit="%" sub={`of ${fmt(data.total)} MW total`}
-          accentColor={KPI_SHARE} iconBg="#f0ebf8"
-          icon={<BarChart2 size={16} color={KPI_SHARE} strokeWidth={2} />} />
+        <HeroKpiCard label="Wind + solar total" value={fmt(total)} unit="MW" sub="Combined renewable capacity for this country" icon="⚡" />
+        <KpiCard label="Wind capacity"   value={fmt(windMw)}    unit="MW" sub="Onshore + offshore" topColor={WIND_COLOR}  icon="💨" iconBg="#eef0f8" />
+        <KpiCard label="Solar capacity"  value={fmt(solarMw)}   unit="MW" sub="Photovoltaic"       topColor={SOLAR_COLOR} icon="☀️" iconBg="#e6f9fa" />
+        <KpiCard label="Share of output" value={shareOfTotal}   unit="%"  sub={`of ${fmt(data.total)} MW total`} topColor="#6d4c9e" icon="📊" iconBg="#f0ebf8" />
       </div>
 
       {/* Charts */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-
-        {/* Donut with labels inside slices */}
+        {/* Full pie with labels inside slices */}
         <Card title="Solar vs wind mix">
-          <ResponsiveContainer width="100%" height={260}>
-            <PieChart>
+          <div style={{ display: "flex", gap: 16, marginBottom: 12 }}>
+            {[{ color: WIND_COLOR, label: "Wind" }, { color: SOLAR_COLOR, label: "Solar" }].map(({ color, label }) => (
+              <div key={label} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: TEXT_MID }}>
+                <div style={{ width: 10, height: 10, borderRadius: 2, background: color }} />{label}
+              </div>
+            ))}
+          </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart margin={{ top: 20, right: 140, bottom: 20, left: 20 }}>
               <Pie
                 data={pieData}
-                cx="50%" cy="50%"
-                innerRadius={0}
-                outerRadius={115}
+                cx="40%" cy="50%"
+                innerRadius={0} outerRadius={95}
                 paddingAngle={2}
                 dataKey="value"
                 labelLine={false}
-                label={DonutLabel}
+                label={PieSliceLabel}
               >
                 {pieData.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} stroke="#fff" strokeWidth={2} />
+                  <Cell key={`cell-${index}`} fill={index === 0 ? WIND_COLOR : SOLAR_COLOR} stroke="#fff" strokeWidth={2} />
                 ))}
               </Pie>
-              <Tooltip content={<ChartTooltip />} />
             </PieChart>
           </ResponsiveContainer>
         </Card>
 
         {/* Bar chart with values on top */}
         <Card title="Capacity by source (MW)">
+          <div style={{ display: "flex", gap: 16, marginBottom: 12 }}>
+            {[{ color: WIND_COLOR, label: "Wind" }, { color: SOLAR_COLOR, label: "Solar" }].map(({ color, label }) => (
+              <div key={label} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: TEXT_MID }}>
+                <div style={{ width: 10, height: 10, borderRadius: 2, background: color }} />{label}
+              </div>
+            ))}
+          </div>
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={barData} margin={{ top: 28, right: 24, left: 0, bottom: 0 }} barSize={64}>
               <CartesianGrid strokeDasharray="3 3" stroke="#eef0f2" vertical={false} />
-              <XAxis
-                dataKey="name"
-                tick={{ fontSize: 13, fill: TEXT_MID, fontWeight: 600 }}
-                axisLine={false} tickLine={false}
-              />
-              <YAxis
-                tick={{ fontSize: 12, fill: TEXT_MUTED }}
-                axisLine={false} tickLine={false}
-                tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
-              />
+              <XAxis dataKey="name" tick={{ fontSize: 13, fill: TEXT_MID, fontWeight: 600 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 12, fill: TEXT_MUTED }} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
               <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(25,33,104,0.04)" }} />
               <Bar dataKey="mw" radius={[8, 8, 0, 0]}>
                 <LabelList dataKey="mw" position="top" content={<BarTopLabel />} />
                 {barData.map((_, index) => (
-                  <Cell key={`bar-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                  <Cell key={`bar-${index}`} fill={index === 0 ? WIND_COLOR : SOLAR_COLOR} />
                 ))}
               </Bar>
             </BarChart>
@@ -297,15 +313,13 @@ function DashboardContent({ data, countryName }: { data: CountryGeneration; coun
       <Card title="Investment snapshot — wind vs solar breakdown">
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           {[
-            { label: "Wind (onshore + offshore)", mw: windMw, pct: windPct, color: WIND_COLOR, bg: "#eef0f8", icon: <Wind size={18} color={WIND_COLOR} strokeWidth={2} /> },
-            { label: "Solar (photovoltaic)", mw: solarMw, pct: solarPct, color: SOLAR_COLOR, bg: "#e6f9fa", icon: <Sun size={18} color={SOLAR_COLOR} strokeWidth={2} /> },
+            { label: "Wind (onshore + offshore)", mw: windMw, pct: windPct, color: WIND_COLOR,  bg: "#eef0f8", icon: "💨" },
+            { label: "Solar (photovoltaic)",       mw: solarMw, pct: solarPct, color: SOLAR_COLOR, bg: "#e6f9fa", icon: "☀️" },
           ].map(({ label, mw, pct, color, bg, icon }) => (
             <div key={label}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    {icon}
-                  </div>
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>{icon}</div>
                   <div>
                     <div style={{ fontSize: 14, fontWeight: 600, color: TEXT_DARK }}>{label}</div>
                     <div style={{ fontSize: 12, color: TEXT_MUTED, marginTop: 1 }}>{fmt(mw)} MW</div>
@@ -314,10 +328,7 @@ function DashboardContent({ data, countryName }: { data: CountryGeneration; coun
                 <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.01em", color }}>{pct}%</div>
               </div>
               <div style={{ height: 8, background: "#eef0f2", borderRadius: 5, overflow: "hidden" }}>
-                <div
-                  className="progress-fill"
-                  style={{ width: "100%", height: "100%", background: color, borderRadius: 5, transform: `scaleX(${pct / 100})` }}
-                />
+                <div className="progress-fill" style={{ width: "100%", height: "100%", background: color, borderRadius: 5, transform: `scaleX(${pct / 100})` }} />
               </div>
             </div>
           ))}
