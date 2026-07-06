@@ -11,7 +11,6 @@ public class EntsoeService
     private readonly HttpClient _http = new();
     private readonly string _apiKey;
     private readonly IServiceScopeFactory _scopeFactory;
-    private static readonly TimeSpan RefreshInterval = TimeSpan.FromMinutes(15);
 
     public EntsoeService(string apiKey, IServiceScopeFactory scopeFactory)
     {
@@ -19,7 +18,6 @@ public class EntsoeService
         _scopeFactory = scopeFactory;
     }
 
-    // Source code -> (display name, is renewable)
     private static readonly Dictionary<string, (string Name, bool Renewable)> SourceMap = new()
     {
         ["B01"] = ("Biomass", true),
@@ -41,7 +39,6 @@ public class EntsoeService
         ["B20"] = ("Other", false),
     };
 
-    // ISO code -> EIC zone codes
     private static readonly Dictionary<string, string[]> ZoneCodes = new()
     {
         ["AT"] = new[] { "10YAT-APG------L" },
@@ -90,7 +87,13 @@ public class EntsoeService
         ["SK"] = new[] { "10YSK-SEPS-----K" },
     };
 
-    // Called by the API endpoint — reads from DB, returns cached data
+    // -----------------------------------------------------------------------
+    // GetGenerationAsync — called by the API endpoint.
+    // Always reads from the database and returns immediately.
+    // Never calls ENTSO-E — that is done only by the scheduled refresh loop.
+    // If no data exists yet (very first startup before warm-up finishes),
+    // fetches once and waits, then never blocks again.
+    // -----------------------------------------------------------------------
     public async Task<CountryGeneration> GetGenerationAsync(string iso, string countryName)
     {
         iso = iso.ToUpper();
@@ -98,21 +101,22 @@ public class EntsoeService
         using var scope = _scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<EnergyDbContext>();
 
-        // Try to get from database first
         var record = await db.GenerationRecords
             .FirstOrDefaultAsync(r => r.IsoCode == iso);
 
-        // If we have fresh data (less than 15 minutes old), return it
-        if (record != null && DateTime.UtcNow - record.FetchedAt < RefreshInterval)
-        {
+        // Data exists — return from DB immediately, no API call
+        if (record != null)
             return MapRecordToDto(record);
-        }
 
-        // Otherwise fetch fresh data from ENTSO-E and save to DB
-        return await FetchAndSaveAsync(iso, countryName, db, record);
+        // No data yet (first startup) — fetch once and save
+        return await FetchAndSaveAsync(iso, countryName, db, null);
     }
 
-    // Fetches from ENTSO-E, saves to DB, returns the DTO
+    // -----------------------------------------------------------------------
+    // FetchAndSaveAsync — called only by the scheduled refresh loop in
+    // Program.cs (every 15 minutes) and during first-run warm-up.
+    // Never called during a user request (except very first startup).
+    // -----------------------------------------------------------------------
     public async Task<CountryGeneration> FetchAndSaveAsync(
         string iso, string countryName, EnergyDbContext db, GenerationRecord? existing)
     {
@@ -128,8 +132,7 @@ public class EntsoeService
             var zoneData = ParseZone(xml);
             foreach (var kv in zoneData)
             {
-                if (!totalBySource.ContainsKey(kv.Key))
-                    totalBySource[kv.Key] = 0;
+                if (!totalBySource.ContainsKey(kv.Key)) totalBySource[kv.Key] = 0;
                 totalBySource[kv.Key] += kv.Value;
             }
         }
@@ -151,7 +154,6 @@ public class EntsoeService
         var renewableMw = bySource.Where(s => s.Renewable).Sum(s => s.ValueMw);
         var pct = total > 0 ? Math.Round(renewableMw / total * 100, 1) : 0;
 
-        // Save or update the record in the database
         if (existing == null)
         {
             existing = new GenerationRecord { IsoCode = iso };
@@ -166,13 +168,10 @@ public class EntsoeService
         existing.BySourceJson = JsonSerializer.Serialize(bySource);
         existing.ZonesAggregatedJson = JsonSerializer.Serialize(zones.ToList());
 
-        // Save to PostgreSQL
         await db.SaveChangesAsync();
-
         return MapRecordToDto(existing);
     }
 
-    // Converts a DB record back into the API response DTO
     private static CountryGeneration MapRecordToDto(GenerationRecord record)
     {
         var bySource = JsonSerializer.Deserialize<List<SourceBreakdown>>(record.BySourceJson)
@@ -226,8 +225,7 @@ public class EntsoeService
                 .Select(p => double.Parse(p.Element(ns + "quantity")!.Value, CultureInfo.InvariantCulture))
                 .Last();
 
-            if (!result.ContainsKey(psr))
-                result[psr] = 0;
+            if (!result.ContainsKey(psr)) result[psr] = 0;
             result[psr] += lastQty;
         }
 
