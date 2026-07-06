@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { useCountries } from "@/hooks/useCountries";
 import { useGeneration } from "@/hooks/useGeneration";
 import type { Country, CountryGeneration, SourceBreakdown } from "@/types/contract";
-import { colors, shadows } from "@/lib/tokens";
+import { colors } from "@/lib/tokens";
 
 const WIND_COLOR = colors.windBlue;
 const SOLAR_COLOR = colors.solarAmber;
@@ -34,12 +34,12 @@ function CountryBadge({ iso }: { iso: string }) {
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
-        minWidth: 34,
-        height: 24,
-        padding: "0 8px",
-        background: "#e5e7eb",
+        minWidth: 38,
+        height: 27,
+        padding: "0 9px",
+        background: "#eef0f2",
         color: "#374151",
-        borderRadius: 6,
+        borderRadius: 7,
         fontSize: 12,
         fontWeight: 700,
         fontFamily: "monospace",
@@ -67,8 +67,8 @@ function PinnedCard({ iso, data, onRemove, onOpen }: {
       aria-label={`Open dashboard for ${displayName}`}
       className="card-interactive"
       style={{
-        background: CARD_BG, border: `1px solid ${BORDER}`, borderRadius: 16,
-        padding: "18px 20px", position: "relative",
+        background: CARD_BG, border: `1px solid ${BORDER}`, borderRadius: 20,
+        padding: "22px 24px", position: "relative",
         borderTop: `3px solid ${GREEN_MID}`,
       }}
     >
@@ -76,31 +76,47 @@ function PinnedCard({ iso, data, onRemove, onOpen }: {
         type="button"
         onClick={(e) => { e.stopPropagation(); onRemove(); }}
         className="icon-btn"
-        style={{ position: "absolute", top: 14, right: 14, background: "#f3f4f6", width: 28, height: 28, borderRadius: "50%", fontSize: 14, color: TEXT_MUTED }}
+        style={{ position: "absolute", top: 16, right: 16, background: "#f3f4f6", width: 28, height: 28, borderRadius: "50%", fontSize: 14, color: TEXT_MUTED }}
         aria-label={`Unpin ${displayName}`}
       >×</button>
-      <div style={{ marginBottom: 6 }}><CountryBadge iso={iso} /></div>
-      <div style={{ fontSize: 16, fontWeight: 700, color: TEXT_DARK, marginBottom: 14 }}>{data?.country ?? iso}</div>
+      <div style={{ marginBottom: 10 }}><CountryBadge iso={iso} /></div>
+      <div style={{ fontSize: 19, fontWeight: 700, color: TEXT_DARK, letterSpacing: "-0.01em", marginBottom: 16 }}>{data?.country ?? iso}</div>
       {data ? (
         <>
           {[
             { label: "💨 Wind", val: windMw, color: WIND_COLOR },
             { label: "☀️ Solar", val: solarMw, color: SOLAR_COLOR },
           ].map(({ label, val, color }) => (
-            <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 0" }}>
+            <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0" }}>
               <span style={{ fontSize: 13, color: TEXT_MUTED }}>{label}</span>
               <span style={{ fontSize: 13, fontWeight: 700, color }}>{fmt(val)} MW</span>
             </div>
           ))}
-          <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${BORDER}`, display: "flex", justifyContent: "space-between" }}>
+          <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${BORDER}`, display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
             <span style={{ fontSize: 13, color: TEXT_MUTED }}>Total</span>
-            <span style={{ fontSize: 14, fontWeight: 700, color: GREEN_DARK }}>{fmt(total)} MW</span>
+            <span style={{ fontSize: 20, fontWeight: 700, color: GREEN_DARK, letterSpacing: "-0.01em" }}>{fmt(total)} MW</span>
           </div>
         </>
       ) : (
         <div style={{ height: 80, background: "#f9fafb", borderRadius: 8 }} />
       )}
     </div>
+  );
+}
+
+// ---- Rank badge — medal for top 3, numbered chip otherwise ----
+function RankBadge({ rank }: { rank: number }) {
+  if (rank <= 3) {
+    return <span style={{ fontSize: 20 }}>{rank === 1 ? "🥇" : rank === 2 ? "🥈" : "🥉"}</span>;
+  }
+  return (
+    <span style={{
+      display: "inline-flex", alignItems: "center", justifyContent: "center",
+      width: 26, height: 26, borderRadius: "50%", background: "#f3f4f6",
+      fontSize: 12, fontWeight: 700, color: TEXT_MUTED,
+    }}>
+      {rank}
+    </span>
   );
 }
 
@@ -111,8 +127,7 @@ function RankRow({ rank, country, generation, maxMw, isPinned, onPin, onOpen }: 
 }) {
   const { windMw, solarMw, totalRenewable } = aggregateSources(generation.bySource);
   const barW = maxMw > 0 ? (totalRenewable / maxMw) * 100 : 0;
-  const rankBg = rank === 1 ? "#fef3c7" : rank === 2 ? "#f3f4f6" : rank === 3 ? "#fff7ed" : "transparent";
-  const rankColor = rank === 1 ? "#d97706" : rank === 2 ? "#6b7280" : rank === 3 ? "#ea580c" : TEXT_MUTED;
+  const rankBg = rank === 1 ? "#fef9ec" : rank === 2 ? "#fafafa" : rank === 3 ? "#fdf6ee" : "transparent";
 
   return (
     <tr
@@ -121,36 +136,34 @@ function RankRow({ rank, country, generation, maxMw, isPinned, onPin, onOpen }: 
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen(); } }}
       aria-label={`Open dashboard for ${country.name}`}
       className="row-interactive"
-      style={{ borderBottom: `1px solid ${BORDER}`, background: rank <= 3 ? rankBg : "transparent" }}
+      style={{ borderBottom: `1px solid ${BORDER}`, background: rankBg }}
     >
-      <td style={{ padding: "14px 16px", width: 48 }}>
-        <span style={{ fontSize: 13, fontWeight: 700, color: rankColor }}>
-          {rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : rank}
-        </span>
+      <td style={{ padding: "20px 20px", width: 56 }}>
+        <RankBadge rank={rank} />
       </td>
-      <td style={{ padding: "14px 8px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+      <td style={{ padding: "20px 8px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <CountryBadge iso={country.isoCode} />
-          <span style={{ fontSize: 14, fontWeight: 600, color: TEXT_DARK }}>{country.name}</span>
+          <span style={{ fontSize: 15, fontWeight: 600, color: TEXT_DARK }}>{country.name}</span>
         </div>
       </td>
-      <td style={{ padding: "14px 8px", textAlign: "right" }}>
-        <span style={{ fontSize: 14, fontWeight: 700, color: WIND_COLOR }}>{fmt(windMw)}</span>
+      <td style={{ padding: "20px 8px", textAlign: "right" }}>
+        <span style={{ fontSize: 15, fontWeight: 700, color: WIND_COLOR }}>{fmt(windMw)}</span>
         <span style={{ fontSize: 11, color: TEXT_MUTED, marginLeft: 3 }}>MW</span>
       </td>
-      <td style={{ padding: "14px 8px", textAlign: "right" }}>
-        <span style={{ fontSize: 14, fontWeight: 700, color: SOLAR_COLOR }}>{fmt(solarMw)}</span>
+      <td style={{ padding: "20px 8px", textAlign: "right" }}>
+        <span style={{ fontSize: 15, fontWeight: 700, color: SOLAR_COLOR }}>{fmt(solarMw)}</span>
         <span style={{ fontSize: 11, color: TEXT_MUTED, marginLeft: 3 }}>MW</span>
       </td>
-      <td style={{ padding: "14px 20px", minWidth: 220 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ flex: 1, height: 8, background: "#f3f4f6", borderRadius: 4, overflow: "hidden" }}>
-            <div className="progress-fill" style={{ width: "100%", height: "100%", background: `linear-gradient(90deg, ${GREEN_MID}, ${GREEN_DARK})`, borderRadius: 4, transform: `scaleX(${barW / 100})` }} />
+      <td style={{ padding: "20px 24px", minWidth: 240 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ flex: 1, height: 10, background: "#f3f4f6", borderRadius: 5, overflow: "hidden" }}>
+            <div className="progress-fill" style={{ width: "100%", height: "100%", background: `linear-gradient(90deg, ${GREEN_MID}, ${GREEN_DARK})`, borderRadius: 5, transform: `scaleX(${barW / 100})` }} />
           </div>
-          <span style={{ fontSize: 13, fontWeight: 700, color: GREEN_DARK, width: 80, textAlign: "right" }}>{fmt(totalRenewable)} MW</span>
+          <span style={{ fontSize: 14, fontWeight: 700, color: GREEN_DARK, width: 84, textAlign: "right" }}>{fmt(totalRenewable)} MW</span>
         </div>
       </td>
-      <td style={{ padding: "14px 16px", textAlign: "right" }} onClick={(e) => e.stopPropagation()}>
+      <td style={{ padding: "20px 20px", textAlign: "right" }} onClick={(e) => e.stopPropagation()}>
         <button
           type="button"
           onClick={onPin}
@@ -217,21 +230,20 @@ export function ComparisonScreen({ onOpenCountry }: { onOpenCountry: (iso: strin
   const togglePin = (iso: string) => setPinnedIsos((prev) => prev.includes(iso) ? prev.filter((x) => x !== iso) : [...prev, iso].slice(0, 3));
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 36 }}>
       {/* Header */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
         <div>
-          <h1 style={{ fontSize: 28, fontWeight: 700, color: TEXT_DARK, letterSpacing: "-0.5px" }}>Country Comparison</h1>
-          <p style={{ fontSize: 14, color: TEXT_MUTED, marginTop: 4 }}>Ranked by solar & wind capacity · Click a country to open its dashboard</p>
+          <h1 style={{ fontSize: 36, fontWeight: 700, color: TEXT_DARK, letterSpacing: "-0.02em" }}>Country Comparison</h1>
+          <p style={{ fontSize: 15, color: TEXT_MUTED, marginTop: 6 }}>Ranked by solar & wind capacity · Click a country to open its dashboard</p>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, background: CARD_BG, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "6px 8px", boxShadow: shadows.inputSubtle }}>
-          <span style={{ fontSize: 12, color: TEXT_MUTED, paddingLeft: 6 }}>Sort by:</span>
+        <div className="segmented">
           {(["total", "wind", "solar"] as SortKey[]).map((key) => (
             <button
               key={key}
               type="button"
               onClick={() => setSortBy(key)}
-              className="sort-btn"
+              className="segmented-btn"
               data-active={sortBy === key || undefined}
               aria-pressed={sortBy === key}
             >
@@ -244,8 +256,8 @@ export function ComparisonScreen({ onOpenCountry }: { onOpenCountry: (iso: strin
       {/* Pinned */}
       {pinnedIsos.length > 0 && (
         <div>
-          <p style={{ fontSize: 12, fontWeight: 600, color: TEXT_MUTED, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 12 }}>📌 Pinned countries</p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: 16 }}>
+          <p style={{ fontSize: 12, fontWeight: 600, color: TEXT_MUTED, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 14 }}>📌 Pinned countries</p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: 18 }}>
             {pinnedIsos.map((iso) => (
               <PinnedCard key={iso} iso={iso} data={generationMap[iso] ?? null} onRemove={() => togglePin(iso)} onOpen={() => onOpenCountry(iso)} />
             ))}
@@ -254,14 +266,14 @@ export function ComparisonScreen({ onOpenCountry }: { onOpenCountry: (iso: strin
       )}
 
       {/* Table */}
-      <div style={{ background: CARD_BG, border: `1px solid ${BORDER}`, borderRadius: 16, overflow: "hidden", boxShadow: shadows.ambientCard }}>
+      <div className="card-elevated" style={{ background: CARD_BG, border: `1px solid ${BORDER}`, borderRadius: 24, overflow: "hidden" }}>
         {loading ? (
-          <div style={{ padding: 48, textAlign: "center", fontSize: 14, color: TEXT_MUTED }}>
+          <div style={{ padding: 56, textAlign: "center", fontSize: 14, color: TEXT_MUTED }}>
             🌱 Loading country data…
           </div>
         ) : (
           <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", minWidth: 640, borderCollapse: "collapse" }}>
+          <table style={{ width: "100%", minWidth: 680, borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: colors.mist, borderBottom: `1px solid ${BORDER}` }}>
                 {[
@@ -272,7 +284,7 @@ export function ComparisonScreen({ onOpenCountry }: { onOpenCountry: (iso: strin
                   { label: "Total (MW)", align: "left" as const, color: GREEN_DARK },
                   { label: "", align: "right" as const, color: TEXT_MUTED },
                 ].map((col, i) => (
-                  <th key={i} style={{ padding: "12px 16px", fontSize: 12, fontWeight: 600, color: col.color, textAlign: col.align, letterSpacing: "0.04em" }}>{col.label}</th>
+                  <th key={i} style={{ padding: "16px 16px", fontSize: 12, fontWeight: 700, color: col.color, textAlign: col.align, letterSpacing: "0.05em", textTransform: "uppercase" }}>{col.label}</th>
                 ))}
               </tr>
             </thead>

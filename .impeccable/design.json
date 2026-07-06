@@ -34,97 +34,124 @@
       "error-border": { "role": "neutral", "displayName": "Error Border", "canonical": "#fecaca", "tonalRamp": ["#fef2f2", "#fee2e2", "#fecaca", "#fca5a5", "#f87171", "#ef4444", "#dc2626", "#b91c1c", "#991b1b", "#7f1d1d"] }
     },
     "typographyMeta": {
-      "display": { "displayName": "Display", "purpose": "Home-screen hero headline only." },
-      "headline": { "displayName": "Headline", "purpose": "Page-level titles (Country Dashboard, Europe Map)." },
-      "title": { "displayName": "Title", "purpose": "Section headers; a 500/15px compact variant covers in-card titles." },
+      "display": { "displayName": "Display", "purpose": "Home-screen hero headline only (52px)." },
+      "headline": { "displayName": "Headline", "purpose": "Page-level titles: Country Dashboard, Country Comparison, Europe Map (36px)." },
+      "title": { "displayName": "Title", "purpose": "Section headers; a 600/17px compact variant covers in-card chart titles." },
       "body": { "displayName": "Body", "purpose": "Descriptions, chart legends, form labels." },
       "label": { "displayName": "Label", "purpose": "KPI eyebrow labels and sidebar section headers; not for marketing kickers." }
     },
     "shadows": [
-      { "name": "ambient-card", "value": "0 2px 8px rgba(0,0,0,0.06)", "purpose": "Resting shadow for every card-shaped surface." },
-      { "name": "ambient-hero", "value": "0 4px 20px rgba(0,0,0,0.12)", "purpose": "Prominent full-width surfaces (home hero, now on Indigo Deep -> Steel Navy)." },
+      { "name": "ambient-card", "value": "0 2px 8px rgba(0,0,0,0.06)", "purpose": "Resting shadow for ordinary card-shaped surfaces (secondary KPI cards, flip cards)." },
+      { "name": "ambient-hero", "value": "0 4px 20px rgba(0,0,0,0.12)", "purpose": "Mid-weight prominent surfaces that don't rise to full Elevated treatment." },
+      { "name": "elevated", "value": "0 1px 2px rgba(0,0,0,0.04), 0 20px 48px rgba(0,0,0,0.14)", "purpose": "Layered tight+diffuse shadow for the one hero-weight surface per screen (home hero, live-overview strip, dashboard's lead KPI, comparison table). Never spread across a repeated grid." },
+      { "name": "rail-edge", "value": "6px 0 32px rgba(0,0,0,0.08)", "purpose": "Cast from the dark sidebar onto the light content area." },
       { "name": "input-subtle", "value": "0 1px 4px rgba(0,0,0,0.06)", "purpose": "Form controls at rest." },
-      { "name": "tooltip-dark", "value": "0 4px 16px rgba(0,0,0,0.3)", "purpose": "Floating dark chart-tooltip popover." }
+      { "name": "tooltip-dark", "value": "0 4px 16px rgba(0,0,0,0.3)", "purpose": "Floating dark chart-tooltip popover." },
+      { "name": "hover-lift", "value": "0 6px 20px rgba(0,0,0,0.1)", "purpose": "Clickable cards/rows on hover (pinned country cards, ranking rows), paired with a 2px translateY." }
     ],
     "motion": [
-      { "name": "flip-card", "value": "transform 0.55s cubic-bezier(0.4,0,0.2,1)", "purpose": "Home-screen energy-type card flip." },
-      { "name": "progress-fill", "value": "width 0.7s ease", "purpose": "Investment-snapshot progress bar fill on data load." }
+      { "name": "flip-card", "value": "transform 550ms cubic-bezier(0.16,1,0.3,1)", "purpose": "Home-screen energy-type card flip; instant crossfade under prefers-reduced-motion." },
+      { "name": "progress-fill", "value": "transform 700ms cubic-bezier(0.16,1,0.3,1)", "purpose": "Investment-snapshot and ranking bars animate via scaleX(transform-origin: left), not width, to avoid layout thrash." },
+      { "name": "ease-out-expo", "value": "cubic-bezier(0.16,1,0.3,1)", "purpose": "Standard easing for all state-change transitions (hover, active, focus)." }
     ],
-    "breakpoints": []
+    "breakpoints": [
+      { "name": "sidebar-collapse", "value": "1024px (Tailwind lg)", "purpose": "Below this, the dark sidebar collapses to a 76px icon-only rail; above it, the full 280px rail with labels/clock/hint shows." },
+      { "name": "stat-strip-dividers", "value": "640px", "purpose": "Below this, the live-overview strip's stats wrap and vertical hairline dividers disable via .stat-strip-item's media query -- they only make visual sense side-by-side." }
+    ]
   },
   "components": [
     {
       "name": "Primary Pill Button",
       "kind": "button",
       "refersTo": "pill-badge",
-      "description": "The 'Back to map' navigation pill on the dashboard screen.",
+      "description": "The 'Back to map' navigation pill on the dashboard screen. Shared via the .pill-btn class in index.css.",
       "html": "<button class=\"ds-pill-btn\">&larr; Back to map</button>",
-      "css": ".ds-pill-btn { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: #12541d; background: #dde9df; border: 1px solid #dde3de; border-radius: 8px; padding: 7px 14px; cursor: pointer; transition: background 0.15s ease; } .ds-pill-btn:hover { background: #c9e0cb; } .ds-pill-btn:focus-visible { outline: 2px solid #03bdc2; outline-offset: 2px; }"
+      "css": ".ds-pill-btn { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: #12541d; background: #dde9df; border: 1px solid #dde3de; border-radius: 8px; padding: 7px 14px; cursor: pointer; transition: background-color 180ms cubic-bezier(0.16,1,0.3,1), transform 120ms cubic-bezier(0.16,1,0.3,1); } .ds-pill-btn:hover { background: #dde3de; } .ds-pill-btn:active { transform: scale(0.97); } .ds-pill-btn:focus-visible { outline: 2px solid #03bdc2; outline-offset: 2px; }"
     },
     {
       "name": "KPI Card",
       "kind": "card",
       "refersTo": "kpi-card",
-      "description": "A metric card with a category-colored top border, used four-up on the country dashboard.",
+      "description": "A metric card with a category-colored top border, used four-up on the country dashboard. Static (non-interactive); no hover state by design.",
       "html": "<div class=\"ds-kpi-card\"><div class=\"ds-kpi-head\"><span class=\"ds-kpi-label\">Wind capacity</span><div class=\"ds-kpi-icon\">&#128168;</div></div><div class=\"ds-kpi-value\">42,180<span class=\"ds-kpi-unit\">MW</span></div><div class=\"ds-kpi-sub\">Onshore + offshore</div></div>",
       "css": ".ds-kpi-card { background: #ffffff; border-radius: 16px; padding: 22px 24px; border: 1px solid #dde3de; border-top: 4px solid #2563eb; box-shadow: 0 2px 8px rgba(0,0,0,0.06); } .ds-kpi-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; } .ds-kpi-label { font-size: 12px; font-weight: 500; color: #6b7280; text-transform: uppercase; letter-spacing: 0.06em; } .ds-kpi-icon { width: 36px; height: 36px; border-radius: 10px; background: #eff6ff; display: flex; align-items: center; justify-content: center; font-size: 18px; } .ds-kpi-value { font-size: 32px; font-weight: 700; color: #111827; line-height: 1; margin-bottom: 6px; } .ds-kpi-unit { font-size: 16px; font-weight: 500; color: #6b7280; margin-left: 4px; } .ds-kpi-sub { font-size: 12px; color: #6b7280; }"
     },
     {
-      "name": "Section Card",
+      "name": "Interactive Card",
       "kind": "card",
-      "refersTo": "section-card",
-      "description": "The generic bordered card used for charts and the investment-snapshot panel.",
-      "html": "<div class=\"ds-section-card\"><h3 class=\"ds-section-title\">Solar vs wind mix</h3><p class=\"ds-section-body\">Chart content renders here.</p></div>",
-      "css": ".ds-section-card { background: #ffffff; border-radius: 16px; padding: 24px; border: 1px solid #dde3de; box-shadow: 0 2px 8px rgba(0,0,0,0.06); } .ds-section-title { font-size: 15px; font-weight: 500; color: #111827; margin: 0 0 20px 0; } .ds-section-body { font-size: 14px; color: #6b7280; margin: 0; }"
+      "refersTo": "kpi-card",
+      "description": "The clickable variant (pinned country cards, the flip card): Ambient Card at rest, Hover Lift + 2px translateY on hover, back to Ambient Card on press. Shared via .card-interactive in index.css. Uses role=\"button\"/tabIndex/onKeyDown rather than a nested <button> when the card contains its own interactive child (e.g. an unpin control), since a <button> cannot legally contain another <button>.",
+      "html": "<div class=\"ds-card-interactive\" role=\"button\" tabindex=\"0\"><div class=\"ds-badge\">DE</div><div class=\"ds-card-title\">Germany</div></div>",
+      "css": ".ds-card-interactive { cursor: pointer; background: #ffffff; border: 1px solid #dde3de; border-radius: 16px; padding: 18px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: box-shadow 200ms cubic-bezier(0.16,1,0.3,1), transform 200ms cubic-bezier(0.16,1,0.3,1); } .ds-card-interactive:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.1); transform: translateY(-2px); } .ds-card-interactive:active { transform: translateY(0); box-shadow: 0 2px 8px rgba(0,0,0,0.06); } .ds-card-interactive:focus-visible { outline: 2px solid #03bdc2; outline-offset: 2px; } .ds-badge { display: inline-flex; min-width: 34px; height: 24px; align-items: center; justify-content: center; background: #e5e7eb; color: #374151; border-radius: 6px; font-size: 12px; font-weight: 700; font-family: monospace; } .ds-card-title { font-size: 16px; font-weight: 700; color: #111827; margin-top: 6px; }"
     },
     {
       "name": "Country Select Input",
       "kind": "input",
       "refersTo": "select-input",
-      "description": "The country switcher dropdown on the dashboard header.",
-      "html": "<select class=\"ds-select\"><option>Germany</option><option>France</option></select>",
-      "css": ".ds-select { font-size: 14px; font-weight: 500; padding: 10px 16px; border-radius: 10px; border: 1.5px solid #dde3de; background: #ffffff; color: #111827; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.06); min-width: 160px; } .ds-select:focus-visible { outline: 2px solid #03bdc2; outline-offset: 1px; border-color: #03bdc2; }"
+      "description": "The country switcher dropdown on the dashboard header. Shared via .select-field in index.css; has an explicit aria-label since there's no visible <label>.",
+      "html": "<select class=\"ds-select\" aria-label=\"Select country\"><option>Germany</option><option>France</option></select>",
+      "css": ".ds-select { font-size: 14px; font-weight: 500; padding: 10px 16px; border-radius: 10px; border: 1.5px solid #dde3de; background: #ffffff; color: #111827; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.06); min-width: 160px; transition: border-color 180ms cubic-bezier(0.16,1,0.3,1); } .ds-select:hover { border-color: #4d9d55; } .ds-select:focus-visible { outline: 2px solid #03bdc2; outline-offset: 1px; }"
     },
     {
-      "name": "Sidebar Nav Item",
+      "name": "Sidebar Nav Item (dark rail)",
       "kind": "nav",
       "refersTo": "nav-item",
-      "description": "Persistent left-nav item; active state is a solid dark fill, not an underline or side stripe. Active icon now tints Sentry Teal instead of the old Tailwind emerald.",
-      "html": "<button class=\"ds-nav-item ds-nav-item--active\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" class=\"ds-nav-icon\"><path d=\"M9 20l-5.447-2.724A1 1 0 0 1 3 16.382V5.618a1 1 0 0 1 1.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0 0 21 18.382V7.618a1 1 0 0 0-.553-.894L15 4m0 13V4m0 0L9 7\"/></svg>Europe Map</button>",
-      "css": ".ds-nav-item { display: flex; align-items: center; gap: 12px; width: 100%; border: none; cursor: pointer; border-radius: 8px; padding: 10px 12px; text-align: left; font-size: 13px; font-weight: 500; background: transparent; color: #52525b; transition: background 0.15s ease, color 0.15s ease; } .ds-nav-item:hover { background: #f4f4f5; color: #18181b; } .ds-nav-item--active { background: #18181b; color: #ffffff; } .ds-nav-item--active .ds-nav-icon { color: #03bdc2; } .ds-nav-item:not(.ds-nav-item--active) .ds-nav-icon { color: #a1a1aa; }"
+      "description": "Persistent nav item on the dark Charcoal rail; active state is a solid Sentry Teal fill, not an underline or side stripe. Collapses to icon-only below the lg breakpoint (title attribute carries the label in collapsed mode).",
+      "html": "<button class=\"ds-nav-item ds-nav-item--active\" title=\"Europe Map\" aria-current=\"page\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" class=\"ds-nav-icon\"><path d=\"M9 20l-5.447-2.724A1 1 0 0 1 3 16.382V5.618a1 1 0 0 1 1.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0 0 21 18.382V7.618a1 1 0 0 0-.553-.894L15 4m0 13V4m0 0L9 7\"/></svg><span>Europe Map</span></button>",
+      "css": ".ds-nav-item { display: flex; align-items: center; gap: 12px; width: 100%; border: none; cursor: pointer; border-radius: 10px; padding: 12px; text-align: left; font-size: 13px; font-weight: 500; background: transparent; color: rgba(255,255,255,0.6); transition: background-color 150ms cubic-bezier(0.16,1,0.3,1), color 150ms cubic-bezier(0.16,1,0.3,1); } .ds-nav-item:hover { background: rgba(255,255,255,0.06); color: #ffffff; } .ds-nav-item:active { transform: scale(0.97); } .ds-nav-item--active { background: #03bdc2; color: #ffffff; } .ds-nav-item--active .ds-nav-icon { color: #ffffff; } .ds-nav-item:not(.ds-nav-item--active) .ds-nav-icon { color: rgba(255,255,255,0.4); }"
+    },
+    {
+      "name": "Hero KPI Card",
+      "kind": "card",
+      "refersTo": "hero-kpi-card",
+      "description": "The dashboard's dominant KPI: Indigo Deep background, spans 2 grid columns beside 3 smaller secondary KPI cards, 52px Sentry-Teal numeral. Size + color + position all agree on what matters most -- the system's core answer to 'strong visual hierarchy'.",
+      "html": "<div class=\"ds-hero-kpi\"><div class=\"ds-hero-kpi-head\"><span class=\"ds-hero-kpi-label\">Wind + solar total</span><div class=\"ds-hero-kpi-icon\">&#9889;</div></div><div class=\"ds-hero-kpi-value\">63,989<span class=\"ds-hero-kpi-unit\">MW</span></div><div class=\"ds-hero-kpi-sub\">Combined renewable capacity for this country</div></div>",
+      "css": ".ds-hero-kpi { grid-column: span 2; background: #192168; border-radius: 24px; padding: 32px 36px; color: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 20px 48px rgba(0,0,0,0.14); display: flex; flex-direction: column; justify-content: space-between; min-height: 168px; } .ds-hero-kpi-head { display: flex; align-items: flex-start; justify-content: space-between; } .ds-hero-kpi-label { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.06em; } .ds-hero-kpi-icon { width: 40px; height: 40px; border-radius: 12px; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; font-size: 19px; } .ds-hero-kpi-value { font-size: 52px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; color: #03bdc2; } .ds-hero-kpi-unit { font-size: 22px; font-weight: 500; color: rgba(255,255,255,0.5); margin-left: 8px; } .ds-hero-kpi-sub { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 8px; }"
+    },
+    {
+      "name": "Segmented Control",
+      "kind": "custom",
+      "refersTo": "segmented-control",
+      "description": "The sort toggle (Total / Wind / Solar) on the comparison screen: a Mist track holding borderless buttons, active option gets a white pill + small lift shadow + Forest weight-700 text. Use over loose toggle buttons for 2-4 mutually exclusive options.",
+      "html": "<div class=\"ds-segmented\"><button class=\"ds-segmented-btn\" data-active=\"true\">&#9889; Total</button><button class=\"ds-segmented-btn\">&#128168; Wind</button><button class=\"ds-segmented-btn\">&#9728;&#65039; Solar</button></div>",
+      "css": ".ds-segmented { display: inline-flex; align-items: center; gap: 2px; background: #f4f6f4; border: 1px solid #dde3de; border-radius: 12px; padding: 3px; } .ds-segmented-btn { font-size: 13px; font-weight: 500; padding: 8px 18px; border-radius: 9px; border: none; cursor: pointer; background: transparent; color: #6b7280; transition: background-color 180ms cubic-bezier(0.16,1,0.3,1), color 180ms cubic-bezier(0.16,1,0.3,1), box-shadow 180ms cubic-bezier(0.16,1,0.3,1); } .ds-segmented-btn:hover { color: #111827; } .ds-segmented-btn[data-active=\"true\"] { background: #ffffff; color: #12541d; font-weight: 700; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }"
     },
     {
       "name": "Flip Card (front)",
       "kind": "custom",
       "refersTo": "kpi-card",
-      "description": "Home-screen energy-type card, front face; flips on click via 3D transform. Front migrated from navy-legacy to Indigo Deep.",
-      "html": "<div class=\"ds-flip-front\"><span class=\"ds-flip-emoji\">&#9728;&#65039;</span><p class=\"ds-flip-title\">Solar energy</p><p class=\"ds-flip-desc\">Capturing sunlight to generate electricity</p><span class=\"ds-flip-cta\">Tap to learn more &rarr;</span></div>",
-      "css": ".ds-flip-front { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; height: 200px; padding: 16px 20px; background: #192168; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); text-align: center; } .ds-flip-emoji { font-size: 36px; } .ds-flip-title { font-size: 15px; font-weight: 700; color: #ffffff; letter-spacing: -0.2px; margin: 0; } .ds-flip-desc { font-size: 11px; color: rgba(255,255,255,0.5); margin: 0; } .ds-flip-cta { font-size: 10px; color: rgba(255,255,255,0.3); margin-top: 4px; }"
+      "description": "Home-screen energy-type card: a real <button> (not a div) with aria-pressed and an aria-label describing the flip action, 3D-rotateY flip on click, Indigo Deep front face with the icon in a soft rgba(255,255,255,0.06) circle. Uses Ambient Card shadow, not Elevated -- a repeated 6-card grid at hero-shadow weight would dilute the one-hero-per-screen hierarchy. Reduced-motion users get an instant flip instead of the 550ms rotation.",
+      "html": "<button class=\"ds-flip-btn\" aria-pressed=\"false\" aria-label=\"Solar energy: Capturing sunlight to generate electricity — press to see facts\"><div class=\"ds-flip-front\"><div class=\"ds-flip-icon\">&#9728;&#65039;</div><p class=\"ds-flip-title\">Solar energy</p><p class=\"ds-flip-desc\">Capturing sunlight to generate electricity</p><span class=\"ds-flip-cta\">Tap to learn more &rarr;</span></div></button>",
+      "css": ".ds-flip-btn { display: block; width: 100%; height: 236px; padding: 0; border: none; background: none; font: inherit; text-align: inherit; cursor: pointer; perspective: 1200px; } .ds-flip-btn:focus-visible { outline: 2px solid #03bdc2; outline-offset: 2px; } .ds-flip-front { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; height: 100%; padding: 20px 24px; background: #192168; border-radius: 20px; border: 1px solid rgba(255,255,255,0.08); text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: transform 550ms cubic-bezier(0.16,1,0.3,1); } .ds-flip-icon { width: 56px; height: 56px; border-radius: 16px; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; font-size: 28px; } .ds-flip-title { font-size: 17px; font-weight: 700; color: #ffffff; letter-spacing: -0.2px; margin: 0; } .ds-flip-desc { font-size: 12px; color: rgba(255,255,255,0.5); margin: 0; } .ds-flip-cta { font-size: 11px; font-weight: 500; margin-top: 4px; }"
     }
   ],
   "narrative": {
     "northStar": "The Grid Readout",
-    "overview": "This is an instrument, not a brochure — and it now reads as a sibling product to its parent brands rather than a standalone consumer eco-app. enevogroup.com and sentryot.com set the identity: corporate, credentials-forward, dark-neutral-led, with green (Enevo) or teal (SentryOT) as one disciplined accent rather than the dominant hue. This system pulls Forest Green directly from Enevo's palette, adds SentryOT's teal as the second brand-level accent, and pairs both against Indigo Deep and Charcoal -- Enevo's own dark neutrals -- instead of the all-green, mint-washed look this app started with. It still explicitly rejects the eco-marketing playbook: no leaf illustrations, no gradient hero blobs, no stock-photo wind turbines, no hopeful-pastel color washes. Green means \"this is the Enevo family,\" not \"we care about nature.\" The system is still young: colors and type sizes are currently duplicated as local constants across four different screen files rather than shared tokens, and the previously-declared body font (Inter) was never installed.",
+    "overview": "This is an instrument, not a brochure — and it reads as a sibling product to its parent brands rather than a standalone consumer eco-app. enevogroup.com and sentryot.com set the identity: corporate, credentials-forward, dark-neutral-led, with green (Enevo) or teal (SentryOT) as one disciplined accent rather than the dominant hue. The system has since committed harder to that identity: the sidebar is a dark Charcoal rail (not a light gradient), KPI rows lead with one visually dominant Indigo-Deep hero card instead of four equal cards, and section titles/hero numbers run bigger and bolder. This is amplification within the existing palette -- no new hues were introduced -- but it pushes further into premium-enterprise-data-product territory: strong hierarchy through scale and darkness contrast, generous spacing between sections, and a layered Elevated shadow reserved for the one hero-weight surface each screen leads with. It still explicitly rejects the eco-marketing playbook: no leaf illustrations, no gradient hero blobs, no stock-photo wind turbines, no hopeful-pastel color washes.",
     "keyCharacteristics": [
-      "Forest Green (Enevo's exact #12541d) is the primary brand signal; Sentry Teal (#03bdc2) is the one sanctioned secondary accent, borrowed directly from the sibling product.",
-      "Dark corporate neutrals -- Indigo Deep and Charcoal, both lifted from Enevo's own palette -- replace the old all-green hero gradient as the system's dark surface.",
-      "Flat at rest; the only elevation is a soft ambient shadow under cards, never a floating/glassy effect.",
-      "Data density over illustration: KPI cards, donut/bar charts, and choropleth fills are the actual content, not supporting decoration."
+      "Forest Green (Enevo's exact #12541d) is the primary brand signal; Sentry Teal (#03bdc2) is the one sanctioned secondary accent, and now also the 'hero number' glow color on dark surfaces (the sidebar clock, the dashboard's dominant KPI, the live-overview strip's renewable-share stat).",
+      "Dark corporate neutrals -- Indigo Deep and Charcoal -- now carry structural chrome (the sidebar) and hero moments (the home hero, the dashboard's lead KPI), not just decorative banners.",
+      "One dominant number per screen: the Hero KPI Card and the Instrument Strip pattern both lead with a single oversized stat before supporting detail.",
+      "Elevated (a layered tight+diffuse shadow) is reserved for exactly one hero-weight surface per screen -- never a repeated grid -- so 'premium' stays an exception that means something.",
+      "Grids reflow with repeat(auto-fit, minmax(_, 1fr)) instead of fixed column counts; the sidebar collapses to a 76px icon rail below the lg breakpoint."
     ],
     "rules": [
       { "name": "The Two-Accent Rule", "body": "Forest Green (matching Enevo Group) is the brand's primary signal color; Sentry Teal (matching SentryOT) is the sole secondary/interactive accent. Every other hue in the Tertiary set -- wind blue, solar amber, hydro cyan, geothermal red, biomass green, tidal sky, investment violet -- exists solely to encode a data category and must never be reused for UI chrome, buttons, or navigation.", "section": "colors" },
-      { "name": "The Corporate Darks Rule", "body": "Indigo Deep and Charcoal, both lifted from Enevo's own site, are the only sanctioned dark surfaces. The previous all-green 'Deep Pine' gradient and the one-off navy-legacy (#1e3a5f) used on flip-card fronts are both retired.", "section": "colors" },
-      { "name": "The Sibling-Brand Font Rule", "body": "Typography now matches Enevo Group's own choice (Roboto) rather than an unrelated product font. Roboto is not yet installed in frontend/; add it (@fontsource/roboto, weights 300/400/500/700) and remove the currently-uninstalled Inter reference in App.tsx. This supersedes the earlier recommendation to adopt @fontsource-variable/geist.", "section": "typography" },
-      { "name": "The Flat-By-Default Rule", "body": "Every surface is flat at rest; Ambient Card is the ceiling for anything embedded in page flow. Only floating overlays (tooltips) earn a heavier shadow.", "section": "elevation" }
+      { "name": "The Corporate Darks Rule", "body": "Indigo Deep and Charcoal, both lifted from Enevo's own site, are the only sanctioned dark surfaces -- now carrying structural chrome (the sidebar rail) as well as hero moments, not just decorative banners.", "section": "colors" },
+      { "name": "The Sibling-Brand Font Rule", "body": "Typography matches Enevo Group's own choice (Roboto) rather than an unrelated product font. Installed as @fontsource/roboto, weights 300/400/500/700, imported in main.tsx.", "section": "typography" },
+      { "name": "The One Elevated Surface Per Screen Rule", "body": "Within a screen's own content, the Elevated shadow marks exactly one dominant surface (the dashboard's lead KPI, the comparison table, the home hero) -- never a repeated grid (flip cards use Ambient Card, not Elevated) and never two content cards at equal weight. The persistent live-overview strip is the one exception, since it's cross-screen chrome rather than that screen's content.", "section": "elevation" },
+      { "name": "The Inline-Beats-Class Rule", "body": "An inline style property always overrides an external CSS rule for that same property, :hover or not. Any element that needs both a per-instance dynamic color AND a class-driven hover/active state must pass the color through a CSS custom property (style={{'--x': value}}) so the class body -- not an inline declaration -- owns the actual background/border/color, leaving :hover free to win.", "section": "components" },
+      { "name": "The Side-By-Side-Only Rule", "body": "Visual devices that only make sense between adjacent items (the live-overview strip's vertical dividers) must disable via a CSS media query, not stay in inline styles, once the layout can wrap to a single column -- otherwise a wrapped item keeps a dangling divider line that borders nothing.", "section": "components" }
     ],
     "dos": [
       "Do treat Forest (#12541d) as the primary brand signal and Sentry Teal (#03bdc2) as the only secondary/interactive accent; keep the Tertiary data palette exclusively for chart and category encoding.",
-      "Do use the 16px card radius ({rounded.lg}) on every card-shaped surface, with no exceptions.",
       "Do keep the map/chart palette colorblind-safe -- pair color with icons or text labels the way the KPI cards already do (icon + label + color), never color alone.",
-      "Do install Roboto (@fontsource/roboto, weights 300/400/500/700, or Enevo's own Google Fonts link) to match the parent-brand typography, and remove the uninstalled Inter reference in App.tsx.",
-      "Do migrate the home hero and flip-card fronts from the retired green gradient / navy-legacy to the Indigo Deep -> Steel Navy pairing.",
-      "Do consolidate the color and type constants currently duplicated as local const blocks in DashboardScreen.tsx, ComparisonScreen.tsx, EuropeSummary.tsx, and HomeScreen.tsx into one shared tokens module built on these new values.",
-      "Do define hover/focus/disabled states for buttons and inputs before adding more of either -- right now most only have a default state."
+      "Do give every interactive element hover, focus, and (where it applies) active states -- reach for the shared classes in index.css (.pill-btn, .segmented-btn, .select-field, .card-interactive, .row-interactive, .icon-btn, .pin-btn) and the global :focus-visible rule before writing a new one-off.",
+      "Do route per-instance dynamic colors through CSS custom properties when the element also needs a class-driven hover/active state.",
+      "Do use repeat(auto-fit, minmax(_, 1fr)) for card/chart grids instead of a fixed column count.",
+      "Do make every clickable non-button element (a card, a table row) keyboard-operable: tabIndex={0}, an onKeyDown handler for Enter/Space, and an aria-label.",
+      "Do lead each screen's primary content with one dominant surface (the Hero KPI Card, the Elevated table) rather than a row of equal-weight cards.",
+      "Do disable side-by-side-only visual devices (dividers) via a CSS media query, not inline styles, when the layout can wrap."
     ],
     "donts": [
       "Don't drift back to the bright, all-green \"eco app\" wash this system started as -- Forest is one accent among dark corporate neutrals now, not the dominant hue.",
@@ -133,7 +160,10 @@
       "Don't use Sentry Teal for data encoding -- it's reserved for interactive/info UI chrome; Hydro Cyan remains the only cyan-family data color.",
       "Don't add new one-off dark surfaces. Indigo Deep and Charcoal are the only two; nothing else should be invented.",
       "Don't reference a font family string that isn't an installed dependency.",
-      "Don't ship the current placeholder brand assets as final: favicon.svg is a generic purple lightning-bolt icon unrelated to the brand, and icons.svg plus App.css are leftover Vite-template cruft with no live usage -- replace or remove before this is considered launch-ready."
+      "Don't animate width/height for progress-style fills -- use transform: scaleX() with transform-origin: left (the .progress-fill class) so the browser skips layout.",
+      "Don't nest a real <button> inside another <button> for a clickable-card-with-inner-action pattern -- invalid HTML. Use role=\"button\" + tabIndex + onKeyDown on the outer element instead.",
+      "Don't apply the Elevated shadow to a repeated grid -- it's reserved for the one hero-weight surface per screen; spread across many cards it stops reading as premium and just looks heavy.",
+      "Don't ship the current placeholder brand assets as final: favicon.svg is a generic purple lightning-bolt icon unrelated to the brand, and icons.svg is leftover Vite-template cruft with no live usage -- replace or remove before this is considered launch-ready."
     ]
   }
 }

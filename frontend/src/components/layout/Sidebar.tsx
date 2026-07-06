@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { GitCompareArrows, Map, Leaf, Home } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { colors, shadows } from "@/lib/tokens";
 
 export type Screen = "home" | "dashboard" | "comparison" | "map";
 
@@ -36,61 +37,70 @@ export function Sidebar({
   });
 
   return (
-    <nav className="sticky top-0 flex h-screen w-[72px] flex-shrink-0 flex-col border-r border-zinc-200 bg-linear-to-b from-zinc-50 to-white px-2.5 py-5 lg:w-[260px] lg:px-3.5">
+    <nav
+      className="sticky top-0 flex h-screen w-[76px] flex-shrink-0 flex-col px-3 py-6 lg:w-[280px] lg:px-5"
+      style={{ background: colors.charcoal, boxShadow: shadows.railEdge }}
+    >
       {/* logo */}
-      <div className="mb-5 flex items-center justify-center gap-2.5 border-b border-zinc-200 px-1 pb-4 lg:justify-start">
-        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-[#12541d] to-[#1c6b2a] text-white shadow-sm">
+      <div className="mb-8 flex items-center justify-center gap-3 lg:justify-start">
+        <div
+          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl text-white"
+          style={{ background: `linear-gradient(135deg, ${colors.forestMid}, ${colors.forest})`, boxShadow: "0 4px 14px rgba(28,107,42,0.45)" }}
+        >
           <Leaf className="h-5 w-5" />
         </div>
         <div className="hidden leading-tight lg:block">
-          <div className="text-[15px] font-bold text-zinc-800">EU Renewables</div>
-          <div className="text-[11px] text-zinc-400">Monitor</div>
+          <div className="text-[16px] font-bold tracking-tight text-white">EU Renewables</div>
+          <div className="text-[11px] font-medium uppercase tracking-[0.08em] text-white/60">Monitor</div>
         </div>
       </div>
 
       {/* live clock */}
-      <div className="mb-5 hidden rounded-lg border border-zinc-200 bg-white px-3 py-2.5 shadow-sm lg:block">
-        <div className="font-mono text-2xl font-semibold tabular-nums text-zinc-800">
+      <div
+        className="mb-8 hidden rounded-2xl border border-white/[0.06] px-4 py-4 lg:block"
+        style={{ background: "rgba(255,255,255,0.03)" }}
+      >
+        <div className="font-mono text-[26px] font-semibold leading-none tracking-tight tabular-nums" style={{ color: colors.sentryTeal }}>
           {timeStr}
         </div>
-        <div className="mt-0.5 text-[11px] capitalize text-zinc-500">{dateStr}</div>
+        <div className="mt-2 text-[11px] capitalize text-white/60">{dateStr}</div>
       </div>
 
-      <div className="hidden px-2 pb-2 text-[11px] font-semibold uppercase tracking-wide text-zinc-400 lg:block">
+      <div className="hidden px-2 pb-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-white/60 lg:block">
         Navigation
       </div>
 
-      {ITEMS.map((item) => {
-        const Icon = item.icon;
-        const isActive = active === item.id || (item.id === "map" && active === "dashboard");
-        return (
-          <button
-            key={item.id}
-            onClick={() => onNavigate(item.id)}
-            title={item.label}
-            aria-current={isActive ? "page" : undefined}
-            className={cn(
-              "mb-1 flex w-full items-center justify-center gap-3 rounded-lg px-3 py-2.5 text-left text-[13px] font-medium transition-all active:scale-[0.97] lg:justify-start",
-              isActive
-                ? "bg-zinc-900 text-white shadow-sm"
-                : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
-            )}
-          >
-            <Icon className={cn("h-[18px] w-[18px] flex-shrink-0", isActive ? "text-[#03bdc2]" : "text-zinc-400")} />
-            <span className="hidden lg:inline">{item.label}</span>
-          </button>
-        );
-      })}
+      <div className="flex flex-col gap-1">
+        {ITEMS.map((item) => {
+          const Icon = item.icon;
+          const isActive = active === item.id || (item.id === "map" && active === "dashboard");
+          return (
+            <button
+              key={item.id}
+              onClick={() => onNavigate(item.id)}
+              title={item.label}
+              aria-current={isActive ? "page" : undefined}
+              className={cn("nav-item-dark justify-center px-3 py-3 lg:justify-start")}
+            >
+              <Icon className="nav-icon h-[18px] w-[18px] flex-shrink-0" />
+              <span className="hidden lg:inline">{item.label}</span>
+            </button>
+          );
+        })}
+      </div>
 
       {/* hint */}
-      <div className="mx-2 mt-3 hidden rounded-lg border border-[#dde3de] bg-[#dde9df] px-3 py-2.5 text-[11px] leading-relaxed text-[#12541d] lg:block">
+      <div
+        className="mx-1 mt-4 hidden rounded-xl border px-4 py-3 text-[11px] leading-relaxed lg:block"
+        style={{ background: "rgba(3,189,194,0.08)", borderColor: "rgba(3,189,194,0.2)", color: "#7fe6e9" }}
+      >
         💡 Click any country on the map to open its investment dashboard.
       </div>
 
       {/* attribution */}
-      <div className="mt-auto hidden border-t border-zinc-200 px-2 pt-4 text-[10px] leading-relaxed text-zinc-400 lg:block">
+      <div className="mt-auto hidden border-t border-white/[0.06] px-2 pt-5 text-[10px] leading-relaxed text-white/60 lg:block">
         Data:{" "}
-        <a href="https://energy-charts.info" target="_blank" rel="noreferrer" className="underline hover:text-zinc-600">
+        <a href="https://energy-charts.info" target="_blank" rel="noreferrer" className="underline hover:text-white">
           Energy-Charts.info
         </a>
       </div>

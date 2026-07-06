@@ -33,16 +33,16 @@ colors:
 typography:
   display:
     fontFamily: "Roboto, system-ui, sans-serif"
+    fontSize: "52px"
+    fontWeight: 700
+    lineHeight: 1.1
+    letterSpacing: "-0.02em"
+  headline:
+    fontFamily: "Roboto, system-ui, sans-serif"
     fontSize: "36px"
     fontWeight: 700
     lineHeight: 1.2
-    letterSpacing: "-0.5px"
-  headline:
-    fontFamily: "Roboto, system-ui, sans-serif"
-    fontSize: "28px"
-    fontWeight: 700
-    lineHeight: 1.3
-    letterSpacing: "-0.5px"
+    letterSpacing: "-0.02em"
   title:
     fontFamily: "Roboto, system-ui, sans-serif"
     fontSize: "20px"
@@ -66,6 +66,7 @@ rounded:
   md: "10px"
   lg: "16px"
   xl: "20px"
+  2xl: "24px"
   full: "9999px"
 spacing:
   xs: "8px"
@@ -74,27 +75,34 @@ spacing:
   lg: "24px"
   xl: "32px"
   2xl: "40px"
+  3xl: "56px"
+  4xl: "72px"
 components:
   kpi-card:
     backgroundColor: "{colors.surface}"
     textColor: "{colors.ink}"
-    rounded: "{rounded.lg}"
+    rounded: "{rounded.xl}"
     padding: "22px 24px"
+  hero-kpi-card:
+    backgroundColor: "{colors.indigo-deep}"
+    textColor: "{colors.sentry-teal}"
+    rounded: "{rounded.2xl}"
+    padding: "32px 36px"
   section-card:
     backgroundColor: "{colors.surface}"
     textColor: "{colors.ink}"
-    rounded: "{rounded.lg}"
-    padding: "24px"
+    rounded: "{rounded.xl}"
+    padding: "28px"
   nav-item-active:
-    backgroundColor: "{colors.zinc-900}"
+    backgroundColor: "{colors.sentry-teal}"
     textColor: "#ffffff"
-    rounded: "{rounded.sm}"
-    padding: "10px 12px"
+    rounded: "{rounded.md}"
+    padding: "12px"
   nav-item:
     backgroundColor: "transparent"
-    textColor: "{colors.zinc-600}"
-    rounded: "{rounded.sm}"
-    padding: "10px 12px"
+    textColor: "rgba(255,255,255,0.6)"
+    rounded: "{rounded.md}"
+    padding: "12px"
   pill-badge:
     backgroundColor: "{colors.sage-tint}"
     textColor: "{colors.forest}"
@@ -105,6 +113,11 @@ components:
     textColor: "{colors.ink}"
     rounded: "{rounded.md}"
     padding: "10px 16px"
+  segmented-control:
+    backgroundColor: "{colors.mist}"
+    textColor: "{colors.muted}"
+    rounded: "{rounded.xl}"
+    padding: "3px"
 ---
 
 # Design System: EU Renewables Monitor
@@ -117,12 +130,15 @@ This is an instrument, not a brochure — and it now reads as a sibling product 
 
 It still explicitly rejects the eco-marketing playbook: no leaf illustrations, no gradient hero blobs, no stock-photo wind turbines, no hopeful-pastel color washes. Green means "this is the Enevo family," not "we care about nature" — the seriousness comes from the same credentials-and-precision register the parent sites use (stats, capacity figures, comparison), not from sustainability iconography.
 
-Colors, shadows, and the font family now live in one shared module (`frontend/src/lib/tokens.ts`), mirrored as CSS custom properties in `index.css` for the handful of elements that need real `:hover`/`:focus-visible` states inline styles can't express. Roboto is installed and wired up; the old `Inter` reference is gone.
+Colors, shadows, spacing, and the font family live in one shared module (`frontend/src/lib/tokens.ts`), mirrored as CSS custom properties in `index.css` for the elements that need real `:hover`/`:focus-visible` states inline styles can't express. Roboto is installed and wired up; the old `Inter` reference is gone.
+
+The system has since committed harder to "instrument, not brochure": the sidebar is now a dark Charcoal rail (not a light gradient), KPI rows lead with one visually dominant Indigo-Deep hero card instead of four equal cards, and section titles/hero numbers run bigger and bolder. This is amplification within the existing palette — no new hues were introduced — but it pushes further into "premium enterprise data product" territory: strong hierarchy through scale and darkness contrast, generous spacing between sections, and layered shadows on the handful of surfaces that earn elevation.
 
 **Key Characteristics:**
-- Forest Green (Enevo's exact `#12541d`) is the primary brand signal; Sentry Teal (`#03bdc2`) is the one sanctioned secondary accent, borrowed directly from the sibling product.
-- Dark corporate neutrals — Indigo Deep and Charcoal, both lifted from Enevo's own palette — replace the old all-green hero gradient as the system's dark surface.
-- Flat at rest; the only elevation is a soft ambient shadow under cards, never a floating/glassy effect.
+- Forest Green (Enevo's exact `#12541d`) is the primary brand signal; Sentry Teal (`#03bdc2`) is the one sanctioned secondary accent — and now doubles as the "hero number" glow color on dark surfaces (the sidebar clock, the dashboard's dominant KPI, the live-overview strip's renewable-share stat).
+- Dark corporate neutrals — Indigo Deep and Charcoal, both lifted from Enevo's own palette — now carry structural chrome (the sidebar) as well as hero moments (the home hero, the dashboard's lead KPI), not just decorative banners.
+- Flat at rest for ordinary cards; a small set of hero-weight surfaces (the home hero, the live-overview strip, the dashboard's lead KPI, the comparison table, flip cards) earn a heavier layered shadow via `.card-elevated` to read as premium, not just "a card with a border."
+- One dominant number per screen: each major surface leads with a single oversized stat (the hero KPI, the live-overview strip's four-up numbers) before supporting detail — strong hierarchy through scale and position, not decoration.
 - Data density over illustration: KPI cards, donut/bar charts, and choropleth fills are the actual content, not supporting decoration.
 
 ## 2. Colors
@@ -135,8 +151,8 @@ Restrained, corporate-neutral-led palette: one committed green plus one committe
 - **Sage Tint** (`#dde9df`): a muted, low-chroma pale background for Forest-colored pills and badges — deliberately less bright than a typical "mint" tint, to read as corporate rather than eco-pastel.
 
 ### Secondary
-- **Indigo Deep** (`#192168`) → **Steel Navy** (`#22364e`), 135° gradient: the system's dark surface, replacing the old all-green "Deep Pine" hero. Both values are lifted directly from Enevo's own site. Reserved for the home-screen hero banner and any other screen-level dark surface.
-- **Charcoal** (`#32373c`): a secondary dark neutral, also from Enevo, for smaller dark UI elements (e.g. a dark tooltip or footer) where the full Indigo/Navy gradient would be too heavy.
+- **Indigo Deep** (`#192168`) → **Steel Navy** (`#22364e`), 135° gradient: the system's dark hero surface — the home-screen hero, the live-overview instrument strip, and the dashboard's lead KPI card (solid Indigo Deep, no gradient, on the smaller surface).
+- **Charcoal** (`#32373c`): the second dark neutral, also from Enevo. Originally scoped to small elements (tooltips), it now also carries the sidebar rail — a full-height structural surface, not just an accent — plus anywhere a dark tooltip or footer needs a flatter, less "hero" dark than Indigo Deep.
 
 ### Tertiary (data-viz palette)
 - **Sentry Teal** (`#03bdc2`): the sibling-brand accent, used for interactive/info UI — links, focus rings, active highlights — never for data encoding. Deliberately distinct in *role* from Hydro Cyan below, even though both sit in the cyan family.
@@ -165,47 +181,63 @@ Restrained, corporate-neutral-led palette: one committed green plus one committe
 
 **Display/Body/Label Font:** Roboto (with system-ui, sans-serif fallback) — matching enevogroup.com exactly, at the same weights it loads (300 / 400 / 500 / 700).
 
-**Character:** One familiar, corporate-neutral sans carries every role, from the 36px hero headline down to 12px uppercase KPI labels. No display flourish anywhere — hierarchy comes from size and weight, matching the parent brand's restraint rather than introducing a distinct "product" voice.
+**Character:** One familiar, corporate-neutral sans carries every role, from the 52px hero down to 12px uppercase KPI labels. No display flourish anywhere — hierarchy comes from size, weight, and darkness contrast, matching the parent brand's restraint rather than introducing a distinct "product" voice. The scale runs bigger and bolder than a typical restrained product UI on purpose: this is the "premium enterprise" amplification, expressed through scale and confidence rather than new colors or effects.
 
 ### Hierarchy
-- **Display** (700, 36px, line-height 1.2, letter-spacing -0.5px): the home-screen hero headline only ("The future of energy is renewable").
-- **Headline** (700, 28px, letter-spacing -0.5px): page-level titles ("Country Dashboard", "Europe Map").
-- **Title** (500, 20px, letter-spacing -0.3px): section headers ("Renewable energy types"). A compact variant at 500/15px covers in-card titles ("Solar vs wind mix") — same role, denser context.
-- **Body** (400, 14px, line-height 1.6): descriptions, chart legends, form labels. Cap prose at 65–75ch; data-dense contexts (KPI sub-labels) can run tighter.
+- **Display** (700, 52px, line-height 1.1, letter-spacing -0.02em): the home-screen hero headline only ("The future of energy is renewable") — Home is the one screen with a brand-forward, larger-than-product-register treatment.
+- **Headline** (700, 36px, letter-spacing -0.02em): page-level titles ("Country Dashboard", "Country Comparison", "Europe Map") — bumped up from the original 28px pass for stronger presence against the new dark sidebar and elevated cards.
+- **Title** (500, 20px, letter-spacing -0.3px): section headers ("Renewable energy types"). A compact variant at 600/17px covers in-card chart titles ("Solar vs wind mix") — same role, slightly heavier weight for legibility against more generous card padding.
+- **Body** (400, 14–15px, line-height 1.6): descriptions, chart legends, form labels. Cap prose at 65–75ch; data-dense contexts (KPI sub-labels) can run tighter.
 - **Label** (500, 12px, letter-spacing 0.06em, uppercase): KPI card eyebrow labels ("WIND CAPACITY"), the sidebar's "Navigation" section header. Reserved for short, data-adjacent labels — not for marketing kickers.
+
+### The Hero Number Pattern
+Every major screen leads with exactly one oversized numeral before any supporting detail: the dashboard's combined-capacity KPI (52px, Sentry Teal, on Indigo Deep), the live-overview strip's four stats (40px, white or Sentry Teal, on the gradient), the comparison table's rank totals and investment-snapshot percentages (28–32px). These aren't a fixed frontmatter role — they're Display-weight (700) applied at a size chosen for the surface — but the pattern is deliberate and repeats: one dominant number draws the eye before the reader parses labels or supporting stats.
 
 ### Named Rules
 **The Sibling-Brand Font Rule.** Typography matches Enevo Group's own choice (Roboto) rather than an unrelated product font, reinforcing that this app is part of the same family. Roboto is installed (`@fontsource/roboto`, weights 300/400/500/700, imported in `main.tsx`); `@fontsource-variable/geist` was removed as a dependency once it was clear Roboto was the sibling-brand-aligned choice.
 
 ## 4. Elevation
 
-The system is flat by default with one soft ambient shadow reserved for raised content — never used to fake gloss or glassmorphism. Clickable cards and rows lift on hover (Hover Lift, below); everything else stays flat.
+Most surfaces are flat with one soft ambient shadow — never used to fake gloss or glassmorphism. A deliberately small set of hero-weight surfaces earn a heavier, two-layer **Elevated** shadow instead, so "premium" reads as an exception that matters, not a blanket treatment. Clickable cards and rows lift further on hover (Hover Lift, below).
 
 ### Shadow Vocabulary
-- **Ambient Card** (`box-shadow: 0 2px 8px rgba(0,0,0,0.06)`): the resting shadow for every card-shaped surface (KPI cards, section cards, the map container).
-- **Ambient Hero** (`box-shadow: 0 4px 20px rgba(0,0,0,0.12)`): the home-screen hero banner (now on the Indigo Deep → Steel Navy gradient) and any similarly prominent, full-width surface.
+- **Ambient Card** (`box-shadow: 0 2px 8px rgba(0,0,0,0.06)`): the resting shadow for ordinary card-shaped surfaces (secondary KPI cards, section cards, the map container).
+- **Ambient Hero** (`box-shadow: 0 4px 20px rgba(0,0,0,0.12)`): mid-weight prominent surfaces that don't rise to full Elevated treatment.
+- **Elevated** (`box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 20px 48px rgba(0,0,0,0.14)`): a layered tight-contact + soft-diffuse shadow via the `.card-elevated` class, reserved for the system's hero-weight surfaces — the home hero, the live-overview instrument strip, the dashboard's lead KPI card, flip cards, and the comparison table. This is the one shadow that should feel expensive; don't apply it to routine cards or it stops meaning anything.
+- **Rail Edge** (`box-shadow: 6px 0 32px rgba(0,0,0,0.08)`): cast from the dark sidebar onto the light content area, reinforcing it as a distinct structural layer rather than a flush panel.
 - **Input Subtle** (`box-shadow: 0 1px 4px rgba(0,0,0,0.06)`): form controls at rest (the country-select dropdown).
-- **Tooltip Dark** (`box-shadow: 0 4px 16px rgba(0,0,0,0.3)`): the dark chart-tooltip popover — the one place a heavier shadow is justified, since the tooltip floats over a chart rather than sitting in the page flow.
-- **Hover Lift** (`box-shadow: 0 6px 20px rgba(0,0,0,0.1)`): the one hover-elevation shadow in the system, used only on clickable cards/rows (pinned country cards, ranking rows) to signal interactivity. Pairs with a 2px upward `translateY` on hover, back to Ambient Card on active/press.
+- **Tooltip Dark** (`box-shadow: 0 4px 16px rgba(0,0,0,0.3)`): the dark chart-tooltip popover — floats over a chart rather than sitting in the page flow.
+- **Hover Lift** (`box-shadow: 0 6px 20px rgba(0,0,0,0.1)`): the hover-elevation shadow for clickable cards/rows (pinned country cards, ranking rows). Pairs with a 2px upward `translateY` on hover, back to Ambient Card on active/press.
 
 ### Named Rules
-**The Flat-By-Default Rule.** Every surface is flat at rest; Ambient Card is the ceiling for anything embedded in page flow. Only floating overlays (tooltips) earn a heavier shadow.
+**The Flat-By-Default Rule.** Every surface is flat at rest; Ambient Card is the ceiling for anything embedded in page flow. Only hero-weight surfaces (Elevated) and floating overlays (tooltips) earn a heavier shadow.
+
+**The One Elevated Surface Per Screen Rule.** Within a screen's own content, Elevated marks exactly one dominant surface (the dashboard's lead KPI, the comparison table, the home hero) — never a repeated grid (the flip cards use Ambient Card, not Elevated, for this reason) and never two content cards at equal weight. The persistent live-overview strip is the one exception, since it's cross-screen chrome rather than that screen's content — it and one screen-level Elevated surface can coexist without competing.
 
 ## 5. Components
 
 ### Buttons / Pills
-- **Shape:** 8px radius (`{rounded.sm}`).
+- **Shape:** 8px radius (`{rounded.sm}`) for pills; segmented controls use 20px outer / 9px inner (see Segmented Control below).
 - **Primary pill** ("← Back to map"): Sage Tint background, Forest text, Border Sage 1px border, 7–14px padding.
-- **Nav item (sidebar):** no visible button chrome at rest; active state is a solid Zinc-900 fill with white text and a Sentry Teal–tinted icon (replacing the old Meadow-green icon tint); inactive is transparent with Zinc-600 text, hover fades to Zinc-100.
+- **Nav item (sidebar, dark):** no visible button chrome at rest; active state is a solid Sentry Teal fill with white text and icon; inactive is `rgba(255,255,255,0.6)` text, hover fades to `rgba(255,255,255,0.06)` white overlay. Icon-only in collapsed (rail) mode.
 - **Hover / Focus:** every button, pill, select, and interactive row/card has a hover and `:focus-visible` state. A single global rule (`:focus-visible { outline: 2px solid var(--sentry-teal) }` in `index.css`) rings every focusable element in Sentry Teal — never Forest — keeping "interactive" and "brand status" visually distinct. Elements whose color varies per-instance (the Pin button, sort toggles) pass their color through CSS custom properties so the shared `.pill-btn` / `.pin-btn` / `.sort-btn` classes can still own hover/active overrides; a plain inline `style.background` would otherwise always beat a class's `:hover` rule.
 
+### Segmented Control
+The sort toggle (Total / Wind / Solar on the comparison screen): a Mist-background pill-shaped track (`{rounded.xl}`, 3px padding) holding borderless buttons; the active option gets a white background, a small lift shadow, and Forest text/weight-700 — closer to a native iOS/macOS segmented control than a row of plain toggle buttons. Reach for this over loose `.sort-btn` buttons whenever the options are mutually exclusive and few (2–4).
+
 ### Cards / Containers
-- **Corner style:** 16px radius (`{rounded.lg}`), uniform across KPI cards, section cards, the map container, and flip cards.
-- **Background:** Surface white, except flip-card fronts and the home hero, both on Indigo Deep (solid or → Steel Navy gradient).
-- **Shadow strategy:** Ambient Card at rest. Clickable cards (pinned country cards) use Hover Lift on hover and drop back to Ambient Card on active/press — see Elevation.
-- **Border:** 1px Border Sage on every light-surface card; KPI cards add a 4px colored top border keyed to their data category (Wind Blue, Solar Amber, Forest Mid, Investment Violet).
-- **Internal padding:** 22–24px (`{spacing.lg}`-adjacent).
+- **Corner style:** 16–24px radius depending on weight — `{rounded.lg}` (16px) for compact secondary KPI cards, `{rounded.xl}` (20px) for standard section/content cards, `{rounded.2xl}` (24px) for hero-weight surfaces (the hero KPI card, the home hero, the live-overview strip, the comparison table).
+- **Background:** Surface white for ordinary cards; Indigo Deep for hero-weight surfaces (the home hero, the dashboard's lead KPI, flip-card fronts).
+- **Shadow strategy:** Ambient Card at rest for ordinary cards; Elevated for the one hero-weight surface per screen (see Elevation, and The One Elevated Surface Per Screen Rule). Clickable cards (pinned country cards) use Hover Lift on hover and drop back to Ambient Card on active/press.
+- **Border:** 1px Border Sage on every light-surface card; KPI cards add a 3–4px colored top border keyed to their data category (Wind Blue, Solar Amber, Forest Mid, Investment Violet).
+- **Internal padding:** generous — 22–28px for standard cards, 32–36px for hero-weight surfaces (`{spacing.xl}`–`{spacing.2xl}`-adjacent), 56–72px for the home hero (`{spacing.3xl}`/`{spacing.4xl}`).
 - **Responsive:** KPI and chart grids use `repeat(auto-fit, minmax(_, 1fr))` rather than a fixed column count, so they reflow to 2 or 1 columns on narrow viewports without a breakpoint.
+
+### Hero KPI Card (signature pattern)
+The dashboard's KPI row leads with one dominant card — Indigo Deep background, `{rounded.2xl}`, spans 2 grid columns, 52px Sentry-Teal numeral — beside three smaller white secondary KPI cards at the standard 26px numeral size. This asymmetry (one hero + N supporting, not N equal cards) is the system's answer to "strong visual hierarchy": size, color, and position all agree on what matters most before the reader parses any label. Use `gridColumn: "span 2"` inside the same `repeat(auto-fit, minmax(_,1fr))` grid as the supporting cards — it stays responsive without a separate breakpoint.
+
+### Instrument Strip (signature pattern)
+The live-overview banner (`EuropeSummary`): a full-width Indigo-Deep→Steel-Navy strip with a small live-status dot + label, then up to four 40px stat numerals separated by vertical hairline dividers (`rgba(255,255,255,0.1)`, not a colored accent — plain neutral dividers between stat groups are a standard pattern, distinct from the banned colored side-stripe). **The dividers only make sense side-by-side**: below 640px the stats wrap to a 2-column layout via `flex-wrap`, and the dividers must disable via a media query (`.stat-strip-item` in `index.css`) rather than staying in inline styles — an inline divider left in place produces a dangling border line once an item wraps to its own row.
 
 ### Inputs / Fields
 - **Style:** Surface background, Border Sage 1.5px stroke, 10px radius (`{rounded.md}`), Input Subtle shadow. Shared via the `.select-field` class in `index.css`.
@@ -213,14 +245,14 @@ The system is flat by default with one soft ambient shadow reserved for raised c
 - **Error / Disabled:** still undefined — the country-select dropdown has no error or disabled variant yet. Add one before a form with real validation ships.
 
 ### Navigation
-- **Style:** persistent left sidebar, Zinc-50→white vertical gradient background, Zinc-200 right border. Logo mark: Forest→Forest Mid gradient square with a white leaf icon. Live clock in a bordered Surface panel using tabular numerals. Nav items per Buttons above. Section label ("Navigation") uses the Label type role in Zinc-400.
-- **Responsive:** the sidebar collapses to a 72px icon-only rail below the `lg` breakpoint (labels, clock, hint, and attribution hide; icons and active state stay) rather than a fixed 260px width at every size. Every icon carries a `title` attribute so the label is still available on hover/screen reader in collapsed mode.
+- **Style:** persistent dark Charcoal rail (not the light gradient of earlier passes) — this is now the single biggest "premium enterprise" signal in the system, matching the left-rail convention of Linear/Vercel/Datadog-class tools. Logo mark: Forest→Forest Mid gradient square with a white leaf icon, on the dark background. Live clock in a subtle `rgba(255,255,255,0.03)` panel with Sentry-Teal tabular-numeral digits. Active nav item is a solid Sentry Teal fill (see Buttons above). The rail casts a Rail Edge shadow onto the light content area so it reads as a distinct structural layer.
+- **Responsive:** the sidebar collapses to a 76px icon-only rail below the `lg` breakpoint (labels, clock, hint, and attribution hide; icons and active state stay) rather than a fixed width at every size. Every icon carries a `title` attribute so the label is still available on hover/screen reader in collapsed mode.
 
 ### Skeleton Loaders
-A shimmer gradient (`linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%)`) fills placeholder blocks shaped like the real KPI/chart grid while data loads — used instead of a spinner, per product-register convention. Unaffected by this palette shift; it's already neutral gray.
+A shimmer gradient (`linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%)`) fills placeholder blocks shaped like the real KPI/chart grid while data loads — used instead of a spinner, per product-register convention. The dashboard skeleton mirrors the Hero KPI Card's asymmetric span so the loading state doesn't jump when real data arrives.
 
 ### Flip Card (signature component)
-The home screen's energy-type cards: a 3D `rotateY` flip on click, front face now Indigo Deep (migrated from `navy-legacy`) with the type's emoji + name, and a Surface-white back face bordered in the category's Tertiary color, showing a stat badge and a fact list. The only place in the system where whimsical motion (a physical card flip) is intentional — everywhere else motion should stay in the Restrained/Responsive range described in PRODUCT.md's calm-confidence principle.
+The home screen's energy-type cards: a 3D `rotateY` flip on click, Indigo Deep front face (icon in a soft `rgba(255,255,255,0.06)` circle, not a bare emoji) and a Surface-white back face bordered in the category's Tertiary color, showing a stat badge and a fact list. Uses the standard Ambient Card shadow, not Elevated — see The One Elevated Surface Per Screen Rule; six repeated hero-weight shadows would read as "everything is important," i.e. nothing is. The only place in the system where whimsical motion (a physical card flip) is intentional — everywhere else motion should stay in the Restrained/Responsive range described in PRODUCT.md's calm-confidence principle.
 
 ## 6. Do's and Don'ts
 
@@ -232,6 +264,8 @@ The home screen's energy-type cards: a 3D `rotateY` flip on click, front face no
 - **Do** route per-instance dynamic colors through CSS custom properties (`style={{ '--pin-bg': ... }}`) when the element also needs a class-driven hover/active state — a plain inline `style.background`/`style.border` always wins over a class's `:hover` rule, silently killing the interaction.
 - **Do** use `repeat(auto-fit, minmax(_, 1fr))` for card/chart grids instead of a fixed column count, so layouts reflow on narrow viewports without a media query.
 - **Do** make every clickable non-button element (a card, a table row) keyboard-operable: `tabIndex={0}`, an `onKeyDown` handler for Enter/Space, and an `aria-label` describing the action.
+- **Do** lead each screen's primary content with one dominant surface (the Hero KPI Card, the Elevated table) rather than a row of equal-weight cards — strong hierarchy comes from one clear "most important thing," not from making everything bigger.
+- **Do** disable side-by-side-only visual devices (the instrument strip's dividers) via a CSS media query, not inline styles, when the layout can wrap to a single column.
 
 ### Don't:
 - **Don't** drift back to the bright, all-green "eco app" wash this system started as — Forest is one accent among dark corporate neutrals now, not the dominant hue.
@@ -242,4 +276,5 @@ The home screen's energy-type cards: a 3D `rotateY` flip on click, front face no
 - **Don't** reference a font family string that isn't an installed dependency.
 - **Don't** animate `width`/`height` for progress-style fills — use a fixed-size track with `transform: scaleX(...)` and `transform-origin: left` (the `.progress-fill` class) so the browser skips layout entirely.
 - **Don't** nest a real `<button>` inside another `<button>` for "clickable card with an inner action" patterns (e.g. a pinned card with its own unpin control) — invalid HTML, and browsers silently break out of it. Use `role="button"` + `tabIndex` + `onKeyDown` on the outer element instead.
+- **Don't** apply the Elevated shadow to a repeated grid (card lists, the flip-card grid) — it's reserved for the one hero-weight surface per screen; spread across many cards it stops reading as premium and just looks heavy.
 - **Don't** ship the current placeholder brand assets as final: `favicon.svg` is a generic purple lightning-bolt icon unrelated to the brand (Enevo/SentryOT green-and-navy or teal), and `icons.svg` is leftover Vite-template cruft with no live usage — replace or remove before this is considered launch-ready.

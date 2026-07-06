@@ -116,7 +116,7 @@ function FlipCard({ card }: { card: EnergyCard }) {
       style={{
         display: "block", width: "100%", padding: 0, margin: 0, border: "none",
         background: "none", font: "inherit", textAlign: "inherit",
-        perspective: 1000, cursor: "pointer", height: 200,
+        perspective: 1200, cursor: "pointer", height: 236,
       }}
     >
       <div
@@ -136,24 +136,30 @@ function FlipCard({ card }: { card: EnergyCard }) {
             backfaceVisibility: "hidden",
             WebkitBackfaceVisibility: "hidden",
             background: CARD_FRONT_BG,
-            borderRadius: 16,
+            borderRadius: 20,
             display: "flex", flexDirection: "column",
             alignItems: "center", justifyContent: "center",
-            gap: 8, padding: "16px 20px",
-            border: "1px solid rgba(255,255,255,0.1)",
+            gap: 12, padding: "20px 24px",
+            border: "1px solid rgba(255,255,255,0.08)",
+            boxShadow: shadows.ambientCard,
           }}
         >
-          <span style={{ fontSize: 36 }}>{card.emoji}</span>
+          <div style={{
+            width: 56, height: 56, borderRadius: 16, background: "rgba(255,255,255,0.06)",
+            display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28,
+          }}>
+            {card.emoji}
+          </div>
           <p style={{
-            fontSize: 15, fontWeight: 700, color: CARD_FRONT_TEXT,
+            fontSize: 17, fontWeight: 700, color: CARD_FRONT_TEXT,
             textAlign: "center", letterSpacing: "-0.2px", margin: 0,
           }}>
             {card.title}
           </p>
-          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", textAlign: "center", margin: 0 }}>
+          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", textAlign: "center", margin: 0, maxWidth: "80%" }}>
             {card.shortDesc}
           </p>
-          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 4 }}>
+          <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.55)", marginTop: 4 }}>
             Tap to learn more →
           </div>
         </div>
@@ -166,28 +172,29 @@ function FlipCard({ card }: { card: EnergyCard }) {
             WebkitBackfaceVisibility: "hidden",
             transform: "rotateY(180deg)",
             background: CARD_BACK_BG,
-            borderRadius: 16,
-            padding: "14px 16px",
+            borderRadius: 20,
+            padding: "18px 20px",
             border: `2px solid ${card.color}`,
-            display: "flex", flexDirection: "column", gap: 8,
+            display: "flex", flexDirection: "column", gap: 10,
             overflow: "hidden",
+            boxShadow: shadows.ambientCard,
           }}
         >
           {/* Stat badge */}
           <div style={{
-            background: card.color, borderRadius: 7, padding: "5px 10px",
+            background: card.color, borderRadius: 10, padding: "8px 12px",
             display: "inline-flex", flexDirection: "column", width: "fit-content", flexShrink: 0,
           }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: "#fff", lineHeight: 1.2 }}>{card.stat.value}</span>
-            <span style={{ fontSize: 9, color: "rgba(255,255,255,0.85)", lineHeight: 1.2 }}>{card.stat.label}</span>
+            <span style={{ fontSize: 15, fontWeight: 700, color: "#fff", lineHeight: 1.2 }}>{card.stat.value}</span>
+            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.85)", lineHeight: 1.2 }}>{card.stat.label}</span>
           </div>
 
           {/* Facts */}
-          <ul style={{ padding: 0, margin: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 4 }}>
+          <ul style={{ padding: 0, margin: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 6 }}>
             {card.facts.map((fact, i) => (
               <li key={i} style={{
-                display: "flex", gap: 6, alignItems: "flex-start",
-                fontSize: 11, color: CARD_BACK_TEXT, lineHeight: 1.4,
+                display: "flex", gap: 7, alignItems: "flex-start",
+                fontSize: 12, color: CARD_BACK_TEXT, lineHeight: 1.4,
               }}>
                 <span style={{ color: card.color, flexShrink: 0, fontWeight: 700 }}>✓</span>
                 {fact}
@@ -195,7 +202,7 @@ function FlipCard({ card }: { card: EnergyCard }) {
             ))}
           </ul>
 
-          <div style={{ marginTop: "auto", fontSize: 9, color: colors.muted, textAlign: "right" }}>
+          <div style={{ marginTop: "auto", fontSize: 10, color: colors.muted, textAlign: "right" }}>
             Tap to flip back
           </div>
         </div>
@@ -206,29 +213,28 @@ function FlipCard({ card }: { card: EnergyCard }) {
 
 export function HomeScreen() {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 48 }}>
       {/* Hero */}
-      <div style={{
+      <div className="card-elevated" style={{
         background: gradients.heroDark,
-        borderRadius: 20, padding: "40px 48px",
-        boxShadow: shadows.ambientHero,
+        borderRadius: 28, padding: "64px 64px",
       }}>
-        <div style={{ maxWidth: 600 }}>
+        <div style={{ maxWidth: 680 }}>
           <div style={{
             display: "inline-flex", alignItems: "center", gap: 8,
             background: "rgba(3,189,194,0.15)", borderRadius: 20,
-            padding: "4px 14px", marginBottom: 16,
+            padding: "6px 16px", marginBottom: 24,
           }}>
             <span style={{ width: 8, height: 8, borderRadius: "50%", background: ACCENT, display: "inline-block" }} />
-            <span style={{ fontSize: 12, color: ACCENT, fontWeight: 600 }}>Renewable Investment Advisor</span>
+            <span style={{ fontSize: 13, color: ACCENT, fontWeight: 600 }}>Renewable Investment Advisor</span>
           </div>
           <h1 style={{
-            fontSize: 36, fontWeight: 700, color: "#fff",
-            letterSpacing: "-0.5px", lineHeight: 1.2, marginBottom: 12,
+            fontSize: 52, fontWeight: 700, color: "#fff",
+            letterSpacing: "-0.02em", lineHeight: 1.1, marginBottom: 20,
           }}>
             The future of energy is renewable
           </h1>
-          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.65)", lineHeight: 1.7 }}>
+          <p style={{ fontSize: 17, color: "rgba(255,255,255,0.65)", lineHeight: 1.7, maxWidth: "56ch" }}>
             Explore the six main types of renewable energy powering Europe's clean transition.
             Click any card to discover key facts and investment potential.
           </p>
@@ -237,10 +243,10 @@ export function HomeScreen() {
 
       {/* Section title */}
       <div>
-        <h2 style={{ fontSize: 20, fontWeight: 500, color: colors.ink, letterSpacing: "-0.3px" }}>
+        <h2 style={{ fontSize: 26, fontWeight: 700, color: colors.ink, letterSpacing: "-0.02em" }}>
           Renewable energy types
         </h2>
-        <p style={{ fontSize: 13, color: colors.muted, marginTop: 4 }}>
+        <p style={{ fontSize: 14, color: colors.muted, marginTop: 8 }}>
           Click a card to flip it and learn more
         </p>
       </div>
@@ -249,7 +255,7 @@ export function HomeScreen() {
       <div style={{
         display: "grid",
         gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-        gap: 16,
+        gap: 20,
       }}>
         {CARDS.map((card) => (
           <FlipCard key={card.id} card={card} />

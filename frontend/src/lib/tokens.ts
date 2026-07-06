@@ -50,6 +50,31 @@ export const shadows = {
   inputSubtle: "0 1px 4px rgba(0,0,0,0.06)",
   tooltipDark: "0 4px 16px rgba(0,0,0,0.3)",
   hoverLift: "0 6px 20px rgba(0,0,0,0.1)",
+  /** Layered shadow (tight contact + soft diffuse) for premium, elevated hero surfaces. */
+  elevated: "0 1px 2px rgba(0,0,0,0.04), 0 20px 48px rgba(0,0,0,0.14)",
+  /** Cast from the dark sidebar rail onto the light content area. */
+  railEdge: "6px 0 32px rgba(0,0,0,0.08)",
+} as const;
+
+/** Generous section rhythm — see layout.md: tight within groups, wide between them. */
+export const spacing = {
+  xs: "8px",
+  sm: "12px",
+  md: "16px",
+  lg: "24px",
+  xl: "32px",
+  "2xl": "40px",
+  "3xl": "56px",
+  "4xl": "72px",
+} as const;
+
+export const rounded = {
+  sm: "8px",
+  md: "10px",
+  lg: "16px",
+  xl: "20px",
+  "2xl": "24px",
+  full: "9999px",
 } as const;
 
 export const fontFamily = "Roboto, system-ui, sans-serif";

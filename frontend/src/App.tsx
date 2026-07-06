@@ -5,7 +5,7 @@ import { EuropeMap } from "@/components/map/EuropeMap";
 import { Sidebar, type Screen } from "@/components/layout/Sidebar";
 import { EuropeSummary } from "@/components/EuropeSummary";
 import { HomeScreen } from "@/components/home/HomeScreen";
-import { colors, fontFamily, shadows } from "@/lib/tokens";
+import { colors, fontFamily } from "@/lib/tokens";
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>("home");
@@ -27,8 +27,8 @@ export default function App() {
     }}>
       <Sidebar active={screen} onNavigate={setScreen} />
 
-      <main className="min-w-0 flex-1 overflow-x-auto px-5 py-6 sm:px-8 sm:py-8 lg:px-10 lg:py-9">
-        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+      <main className="min-w-0 flex-1 overflow-x-auto px-6 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12">
+        <div style={{ maxWidth: 1320, margin: "0 auto" }}>
 
           {/* Home page — no EuropeSummary banner */}
           {screen === "home" && <HomeScreen />}
@@ -38,17 +38,8 @@ export default function App() {
 
           {/* Dashboard — only reachable by clicking a country */}
           {screen === "dashboard" && selectedIso && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-              <button
-                onClick={goToMap}
-                style={{
-                  display: "inline-flex", alignItems: "center", gap: 8,
-                  fontSize: 13, fontWeight: 500, color: colors.forest,
-                  background: colors.sageTint, border: `1px solid ${colors.borderSage}`,
-                  borderRadius: 8, padding: "7px 14px", cursor: "pointer",
-                  width: "fit-content",
-                }}
-              >
+            <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+              <button onClick={goToMap} className="pill-btn" style={{ width: "fit-content" }}>
                 ← Back to map
               </button>
               <DashboardScreen key={selectedIso} initialIso={selectedIso} />
@@ -62,18 +53,18 @@ export default function App() {
 
           {/* Map */}
           {screen === "map" && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
               <div>
-                <h1 style={{ fontSize: 28, fontWeight: 700, color: colors.ink, letterSpacing: "-0.5px" }}>
+                <h1 style={{ fontSize: 34, fontWeight: 700, color: colors.ink, letterSpacing: "-0.5px" }}>
                   Europe Map
                 </h1>
-                <p style={{ fontSize: 14, color: colors.muted, marginTop: 4 }}>
-                  Click a country to open its solar & wind investment dashboard
+                <p style={{ fontSize: 15, color: colors.muted, marginTop: 6 }}>
+                  Click a country — or use the map's country list — to open its solar & wind investment dashboard
                 </p>
               </div>
-              <div style={{
-                background: colors.surface, borderRadius: 16, padding: 24,
-                border: `1px solid ${colors.borderSage}`, boxShadow: shadows.ambientCard,
+              <div className="card-elevated" style={{
+                background: colors.surface, borderRadius: 24, padding: 36,
+                border: `1px solid ${colors.borderSage}`,
                 width: "100%", minHeight: 560,
               }}>
                 <EuropeMap onSelectCountry={openCountry} />

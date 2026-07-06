@@ -85,6 +85,23 @@ export function EuropeMap({onSelectCountry,}: {onSelectCountry?: (iso: string) =
  
   return (
     <div className="relative">
+      {/* The choropleth SVG has no native keyboard/screen-reader path (react-simple-maps
+          renders bare <path> elements) — this list is the real accessible interface;
+          the map below is hidden from assistive tech to avoid announcing it twice. */}
+      <nav aria-label="Select a country">
+        <ul className="sr-only">
+          {countries.map((c) => (
+            <li key={c.isoCode}>
+              <button type="button" onClick={() => onSelectCountry?.(c.isoCode)}>
+                {c.name}
+                {pctByIso.has(c.isoCode) ? ` — ${pctByIso.get(c.isoCode)}% renewable` : ""}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      <div aria-hidden="true">
       <ComposableMap
   projection="geoMercator"
   width={800}
@@ -134,26 +151,27 @@ export function EuropeMap({onSelectCountry,}: {onSelectCountry?: (iso: string) =
           }
         </Geographies>
       </ComposableMap>
- 
+      </div>
+
       {/* tooltip la hover */}
       {hoverData && (
-        <div className="pointer-events-none absolute left-1/2 top-6 w-[200px] -translate-x-1/2 rounded-lg border border-zinc-200 bg-white p-3 shadow-lg">
-          <div className="text-[13px] font-semibold text-zinc-800">
+        <div className="pointer-events-none absolute left-1/2 top-6 w-[220px] -translate-x-1/2 rounded-2xl border border-zinc-100 bg-white p-4 shadow-xl">
+          <div className="text-[14px] font-semibold text-zinc-800">
             {hoverData.country}
           </div>
-          <div className="mb-2 text-[11px] text-zinc-500">
+          <div className="mb-2.5 mt-1 text-[12px] text-zinc-500">
             Renewable share <b className="text-zinc-900">{hoverData.renewablePct}%</b>
           </div>
-          <div className="text-[11px] text-zinc-500">Click to open dashboard →</div>
+          <div className="text-[11px] font-medium text-zinc-400">Click to open dashboard →</div>
         </div>
       )}
 
       {/* legend */}
-      <div className="mt-3.5 flex items-center gap-2.5 text-[11px] text-zinc-500">
+      <div className="mt-6 flex items-center gap-3 text-[12px] font-medium text-zinc-500">
         <span>Low share</span>
-        <div className="flex h-3 overflow-hidden rounded border border-zinc-200">
+        <div className="flex h-3.5 overflow-hidden rounded-full border border-zinc-100">
           {[colors.forestPale, colors.forestSoft, colors.forestMid, colors.forest].map((c) => (
-            <div key={c} className="h-full w-8" style={{ background: c }} />
+            <div key={c} className="h-full w-9" style={{ background: c }} />
           ))}
         </div>
         <span>High share</span>
