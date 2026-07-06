@@ -13,6 +13,7 @@ const PAGE_BG = "#c8ddc8";
 export default function App() {
   const [screen, setScreen] = useState<Screen>("home");
   const [selectedIso, setSelectedIso] = useState<string | null>(null);
+  const [collapsed, setCollapsed] = useState(false);
 
   function openCountry(iso: string) {
     setSelectedIso(iso);
@@ -24,8 +25,21 @@ export default function App() {
   }
 
   return (
+<<<<<<< HEAD
     <div style={{ display: "flex", minHeight: "100vh", background: PAGE_BG, fontFamily }}>
       <Sidebar active={screen} onNavigate={setScreen} />
+=======
+    <div style={{
+      display: "flex", minHeight: "100vh",
+      background: colors.mist, fontFamily,
+    }}>
+      <Sidebar
+        active={screen}
+        onNavigate={setScreen}
+        collapsed={collapsed}
+        onToggleCollapse={() => setCollapsed((c) => !c)}
+      />
+>>>>>>> bb9c839ee2f8e69a7427287d51c5c14272a9d14b
 
       <main className="min-w-0 flex-1 overflow-x-auto px-6 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12">
         <div style={{ maxWidth: 1320, margin: "0 auto" }}>
