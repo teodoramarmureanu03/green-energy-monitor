@@ -1,27 +1,160 @@
 @import "tailwindcss";
 
-/* Design tokens — mirrors src/lib/tokens.ts. See DESIGN.md. */
+/* ============================================================================
+   Design tokens — mirrors src/lib/tokens.ts, which re-exports every color
+   below as `var(--x)` so React components stay theme-aware automatically.
+   See DESIGN.md for the palette rationale.
+
+   Two kinds of token here:
+   - Adaptive: redefined in the [data-theme="dark"] block because the surface
+     they paint is genuinely light in light mode (page bg, cards, text, map
+     chrome, data accents, error states).
+   - Invariant: defined once and never overridden, because the surface is a
+     fixed brand-dark element in both themes (the hero gradient, the chart
+     tooltip, the home-screen flip tiles, the teal accent).
+   ============================================================================ */
 :root {
+  /* ---- Invariant brand darks + accent (same in both themes) ---- */
+  --indigo-deep: #192168;
+  --steel-navy: #22364e;
+  --charcoal: #32373c;
+  --sentry-teal: #03bdc2;
+
+  /* ---- Invariant home-screen flip-tile colors (already dark surfaces) ---- */
+  --tile-solar: #1e3a5f;
+  --tile-wind: #22364e;
+  --tile-hydro: #1a3a4a;
+  --tile-geothermal: #192168;
+  --tile-biomass: #12541d;
+  --tile-tidal: #0a3d5c;
+
+  /* ---- Invariant sidebar text/accent tints (already tuned for a dark rail) ---- */
+  --sidebar-text-1: #8b93c4;
+  --sidebar-text-2: #9aa2cf;
+  --sidebar-text-3: #6b73a8;
+  --sidebar-text-4: #b4bce0;
+  --sidebar-hint-text: #7fe6e9;
+  --sidebar-active-text: #04342c;
+  --sidebar-live-dot: #22c55e;
+
+  /* ---- Adaptive: sidebar rail background ---- */
+  --sidebar-from: #192168;
+  --sidebar-to: #22364e;
+
+  /* ---- Adaptive: brand green ramp (UI accent + map sequential scale) ---- */
   --forest: #12541d;
   --forest-mid: #1c6b2a;
   --forest-soft: #4d9d55;
   --forest-pale: #a3cca7;
   --sage-tint: #dde9df;
-  --indigo-deep: #192168;
-  --steel-navy: #22364e;
-  --charcoal: #32373c;
-  --sentry-teal: #03bdc2;
+  --no-data: #e4e4e7;
+
+  /* ---- Adaptive: neutrals (page bg, cards, text, borders) ---- */
   --surface: #ffffff;
   --ink: #111827;
   --slate: #374151;
   --muted: #6b7280;
   --mist: #f4f6f4;
   --border-sage: #dde3de;
+  --track-bg: #eef0f2;
+  --chip-bg: #f3f4f6;
+  --hover-gray: #e5e7eb;
+  --skeleton-a: #f3f4f6;
+  --skeleton-b: #e5e7eb;
+  --bar-hover-wash: rgba(25,33,104,0.06);
+  --row-hover-wash: rgba(18,84,29,0.05);
+
+  /* ---- Adaptive: data-viz categorical palette ---- */
+  --wind-blue: #2563eb;
+  --solar-amber: #f59e0b;
+  --hydro-cyan: #06b6d4;
+  --geothermal-red: #ef4444;
+  --biomass-green: #16a34a;
+  --tidal-sky: #0ea5e9;
+  --investment-violet: #8b5cf6;
+  --kpi-share: #6d4c9e;
+  --icon-bg-wind: #eef0f8;
+  --icon-bg-solar: #e6f9fa;
+  --icon-bg-share: #f0ebf8;
+
+  /* ---- Adaptive: rank medal colors (comparison table) ---- */
+  --rank-gold-text: #b45309;
+  --rank-bronze-text: #92400e;
+  --rank-amber-bg: #fef3c7;
+
+  /* ---- Adaptive: map chrome (non-data-encoding pixels) ---- */
+  --map-stroke: #fafafa;
+  --map-hover-fill: #d4d4d8;
+  --map-hover-active-fill: #71717a;
+  --map-hover-stroke: #ffffff;
+  --map-label-fill: #1a1a1a;
+  --map-label-stroke: #ffffff;
+
+  /* ---- Adaptive: semantic error ---- */
   --error-red: #dc2626;
   --error-bg: #fef2f2;
   --error-border: #fecaca;
+
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --shadow-elevated: 0 1px 2px rgba(0,0,0,0.04), 0 20px 48px rgba(0,0,0,0.14);
+}
+
+:root[data-theme="dark"] {
+  --sidebar-from: #101219;
+  --sidebar-to: #1a1d24;
+
+  --forest: #22c55e;
+  --forest-mid: #16a34a;
+  --forest-soft: #5fbd68;
+  --forest-pale: #1f3d29;
+  --sage-tint: #1a3322;
+  --no-data: #383c46;
+
+  --surface: #1b1e26;
+  --ink: #f1f2f6;
+  --slate: #c7cad3;
+  --muted: #9195a8;
+  --mist: #1e212a;
+  --border-sage: #2c2f3a;
+  --track-bg: #2a2d36;
+  --chip-bg: #262932;
+  --hover-gray: #2f333d;
+  --skeleton-a: #20232b;
+  --skeleton-b: #2a2d36;
+  --bar-hover-wash: rgba(255,255,255,0.05);
+  --row-hover-wash: rgba(34,197,94,0.08);
+
+  --wind-blue: #5b8def;
+  --solar-amber: #fbbf47;
+  --hydro-cyan: #22d3ee;
+  --geothermal-red: #f87171;
+  --biomass-green: #34d399;
+  --tidal-sky: #38bdf8;
+  --investment-violet: #a78bfa;
+  --kpi-share: #b39ddb;
+  --icon-bg-wind: #1c2340;
+  --icon-bg-solar: #123a3d;
+  --icon-bg-share: #2a2140;
+
+  --rank-gold-text: #fbbf47;
+  --rank-bronze-text: #e0935a;
+  --rank-amber-bg: #3a2f14;
+
+  --map-stroke: #1b1e26;
+  --map-hover-fill: #4b4f5c;
+  --map-hover-active-fill: #6b7280;
+  --map-hover-stroke: #2c2f3a;
+  --map-label-fill: #f1f2f6;
+  --map-label-stroke: #0d0e12;
+
+  --error-red: #f87171;
+  --error-bg: #3a1216;
+  --error-border: #7f1d1d;
+}
+
+body {
+  background: var(--mist);
+  transition: background-color 200ms var(--ease-out-expo);
 }
 
 /* One rule gives every focusable element a consistent, on-brand ring. */
@@ -91,7 +224,7 @@
   cursor: pointer;
   transition: box-shadow 150ms var(--ease-out-expo);
 }
-.row-interactive:hover { box-shadow: inset 0 0 0 9999px rgba(18,84,29,0.05); }
+.row-interactive:hover { box-shadow: inset 0 0 0 9999px var(--row-hover-wash); }
 .row-interactive:focus-visible { outline-offset: -2px; }
 
 .icon-btn {
@@ -102,7 +235,7 @@
   justify-content: center;
   transition: background-color 150ms var(--ease-out-expo), color 150ms var(--ease-out-expo);
 }
-.icon-btn:hover { background: #e5e7eb; color: var(--ink); }
+.icon-btn:hover { background: var(--hover-gray); color: var(--ink); }
 
 /* Per-instance color comes in via CSS custom properties (set inline) so the
    class body still owns the actual background/border/color declarations —

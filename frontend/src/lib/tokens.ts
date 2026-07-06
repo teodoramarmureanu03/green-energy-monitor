@@ -1,48 +1,94 @@
-// Design tokens — see DESIGN.md. Colors and typography are pulled from the
-// Enevo Group / SentryOT parent-brand identity, not chosen per-screen.
+// Design tokens — see DESIGN.md. Every value below resolves to a CSS custom
+// property defined in index.css, so components stay theme-aware without any
+// per-component light/dark branching. The actual light/dark hex values live
+// in index.css's :root and :root[data-theme="dark"] blocks — this file only
+// names the roles.
 
 export const colors = {
-  // Primary — brand green (Enevo)
-  forest: "#12541d",
-  forestMid: "#1c6b2a",
-  forestSoft: "#4d9d55",
-  forestPale: "#a3cca7",
-  sageTint: "#dde9df",
+  // Primary — brand green (Enevo). Adaptive: also drives the map's sequential scale.
+  forest: "var(--forest)",
+  forestMid: "var(--forest-mid)",
+  forestSoft: "var(--forest-soft)",
+  forestPale: "var(--forest-pale)",
+  sageTint: "var(--sage-tint)",
+  noData: "var(--no-data)",
 
-  // Secondary — dark corporate surfaces (Enevo)
-  indigoDeep: "#192168",
-  steelNavy: "#22364e",
-  charcoal: "#32373c",
+  // Secondary — dark corporate surfaces (Enevo). Invariant across themes.
+  indigoDeep: "var(--indigo-deep)",
+  steelNavy: "var(--steel-navy)",
+  charcoal: "var(--charcoal)",
 
-  // Interactive accent (SentryOT)
-  sentryTeal: "#03bdc2",
+  // Interactive accent (SentryOT). Invariant across themes.
+  sentryTeal: "var(--sentry-teal)",
 
-  // Neutral
-  surface: "#ffffff",
-  ink: "#111827",
-  slate: "#374151",
-  muted: "#6b7280",
-  mist: "#f4f6f4",
-  borderSage: "#dde3de",
+  // Neutral. Adaptive.
+  surface: "var(--surface)",
+  ink: "var(--ink)",
+  slate: "var(--slate)",
+  muted: "var(--muted)",
+  mist: "var(--mist)",
+  borderSage: "var(--border-sage)",
+  trackBg: "var(--track-bg)",
+  chipBg: "var(--chip-bg)",
+  hoverGray: "var(--hover-gray)",
+  barHoverWash: "var(--bar-hover-wash)",
+  rowHoverWash: "var(--row-hover-wash)",
 
-  // Tertiary — data-viz categories (unchanged; never used for chrome)
-  windBlue: "#2563eb",
-  solarAmber: "#f59e0b",
-  hydroCyan: "#06b6d4",
-  geothermalRed: "#ef4444",
-  biomassGreen: "#16a34a",
-  tidalSky: "#0ea5e9",
-  investmentViolet: "#8b5cf6",
+  // Tertiary — data-viz categories (unchanged in role; never used for chrome). Adaptive.
+  windBlue: "var(--wind-blue)",
+  solarAmber: "var(--solar-amber)",
+  hydroCyan: "var(--hydro-cyan)",
+  geothermalRed: "var(--geothermal-red)",
+  biomassGreen: "var(--biomass-green)",
+  tidalSky: "var(--tidal-sky)",
+  investmentViolet: "var(--investment-violet)",
+  kpiShare: "var(--kpi-share)",
+  iconBgWind: "var(--icon-bg-wind)",
+  iconBgSolar: "var(--icon-bg-solar)",
+  iconBgShare: "var(--icon-bg-share)",
 
-  // Semantic
-  errorRed: "#dc2626",
-  errorBg: "#fef2f2",
-  errorBorder: "#fecaca",
+  // Rank medals (comparison table). Adaptive.
+  rankGoldText: "var(--rank-gold-text)",
+  rankBronzeText: "var(--rank-bronze-text)",
+  rankAmberBg: "var(--rank-amber-bg)",
+
+  // Map chrome — non-data-encoding pixels (borders, hover, no-data fill, labels). Adaptive.
+  mapStroke: "var(--map-stroke)",
+  mapHoverFill: "var(--map-hover-fill)",
+  mapHoverActiveFill: "var(--map-hover-active-fill)",
+  mapHoverStroke: "var(--map-hover-stroke)",
+  mapLabelFill: "var(--map-label-fill)",
+  mapLabelStroke: "var(--map-label-stroke)",
+
+  // Home-screen flip-tile colors — already dark surfaces, invariant across themes.
+  tileSolar: "var(--tile-solar)",
+  tileWind: "var(--tile-wind)",
+  tileHydro: "var(--tile-hydro)",
+  tileGeothermal: "var(--tile-geothermal)",
+  tileBiomass: "var(--tile-biomass)",
+  tileTidal: "var(--tile-tidal)",
+
+  // Sidebar-only text tints — already tuned for a dark rail, invariant across themes.
+  sidebarText1: "var(--sidebar-text-1)",
+  sidebarText2: "var(--sidebar-text-2)",
+  sidebarText3: "var(--sidebar-text-3)",
+  sidebarText4: "var(--sidebar-text-4)",
+  sidebarHintText: "var(--sidebar-hint-text)",
+  sidebarActiveText: "var(--sidebar-active-text)",
+  sidebarLiveDot: "var(--sidebar-live-dot)",
+
+  // Semantic. Adaptive.
+  errorRed: "var(--error-red)",
+  errorBg: "var(--error-bg)",
+  errorBorder: "var(--error-border)",
 } as const;
 
 export const gradients = {
   heroDark: `linear-gradient(135deg, ${colors.indigoDeep}, ${colors.steelNavy})`,
+  sidebar: `linear-gradient(180deg, var(--sidebar-from), var(--sidebar-to))`,
 } as const;
+
+export const skeletonGradient = `linear-gradient(90deg, var(--skeleton-a) 25%, var(--skeleton-b) 50%, var(--skeleton-a) 75%)`;
 
 export const shadows = {
   ambientCard: "0 2px 8px rgba(0,0,0,0.06)",
@@ -85,5 +131,5 @@ export function shareToColor(pct: number): string {
   if (pct >= 40) return colors.forestMid;
   if (pct >= 25) return colors.forestSoft;
   if (pct >= 0) return colors.forestPale;
-  return "#e4e4e7";
+  return colors.noData;
 }

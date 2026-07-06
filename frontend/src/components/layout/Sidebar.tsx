@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { GitCompareArrows, Map, Leaf, Home, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { GitCompareArrows, Map, Leaf, Home, PanelLeftClose, PanelLeftOpen, Sun, Moon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { colors, gradients } from "@/lib/tokens";
+import { useTheme } from "@/hooks/useTheme";
 
 export type Screen = "home" | "dashboard" | "comparison" | "map";
 
@@ -32,6 +33,7 @@ export function Sidebar({
   onToggleCollapse: () => void;
 }) {
   const now = useNow();
+  const { theme, toggleTheme } = useTheme();
 
   const timeStr = now.toLocaleTimeString("en-EN", {
     hour: "2-digit", minute: "2-digit", second: "2-digit",
@@ -52,7 +54,7 @@ export function Sidebar({
         widthClass,
         !collapsed && "lg:px-5"
       )}
-      style={{ background: gradients.heroDark }}
+      style={{ background: gradients.sidebar, transition: "background 200ms var(--ease-out-expo)" }}
     >
       {/* buton collapse — sus, colț dreapta */}
       <button
@@ -75,7 +77,7 @@ export function Sidebar({
         {showText && (
           <div className="hidden leading-tight lg:block">
             <div className="text-[16px] font-bold tracking-tight text-white">EU Renewables</div>
-            <div className="text-[11px] font-medium uppercase tracking-[0.08em]" style={{ color: "#8b93c4" }}>Monitor</div>
+            <div className="text-[11px] font-medium uppercase tracking-[0.08em]" style={{ color: colors.sidebarText1 }}>Monitor</div>
           </div>
         )}
       </div>
@@ -89,19 +91,19 @@ export function Sidebar({
           <div className="mb-3 flex items-center gap-2">
             <span
               className="inline-block h-[7px] w-[7px] rounded-full"
-              style={{ background: "#22c55e", boxShadow: "0 0 0 3px rgba(34,197,94,0.2)" }}
+              style={{ background: colors.sidebarLiveDot, boxShadow: "0 0 0 3px rgba(34,197,94,0.2)" }}
             />
-            <span className="text-[11px]" style={{ color: "#9aa2cf" }}>Live data · ENTSO-E</span>
+            <span className="text-[11px]" style={{ color: colors.sidebarText2 }}>Live data · ENTSO-E</span>
           </div>
           <div className="font-mono text-[26px] font-semibold leading-none tracking-tight tabular-nums" style={{ color: colors.sentryTeal }}>
             {timeStr}
           </div>
-          <div className="mt-2 text-[11px] capitalize" style={{ color: "#8b93c4" }}>{dateStr}</div>
+          <div className="mt-2 text-[11px] capitalize" style={{ color: colors.sidebarText1 }}>{dateStr}</div>
         </div>
       )}
 
       {showText && (
-        <div className="hidden px-2 pb-3 text-[11px] font-semibold uppercase tracking-[0.1em] lg:block" style={{ color: "#6b73a8" }}>
+        <div className="hidden px-2 pb-3 text-[11px] font-semibold uppercase tracking-[0.1em] lg:block" style={{ color: colors.sidebarText3 }}>
           Navigation
         </div>
       )}
@@ -123,8 +125,8 @@ export function Sidebar({
               )}
               style={
                 isActive
-                  ? { background: colors.sentryTeal, color: "#04342c" }
-                  : { color: "#b4bce0" }
+                  ? { background: colors.sentryTeal, color: colors.sidebarActiveText }
+                  : { color: colors.sidebarText4 }
               }
             >
               <Icon className="h-[18px] w-[18px] flex-shrink-0" />
@@ -138,21 +140,40 @@ export function Sidebar({
       {showText && (
         <div
           className="mx-1 mt-4 hidden rounded-xl border px-4 py-3 text-[11px] leading-relaxed lg:block"
-          style={{ background: "rgba(3,189,194,0.1)", borderColor: "rgba(3,189,194,0.25)", color: "#7fe6e9" }}
+          style={{ background: "rgba(3,189,194,0.1)", borderColor: "rgba(3,189,194,0.25)", color: colors.sidebarHintText }}
         >
           💡 Click any country on the map to open its investment dashboard.
         </div>
       )}
 
-      {/* attribution — doar în modul lat */}
-      {showText && (
-        <div className="mt-auto hidden border-t px-2 pt-5 text-[10px] leading-relaxed lg:block" style={{ borderColor: "rgba(255,255,255,0.1)", color: "#8b93c4" }}>
-          Data:{" "}
-          <a href="https://energy-charts.info" target="_blank" rel="noreferrer" className="underline hover:text-white">
-            Energy-Charts.info
-          </a>
-        </div>
-      )}
+      {/* footer — pinned to bottom, theme toggle stays reachable even when collapsed */}
+      <div className="mt-auto flex flex-col gap-3 pt-5">
+        <button
+          onClick={toggleTheme}
+          title={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
+          aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
+          className={cn(
+            "flex items-center gap-2.5 rounded-[9px] border px-3 py-2.5 text-[13px] font-medium transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white",
+            collapsed ? "justify-center" : "justify-center lg:justify-start"
+          )}
+          style={{ borderColor: "rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: colors.sidebarText4 }}
+        >
+          {theme === "light" ? <Moon className="h-4 w-4 flex-shrink-0" /> : <Sun className="h-4 w-4 flex-shrink-0" />}
+          {showText && (
+            <span className="hidden lg:inline">{theme === "light" ? "Dark mode" : "Light mode"}</span>
+          )}
+        </button>
+
+        {/* attribution — doar în modul lat */}
+        {showText && (
+          <div className="hidden border-t px-2 pt-4 text-[10px] leading-relaxed lg:block" style={{ borderColor: "rgba(255,255,255,0.1)", color: colors.sidebarText1 }}>
+            Data:{" "}
+            <a href="https://energy-charts.info" target="_blank" rel="noreferrer" className="underline hover:text-white">
+              Energy-Charts.info
+            </a>
+          </div>
+        )}
+      </div>
     </nav>
   );
 }

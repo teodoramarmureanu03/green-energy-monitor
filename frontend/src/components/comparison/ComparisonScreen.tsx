@@ -65,7 +65,7 @@ function PinnedCard({ iso, data, onRemove, onOpen }: {
         onClick={(e) => { e.stopPropagation(); onRemove(); }}
         style={{
           position: "absolute", top: 14, right: 14,
-          background: "#f3f4f6", border: "none", width: 26, height: 26,
+          background: colors.chipBg, border: "none", width: 26, height: 26,
           borderRadius: "50%", fontSize: 14, color: TEXT_MUTED, cursor: "pointer",
           display: "flex", alignItems: "center", justifyContent: "center",
         }}
@@ -98,12 +98,12 @@ function PinnedCard({ iso, data, onRemove, onOpen }: {
 
 // ---- Rank indicator — clean number, no medals ----
 function RankCell({ rank }: { rank: number }) {
-  const top3Colors: Record<number, string> = { 1: "#b45309", 2: "#6b7280", 3: "#92400e" };
+  const top3Colors: Record<number, string> = { 1: colors.rankGoldText, 2: TEXT_MUTED, 3: colors.rankBronzeText };
   return (
     <span style={{
       display: "inline-flex", alignItems: "center", justifyContent: "center",
       width: 28, height: 28, borderRadius: 6,
-      background: rank <= 3 ? (rank === 1 ? "#fef3c7" : rank === 2 ? "#f3f4f6" : "#fef3c7") : "transparent",
+      background: rank <= 3 ? (rank === 2 ? colors.chipBg : colors.rankAmberBg) : "transparent",
       fontSize: 13, fontWeight: 700,
       color: top3Colors[rank] ?? TEXT_MUTED,
     }}>
@@ -156,7 +156,7 @@ function RankRow({ rank, country, generation, maxMw, isPinned, onPin, onOpen }: 
       {/* Total + bar */}
       <td style={{ padding: "16px 20px", minWidth: 220 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ flex: 1, height: 6, background: "#eef0f2", borderRadius: 3, overflow: "hidden" }}>
+          <div style={{ flex: 1, height: 6, background: colors.trackBg, borderRadius: 3, overflow: "hidden" }}>
             <div
               className="progress-fill"
               style={{
@@ -180,7 +180,7 @@ function RankRow({ rank, country, generation, maxMw, isPinned, onPin, onOpen }: 
           style={{
             fontSize: 12, fontWeight: 500, padding: "5px 14px",
             borderRadius: 7, cursor: "pointer", border: "none",
-            background: isPinned ? GREEN_LIGHT : "#f3f4f6",
+            background: isPinned ? GREEN_LIGHT : colors.chipBg,
             color: isPinned ? GREEN_DARK : TEXT_MUTED,
             transition: "all 0.15s",
           }}

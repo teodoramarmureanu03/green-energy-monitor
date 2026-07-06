@@ -6,15 +6,15 @@ import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList,
 } from "recharts";
-import { colors, shadows } from "@/lib/tokens";
+import { colors, shadows, skeletonGradient } from "@/lib/tokens";
 import { Wind, Sun, Zap, BarChart2, MapPin } from "lucide-react";
 
 // ---- Enevo brand colors ----
-const WIND_COLOR   = colors.indigoDeep;  // #192168
-const SOLAR_COLOR  = colors.sentryTeal;  // #03bdc2
+const WIND_COLOR   = colors.indigoDeep;
+const SOLAR_COLOR  = colors.sentryTeal;
 const KPI_WIND     = colors.indigoDeep;
 const KPI_SOLAR    = colors.sentryTeal;
-const KPI_SHARE    = "#6d4c9e";
+const KPI_SHARE    = colors.kpiShare;
 const GREEN_DARK   = colors.forest;
 const GREEN_LIGHT  = colors.sageTint;
 const CARD_BG      = colors.surface;
@@ -148,7 +148,7 @@ function ChartTooltip({ active, payload }: { active?: boolean; payload?: { name:
 }
 
 function Skeleton() {
-  const s = { background: "linear-gradient(90deg,#f3f4f6 25%,#e5e7eb 50%,#f3f4f6 75%)", borderRadius: 16 };
+  const s = { background: skeletonGradient, borderRadius: 16 };
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
       <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 16 }}>
@@ -230,13 +230,13 @@ function DashboardContent({ data, countryName }: { data: CountryGeneration; coun
       <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 16 }}>
         <HeroKpiCard label="Wind + solar total" value={fmt(total)} unit="MW" sub="Combined renewable capacity for this country" />
         <KpiCard label="Wind capacity" value={fmt(windMw)} unit="MW" sub="Onshore + offshore"
-          accentColor={KPI_WIND} iconBg="#eef0f8"
+          accentColor={KPI_WIND} iconBg={colors.iconBgWind}
           icon={<Wind size={16} color={KPI_WIND} strokeWidth={2} />} />
         <KpiCard label="Solar capacity" value={fmt(solarMw)} unit="MW" sub="Photovoltaic"
-          accentColor={KPI_SOLAR} iconBg="#e6f9fa"
+          accentColor={KPI_SOLAR} iconBg={colors.iconBgSolar}
           icon={<Sun size={16} color={KPI_SOLAR} strokeWidth={2} />} />
         <KpiCard label="Share of output" value={shareOfTotal} unit="%" sub={`of ${fmt(data.total)} MW total`}
-          accentColor={KPI_SHARE} iconBg="#f0ebf8"
+          accentColor={KPI_SHARE} iconBg={colors.iconBgShare}
           icon={<BarChart2 size={16} color={KPI_SHARE} strokeWidth={2} />} />
       </div>
 
@@ -270,7 +270,7 @@ function DashboardContent({ data, countryName }: { data: CountryGeneration; coun
         <Card title="Capacity by source (MW)">
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={barData} margin={{ top: 28, right: 24, left: 0, bottom: 0 }} barSize={64}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#eef0f2" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke={colors.trackBg} vertical={false} />
               <XAxis
                 dataKey="name"
                 tick={{ fontSize: 13, fill: TEXT_MID, fontWeight: 600 }}
@@ -281,7 +281,7 @@ function DashboardContent({ data, countryName }: { data: CountryGeneration; coun
                 axisLine={false} tickLine={false}
                 tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
               />
-              <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(25,33,104,0.04)" }} />
+              <Tooltip content={<ChartTooltip />} cursor={{ fill: colors.barHoverWash }} />
               <Bar dataKey="mw" radius={[8, 8, 0, 0]}>
                 <LabelList dataKey="mw" position="top" content={<BarTopLabel />} />
                 {barData.map((_, index) => (
@@ -297,8 +297,8 @@ function DashboardContent({ data, countryName }: { data: CountryGeneration; coun
       <Card title="Investment snapshot — wind vs solar breakdown">
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           {[
-            { label: "Wind (onshore + offshore)", mw: windMw, pct: windPct, color: WIND_COLOR, bg: "#eef0f8", icon: <Wind size={18} color={WIND_COLOR} strokeWidth={2} /> },
-            { label: "Solar (photovoltaic)", mw: solarMw, pct: solarPct, color: SOLAR_COLOR, bg: "#e6f9fa", icon: <Sun size={18} color={SOLAR_COLOR} strokeWidth={2} /> },
+            { label: "Wind (onshore + offshore)", mw: windMw, pct: windPct, color: WIND_COLOR, bg: colors.iconBgWind, icon: <Wind size={18} color={WIND_COLOR} strokeWidth={2} /> },
+            { label: "Solar (photovoltaic)", mw: solarMw, pct: solarPct, color: SOLAR_COLOR, bg: colors.iconBgSolar, icon: <Sun size={18} color={SOLAR_COLOR} strokeWidth={2} /> },
           ].map(({ label, mw, pct, color, bg, icon }) => (
             <div key={label}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
@@ -313,7 +313,7 @@ function DashboardContent({ data, countryName }: { data: CountryGeneration; coun
                 </div>
                 <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.01em", color }}>{pct}%</div>
               </div>
-              <div style={{ height: 8, background: "#eef0f2", borderRadius: 5, overflow: "hidden" }}>
+              <div style={{ height: 8, background: colors.trackBg, borderRadius: 5, overflow: "hidden" }}>
                 <div
                   className="progress-fill"
                   style={{ width: "100%", height: "100%", background: color, borderRadius: 5, transform: `scaleX(${pct / 100})` }}

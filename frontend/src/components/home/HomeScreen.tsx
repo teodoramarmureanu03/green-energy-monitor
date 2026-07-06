@@ -1,5 +1,6 @@
 // src/components/home/HomeScreen.tsx
 import { useState } from "react";
+import { colors, gradients } from "@/lib/tokens";
 
 interface EnergyType {
   id: string;
@@ -16,8 +17,8 @@ const TYPES: EnergyType[] = [
     id: "solar",
     title: "Solar Energy",
     photoUrl: "https://images.unsplash.com/photo-1509391366360-2e959784a276?w=600&q=80",
-    tileColor: "#1e3a5f",
-    accentColor: "#03bdc2",
+    tileColor: colors.tileSolar,
+    accentColor: colors.sentryTeal,
     facts: [
       "Panels convert sunlight directly into electricity.",
       "Solar is now the cheapest electricity source in history.",
@@ -29,8 +30,8 @@ const TYPES: EnergyType[] = [
     id: "wind",
     title: "Wind Energy",
     photoUrl: "https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=600&q=80",
-    tileColor: "#22364e",
-    accentColor: "#03bdc2",
+    tileColor: colors.tileWind,
+    accentColor: colors.sentryTeal,
     facts: [
       "Turbines can operate onshore and offshore.",
       "One modern turbine can power 1,000+ homes.",
@@ -42,8 +43,8 @@ const TYPES: EnergyType[] = [
     id: "hydro",
     title: "Hydroelectric Energy",
     photoUrl: "https://images.unsplash.com/photo-1586348943529-beaae6c28db9?w=600&q=80",
-    tileColor: "#1a3a4a",
-    accentColor: "#03bdc2",
+    tileColor: colors.tileHydro,
+    accentColor: colors.sentryTeal,
     facts: [
       "Largest renewable electricity source worldwide.",
       "Dams serve as water storage and flood control.",
@@ -55,8 +56,8 @@ const TYPES: EnergyType[] = [
     id: "geothermal",
     title: "Geothermal Energy",
     photoUrl: "https://images.unsplash.com/photo-1544979590-37e9b47eb705?w=600&q=80",
-    tileColor: "#192168",
-    accentColor: "#03bdc2",
+    tileColor: colors.tileGeothermal,
+    accentColor: colors.sentryTeal,
     facts: [
       "Available 24/7 — unaffected by weather.",
       "Iceland meets 66%+ of its energy needs geothermally.",
@@ -68,8 +69,8 @@ const TYPES: EnergyType[] = [
     id: "biomass",
     title: "Biomass Energy",
     photoUrl: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=600&q=80",
-    tileColor: "#12541d",
-    accentColor: "#03bdc2",
+    tileColor: colors.tileBiomass,
+    accentColor: colors.sentryTeal,
     facts: [
       "Includes wood, crop waste, and organic materials.",
       "Carbon-neutral when sustainably managed.",
@@ -81,8 +82,8 @@ const TYPES: EnergyType[] = [
     id: "tidal",
     title: "Tidal & Marine Energy",
     photoUrl: "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=600&q=80",
-    tileColor: "#0a3d5c",
-    accentColor: "#03bdc2",
+    tileColor: colors.tileTidal,
+    accentColor: colors.sentryTeal,
     facts: [
       "Highly predictable — follows lunar cycles.",
       "Enormous untapped global potential.",
@@ -222,7 +223,7 @@ export function HomeScreen() {
     <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
       {/* Hero */}
       <div style={{
-        background: "linear-gradient(135deg, #192168 0%, #22364e 100%)",
+        background: gradients.heroDark,
         borderRadius: 20, padding: "40px 48px",
         boxShadow: "0 4px 20px rgba(0,0,0,0.12)",
       }}>
@@ -232,8 +233,8 @@ export function HomeScreen() {
             background: "rgba(3,189,194,0.15)", borderRadius: 20,
             padding: "4px 14px", marginBottom: 16,
           }}>
-            <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#03bdc2", display: "inline-block" }} />
-            <span style={{ fontSize: 12, color: "#03bdc2", fontWeight: 600 }}>Renewable Investment Advisor</span>
+            <span style={{ width: 7, height: 7, borderRadius: "50%", background: colors.sentryTeal, display: "inline-block" }} />
+            <span style={{ fontSize: 12, color: colors.sentryTeal, fontWeight: 600 }}>Renewable Investment Advisor</span>
           </div>
           <h1 style={{ fontSize: 34, fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", lineHeight: 1.2, marginBottom: 12 }}>
             The future of energy is renewable
@@ -247,10 +248,10 @@ export function HomeScreen() {
 
       {/* Section title */}
       <div>
-        <h2 style={{ fontSize: 20, fontWeight: 700, color: "#111827", letterSpacing: "-0.3px" }}>
+        <h2 style={{ fontSize: 20, fontWeight: 700, color: colors.ink, letterSpacing: "-0.3px" }}>
           Renewable energy types
         </h2>
-        <p style={{ fontSize: 13, color: "#6b7280", marginTop: 4 }}>
+        <p style={{ fontSize: 13, color: colors.muted, marginTop: 4 }}>
           Click a coloured tile to learn more · navigate to the map to explore country data
         </p>
       </div>
@@ -275,7 +276,7 @@ export function HomeScreen() {
         ))}
       </div>
 
-      <p style={{ fontSize: 11, textAlign: "center", color: "#9ca3af", marginTop: 4 }}>
+      <p style={{ fontSize: 11, textAlign: "center", color: colors.muted, marginTop: 4 }}>
         Global capacity figures from IRENA 2023 · Photos: Unsplash
       </p>
     </div>
