@@ -5,13 +5,15 @@
 // nu se blochează unul pe altul. NU modifica fără să anunți cealaltă persoană.
 // ============================================================================
 
+import type { Latitude, Longitude } from "@vnedyalk0v/react19-simple-maps";
+
 /** GET /api/countries  →  Country[] */
 export interface Country {
   id: string;          // iso cu litere mici, ex. "ro"
   isoCode: string;     // "RO"
   name: string;        // "Romania"
-  lat: number;
-  lng: number;
+  lat: Latitude;
+  lng: Longitude;
   multiZone: boolean;  // true dacă ENTSO-E împarte țara (IT, NO, SE, DK...)
   zones: string[];     // sub-zonele pe care backend-ul le adună într-o singură țară
 }

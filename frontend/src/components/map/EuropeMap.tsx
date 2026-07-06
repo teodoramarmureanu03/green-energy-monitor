@@ -1,11 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
-import { ComposableMap, Geographies, Geography } from "@vnedyalk0v/react19-simple-maps";
+import { ComposableMap, Geographies, Geography, Marker } from "@vnedyalk0v/react19-simple-maps";
 import { useCountries } from "@/hooks/useCountries";
 import { fetchGeneration } from "@/lib/api";
 import { colors, shareToColor } from "@/lib/tokens";
 import type { CountryGeneration } from "@/types/contract";
 import europeMap from "@/assets/europe.json";
- 
+
+import countriesRaw from "@/data/countries.json";
+import type { Country } from "@/types/contract";
+const countriesData = countriesRaw as Country[];
+
+
 const GEO_URL = europeMap as unknown as string;
  
 
@@ -107,7 +112,6 @@ export function EuropeMap({onSelectCountry,}: {onSelectCountry?: (iso: string) =
   width={800}
   height={520}
   projectionConfig={{
-    // @ts-expect-error pt a evita o eroare de tip la compilare
           center: [13, 52],
           scale: 700,
         }}
@@ -150,6 +154,26 @@ export function EuropeMap({onSelectCountry,}: {onSelectCountry?: (iso: string) =
             })
           }
         </Geographies>
+        
+        {countriesData.map((c) => (
+          <Marker key={c.isoCode} coordinates={[c.lng, c.lat]}>
+            <text
+              textAnchor="middle"
+              style={{
+                fontSize: 7,
+                fontWeight: 700,
+                fill: "#1a1a1a",
+                stroke: "#ffffff",
+                strokeWidth: 0.4,
+                paintOrder: "stroke",
+                pointerEvents: "none",
+                fontFamily: "Roboto, sans-serif",
+              }}
+            >
+              {c.isoCode}
+            </text>
+          </Marker>
+        ))}
       </ComposableMap>
       </div>
 

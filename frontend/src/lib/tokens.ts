@@ -81,9 +81,9 @@ export const fontFamily = "Roboto, system-ui, sans-serif";
 
 /** Sequential ramp for the choropleth map, from no-data to Forest at 70%+. */
 export function shareToColor(pct: number): string {
-  if (pct >= 70) return colors.forest;
-  if (pct >= 55) return colors.forestMid;
-  if (pct >= 40) return colors.forestSoft;
-  if (pct >= 25) return colors.forestPale;
+  if (pct >= 65) return colors.forest;
+  if (pct >= 40) return colors.forestMid;
+  if (pct >= 25) return colors.forestSoft;
+  if (pct >= 0) return colors.forestPale;
   return "#e4e4e7";
 }
