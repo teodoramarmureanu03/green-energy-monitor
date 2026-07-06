@@ -4,20 +4,24 @@ import { useCountries } from "@/hooks/useCountries";
 import type { CountryGeneration, SourceBreakdown } from "@/types/contract";
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
-  BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList,
 } from "recharts";
 import { colors, shadows } from "@/lib/tokens";
+import { Wind, Sun, Zap, BarChart2, MapPin } from "lucide-react";
 
-// ---- Design tokens (see src/lib/tokens.ts / DESIGN.md) ----
-const WIND_COLOR = colors.windBlue;
-const SOLAR_COLOR = colors.solarAmber;
-const GREEN_DARK = colors.forest;
-const GREEN_LIGHT = colors.sageTint;
-const CARD_BG = colors.surface;
-const TEXT_DARK = colors.ink;
-const TEXT_MID = colors.slate;
-const TEXT_MUTED = colors.muted;
-const BORDER = colors.borderSage;
+// ---- Enevo brand colors ----
+const WIND_COLOR   = colors.indigoDeep;  // #192168
+const SOLAR_COLOR  = colors.sentryTeal;  // #03bdc2
+const KPI_WIND     = colors.indigoDeep;
+const KPI_SOLAR    = colors.sentryTeal;
+const KPI_SHARE    = "#6d4c9e";
+const GREEN_DARK   = colors.forest;
+const GREEN_LIGHT  = colors.sageTint;
+const CARD_BG      = colors.surface;
+const TEXT_DARK    = colors.ink;
+const TEXT_MID     = colors.slate;
+const TEXT_MUTED   = colors.muted;
+const BORDER       = colors.borderSage;
 
 function aggregateSources(bySource: SourceBreakdown[]) {
   let windMw = 0, solarMw = 0;
@@ -29,79 +33,110 @@ function aggregateSources(bySource: SourceBreakdown[]) {
 }
 
 function fmt(n: number) { return Math.round(n).toLocaleString("en-GB"); }
+function fmtK(n: number) { return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(Math.round(n)); }
 
-// ---- Hero KPI card — the one dominant number on the page ----
-function HeroKpiCard({ label, value, unit, sub, icon }: {
-  label: string; value: string; unit: string; sub: string; icon: string;
+// ---- Custom label rendered inside donut slices ----
+function DonutLabel(props: {
+  cx?: number; cy?: number; midAngle?: number; innerRadius?: number;
+  outerRadius?: number; name?: string; value?: number; percent?: number;
+}) {
+  const { cx = 0, cy = 0, midAngle = 0, innerRadius = 0, outerRadius = 0, name, value, percent = 0 } = props;
+  if (percent < 0.05) return null; // hide tiny slices
+
+  const RADIAN = Math.PI / 180;
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.55;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  return (
+    <g>
+      <text x={x} y={y - 9} textAnchor="middle" fill="#fff" fontSize={11} fontWeight={600} opacity={0.85}>
+        {name}
+      </text>
+      <text x={x} y={y + 8} textAnchor="middle" fill="#fff" fontSize={15} fontWeight={700}>
+        {fmtK(value ?? 0)} MW
+      </text>
+      <text x={x} y={y + 23} textAnchor="middle" fill="rgba(255,255,255,0.75)" fontSize={11}>
+        {(percent * 100).toFixed(0)}%
+      </text>
+    </g>
+  );
+}
+
+// ---- Custom bar label (value on top) ----
+function BarTopLabel(props: { x?: number; y?: number; width?: number; value?: number }) {
+  const { x = 0, y = 0, width = 0, value = 0 } = props;
+  return (
+    <text x={x + width / 2} y={y - 8} textAnchor="middle" fill={TEXT_MID} fontSize={13} fontWeight={600}>
+      {fmtK(value)} MW
+    </text>
+  );
+}
+
+// ---- Hero KPI card ----
+function HeroKpiCard({ label, value, unit, sub }: {
+  label: string; value: string; unit: string; sub: string;
 }) {
   return (
-    <div
-      className="card-elevated"
-      style={{
-        gridColumn: "span 2",
-        background: colors.indigoDeep,
-        borderRadius: 24,
-        padding: "32px 36px",
-        color: "#fff",
-        display: "flex", flexDirection: "column", justifyContent: "space-between",
-        minHeight: 168,
-      }}
-    >
+    <div style={{
+      background: `linear-gradient(135deg, ${colors.indigoDeep} 0%, ${colors.steelNavy} 100%)`,
+      borderRadius: 20, padding: "28px 32px", color: "#fff",
+      display: "flex", flexDirection: "column", justifyContent: "space-between",
+      minHeight: 148, boxShadow: shadows.ambientHero,
+    }}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
-        <span style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.55)", textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</span>
-        <div style={{ width: 40, height: 40, borderRadius: 12, background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 19 }}>
-          {icon}
+        <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</span>
+        <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Zap size={18} color={colors.sentryTeal} strokeWidth={2} />
         </div>
       </div>
       <div>
-        <div style={{ fontSize: 52, fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1, color: colors.sentryTeal }}>
-          {value}<span style={{ fontSize: 22, fontWeight: 500, color: "rgba(255,255,255,0.5)", marginLeft: 8 }}>{unit}</span>
+        <div style={{ fontSize: 44, fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1, color: colors.sentryTeal }}>
+          {value}<span style={{ fontSize: 18, fontWeight: 500, color: "rgba(255,255,255,0.45)", marginLeft: 6 }}>{unit}</span>
         </div>
-        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", marginTop: 8 }}>{sub}</div>
+        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginTop: 6 }}>{sub}</div>
       </div>
     </div>
   );
 }
 
 // ---- Secondary KPI card ----
-function KpiCard({ label, value, unit, sub, topColor, icon, iconBg }: {
+function KpiCard({ label, value, unit, sub, accentColor, icon, iconBg }: {
   label: string; value: string; unit: string; sub: string;
-  topColor: string; icon: string; iconBg: string;
+  accentColor: string; icon: React.ReactNode; iconBg: string;
 }) {
   return (
     <div style={{
       background: CARD_BG, borderRadius: 20, padding: "22px 24px",
-      border: `1px solid ${BORDER}`, borderTop: `3px solid ${topColor}`,
+      border: `1px solid ${BORDER}`, borderTop: `3px solid ${accentColor}`,
       boxShadow: shadows.ambientCard,
     }}>
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 16 }}>
-        <span style={{ fontSize: 12, fontWeight: 500, color: TEXT_MUTED, textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</span>
-        <div style={{ width: 34, height: 34, borderRadius: 10, background: iconBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 14 }}>
+        <span style={{ fontSize: 11, fontWeight: 600, color: TEXT_MUTED, textTransform: "uppercase", letterSpacing: "0.07em" }}>{label}</span>
+        <div style={{ width: 32, height: 32, borderRadius: 9, background: iconBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
           {icon}
         </div>
       </div>
-      <div style={{ fontSize: 26, fontWeight: 700, color: TEXT_DARK, lineHeight: 1, marginBottom: 6 }}>
-        {value}<span style={{ fontSize: 14, fontWeight: 500, color: TEXT_MUTED, marginLeft: 4 }}>{unit}</span>
+      <div style={{ fontSize: 28, fontWeight: 700, color: TEXT_DARK, lineHeight: 1, marginBottom: 4 }}>
+        {value}<span style={{ fontSize: 13, fontWeight: 500, color: TEXT_MUTED, marginLeft: 4 }}>{unit}</span>
       </div>
       <div style={{ fontSize: 12, color: TEXT_MUTED }}>{sub}</div>
     </div>
   );
 }
 
-// ---- Section card ----
 function Card({ title, children, style }: { title: string; children: React.ReactNode; style?: React.CSSProperties }) {
   return (
     <div style={{
-      background: CARD_BG, borderRadius: 20, padding: "28px 28px",
+      background: CARD_BG, borderRadius: 20, padding: "24px 28px",
       border: `1px solid ${BORDER}`, boxShadow: shadows.ambientCard, ...style,
     }}>
-      <h3 style={{ fontSize: 17, fontWeight: 600, color: TEXT_DARK, letterSpacing: "-0.1px", marginBottom: 24 }}>{title}</h3>
+      <h3 style={{ fontSize: 15, fontWeight: 600, color: TEXT_DARK, letterSpacing: "-0.1px", marginBottom: 20 }}>{title}</h3>
       {children}
     </div>
   );
 }
 
-// ---- Custom tooltip ----
 function ChartTooltip({ active, payload }: { active?: boolean; payload?: { name: string; value: number }[] }) {
   if (!active || !payload?.length) return null;
   return (
@@ -112,19 +147,15 @@ function ChartTooltip({ active, payload }: { active?: boolean; payload?: { name:
   );
 }
 
-// ---- Skeleton ----
 function Skeleton() {
-  const shimmer = { background: "linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%)", borderRadius: 16 };
+  const s = { background: "linear-gradient(90deg,#f3f4f6 25%,#e5e7eb 50%,#f3f4f6 75%)", borderRadius: 16 };
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 20 }}>
-        <div style={{ ...shimmer, height: 168, gridColumn: "span 2" }} />
-        <div style={{ ...shimmer, height: 168 }} />
-        <div style={{ ...shimmer, height: 168 }} />
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 16 }}>
+        {[0,1,2,3].map((i) => <div key={i} style={{ ...s, height: 148 }} />)}
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(320px,1fr))", gap: 20 }}>
-        <div style={{ ...shimmer, height: 300 }} />
-        <div style={{ ...shimmer, height: 300 }} />
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <div style={{ ...s, height: 300 }} /><div style={{ ...s, height: 300 }} />
       </div>
     </div>
   );
@@ -139,28 +170,20 @@ export function DashboardScreen({ initialIso }: DashboardScreenProps) {
   const countryName = countries.find((c) => c.isoCode === selectedIso)?.name ?? selectedIso;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-      {/* Header */}
+    <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
         <div>
-          <h1 style={{ fontSize: 36, fontWeight: 700, color: TEXT_DARK, letterSpacing: "-0.02em" }}>Country Dashboard</h1>
-          <p style={{ fontSize: 15, color: TEXT_MUTED, marginTop: 6 }}>Solar & wind investment snapshot for Europe</p>
+          <h1 style={{ fontSize: 32, fontWeight: 700, color: TEXT_DARK, letterSpacing: "-0.02em" }}>Country Dashboard</h1>
+          <p style={{ fontSize: 14, color: TEXT_MUTED, marginTop: 4 }}>Solar & wind investment snapshot for Europe</p>
         </div>
-        <select
-          value={selectedIso}
-          onChange={(e) => setSelectedIso(e.target.value)}
-          className="select-field"
-          aria-label="Select country"
-          style={{ minWidth: 180 }}
-        >
+        <select value={selectedIso} onChange={(e) => setSelectedIso(e.target.value)} className="select-field" aria-label="Select country" style={{ minWidth: 180 }}>
           {countries.map((c) => <option key={c.isoCode} value={c.isoCode}>{c.name}</option>)}
         </select>
       </div>
-
       {loading && <Skeleton />}
       {error && (
-        <div style={{ background: colors.errorBg, border: `1px solid ${colors.errorBorder}`, color: colors.errorRed, borderRadius: 16, padding: "16px 20px", fontSize: 14 }}>
-          ⚠️ {error}
+        <div style={{ background: colors.errorBg, border: `1px solid ${colors.errorBorder}`, color: colors.errorRed, borderRadius: 14, padding: "14px 18px", fontSize: 14 }}>
+          {error}
         </div>
       )}
       {data && !loading && <DashboardContent data={data} countryName={countryName} />}
@@ -189,43 +212,53 @@ function DashboardContent({ data, countryName }: { data: CountryGeneration; coun
     { name: "Solar", mw: Math.round(solarMw) },
   ].filter((d) => d.mw > 0);
 
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 40 }}>
-      <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-        {/* Country + timestamp badge */}
-        <div style={{
-          display: "inline-flex", alignItems: "center", gap: 8, background: GREEN_LIGHT,
-          color: GREEN_DARK, borderRadius: 8, padding: "8px 14px", fontSize: 13, fontWeight: 500, width: "fit-content",
-        }}>
-          📍 {countryName} · Updated {updatedAt}
-        </div>
+  const PIE_COLORS = [WIND_COLOR, SOLAR_COLOR];
 
-        {/* KPI row — one dominant hero card, three supporting */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 20 }}>
-          <HeroKpiCard label="Wind + solar total" value={fmt(total)} unit="MW" sub="Combined renewable capacity for this country" icon="⚡" />
-          <KpiCard label="Wind capacity" value={fmt(windMw)} unit="MW" sub="Onshore + offshore" topColor={WIND_COLOR} icon="💨" iconBg="#eff6ff" />
-          <KpiCard label="Solar capacity" value={fmt(solarMw)} unit="MW" sub="Photovoltaic" topColor={SOLAR_COLOR} icon="☀️" iconBg="#fffbeb" />
-          <KpiCard label="Share of output" value={shareOfTotal} unit="%" sub={`of ${fmt(data.total)} MW total`} topColor={colors.investmentViolet} icon="📊" iconBg="#f5f3ff" />
-        </div>
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      {/* Country badge */}
+      <div style={{
+        display: "inline-flex", alignItems: "center", gap: 6,
+        background: GREEN_LIGHT, color: GREEN_DARK,
+        borderRadius: 7, padding: "6px 12px", fontSize: 12, fontWeight: 600, width: "fit-content",
+      }}>
+        <MapPin size={13} strokeWidth={2.5} />
+        {countryName} · Updated {updatedAt}
+      </div>
+
+      {/* KPI grid */}
+      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 16 }}>
+        <HeroKpiCard label="Wind + solar total" value={fmt(total)} unit="MW" sub="Combined renewable capacity for this country" />
+        <KpiCard label="Wind capacity" value={fmt(windMw)} unit="MW" sub="Onshore + offshore"
+          accentColor={KPI_WIND} iconBg="#eef0f8"
+          icon={<Wind size={16} color={KPI_WIND} strokeWidth={2} />} />
+        <KpiCard label="Solar capacity" value={fmt(solarMw)} unit="MW" sub="Photovoltaic"
+          accentColor={KPI_SOLAR} iconBg="#e6f9fa"
+          icon={<Sun size={16} color={KPI_SOLAR} strokeWidth={2} />} />
+        <KpiCard label="Share of output" value={shareOfTotal} unit="%" sub={`of ${fmt(data.total)} MW total`}
+          accentColor={KPI_SHARE} iconBg="#f0ebf8"
+          icon={<BarChart2 size={16} color={KPI_SHARE} strokeWidth={2} />} />
       </div>
 
       {/* Charts */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(340px,1fr))", gap: 20 }}>
-        {/* Donut */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+
+        {/* Donut with labels inside slices */}
         <Card title="Solar vs wind mix">
-          <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: TEXT_MID }}>
-              <div style={{ width: 12, height: 12, borderRadius: 3, background: WIND_COLOR }} />Wind
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: TEXT_MID }}>
-              <div style={{ width: 12, height: 12, borderRadius: 3, background: SOLAR_COLOR }} />Solar
-            </div>
-          </div>
-          <ResponsiveContainer width="100%" height={240}>
+          <ResponsiveContainer width="100%" height={260}>
             <PieChart>
-              <Pie data={pieData} cx="50%" cy="50%" innerRadius={70} outerRadius={102} paddingAngle={3} dataKey="value">
-                {pieData.map((entry) => (
-                  <Cell key={entry.name} fill={entry.name === "Wind" ? WIND_COLOR : SOLAR_COLOR} stroke="none" />
+              <Pie
+                data={pieData}
+                cx="50%" cy="50%"
+                innerRadius={0}
+                outerRadius={115}
+                paddingAngle={2}
+                dataKey="value"
+                labelLine={false}
+                label={DonutLabel}
+              >
+                {pieData.map((_, index) => (
+                  <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} stroke="#fff" strokeWidth={2} />
                 ))}
               </Pie>
               <Tooltip content={<ChartTooltip />} />
@@ -233,25 +266,26 @@ function DashboardContent({ data, countryName }: { data: CountryGeneration; coun
           </ResponsiveContainer>
         </Card>
 
-        {/* Bar chart */}
+        {/* Bar chart with values on top */}
         <Card title="Capacity by source (MW)">
-          <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: TEXT_MID }}>
-              <div style={{ width: 12, height: 12, borderRadius: 3, background: WIND_COLOR }} />Wind
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: TEXT_MID }}>
-              <div style={{ width: 12, height: 12, borderRadius: 3, background: SOLAR_COLOR }} />Solar
-            </div>
-          </div>
-          <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={barData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
-              <XAxis dataKey="name" tick={{ fontSize: 13, fill: TEXT_MUTED }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 12, fill: TEXT_MUTED }} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-              <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(0,0,0,0.04)" }} />
+          <ResponsiveContainer width="100%" height={260}>
+            <BarChart data={barData} margin={{ top: 28, right: 24, left: 0, bottom: 0 }} barSize={64}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#eef0f2" vertical={false} />
+              <XAxis
+                dataKey="name"
+                tick={{ fontSize: 13, fill: TEXT_MID, fontWeight: 600 }}
+                axisLine={false} tickLine={false}
+              />
+              <YAxis
+                tick={{ fontSize: 12, fill: TEXT_MUTED }}
+                axisLine={false} tickLine={false}
+                tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
+              />
+              <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(25,33,104,0.04)" }} />
               <Bar dataKey="mw" radius={[8, 8, 0, 0]}>
-                {barData.map((entry) => (
-                  <Cell key={entry.name} fill={entry.name === "Wind" ? WIND_COLOR : SOLAR_COLOR} />
+                <LabelList dataKey="mw" position="top" content={<BarTopLabel />} />
+                {barData.map((_, index) => (
+                  <Cell key={`bar-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                 ))}
               </Bar>
             </BarChart>
@@ -261,24 +295,29 @@ function DashboardContent({ data, countryName }: { data: CountryGeneration; coun
 
       {/* Investment snapshot */}
       <Card title="Investment snapshot — wind vs solar breakdown">
-        <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           {[
-            { label: "Wind (onshore + offshore)", mw: windMw, pct: windPct, color: WIND_COLOR, bg: "#eff6ff", icon: "💨" },
-            { label: "Solar (photovoltaic)", mw: solarMw, pct: solarPct, color: SOLAR_COLOR, bg: "#fffbeb", icon: "☀️" },
+            { label: "Wind (onshore + offshore)", mw: windMw, pct: windPct, color: WIND_COLOR, bg: "#eef0f8", icon: <Wind size={18} color={WIND_COLOR} strokeWidth={2} /> },
+            { label: "Solar (photovoltaic)", mw: solarMw, pct: solarPct, color: SOLAR_COLOR, bg: "#e6f9fa", icon: <Sun size={18} color={SOLAR_COLOR} strokeWidth={2} /> },
           ].map(({ label, mw, pct, color, bg, icon }) => (
             <div key={label}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <div style={{ width: 40, height: 40, borderRadius: 12, background: bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>{icon}</div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    {icon}
+                  </div>
                   <div>
                     <div style={{ fontSize: 14, fontWeight: 600, color: TEXT_DARK }}>{label}</div>
-                    <div style={{ fontSize: 12, color: TEXT_MUTED, marginTop: 2 }}>{fmt(mw)} MW</div>
+                    <div style={{ fontSize: 12, color: TEXT_MUTED, marginTop: 1 }}>{fmt(mw)} MW</div>
                   </div>
                 </div>
-                <div style={{ fontSize: 32, fontWeight: 700, letterSpacing: "-0.01em", color }}>{pct}%</div>
+                <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.01em", color }}>{pct}%</div>
               </div>
-              <div style={{ height: 12, background: "#f3f4f6", borderRadius: 8, overflow: "hidden" }}>
-                <div className="progress-fill" style={{ width: "100%", height: "100%", background: `linear-gradient(90deg, ${color}, ${color}cc)`, borderRadius: 8, transform: `scaleX(${pct / 100})` }} />
+              <div style={{ height: 8, background: "#eef0f2", borderRadius: 5, overflow: "hidden" }}>
+                <div
+                  className="progress-fill"
+                  style={{ width: "100%", height: "100%", background: color, borderRadius: 5, transform: `scaleX(${pct / 100})` }}
+                />
               </div>
             </div>
           ))}
