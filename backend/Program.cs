@@ -4,14 +4,12 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// CORS — allow frontend (Vite on 5173)
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(p =>
         p.WithOrigins("http://localhost:5173")
          .AllowAnyHeader()
          .AllowAnyMethod()));
 
-// Register PostgreSQL DbContext via EF Core
 builder.Services.AddDbContext<EnergyDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -19,33 +17,29 @@ var apiKey = builder.Configuration["EntsoeApiKey"] ?? "";
 
 var app = builder.Build();
 
-// Run EF Core migrations automatically on startup — creates tables if they don't exist
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<EnergyDbContext>();
     db.Database.Migrate();
 }
 
-// Create EntsoeService with access to the DI scope factory (needed to get DbContext in background tasks)
 var entsoe = new EntsoeService(apiKey, app.Services.GetRequiredService<IServiceScopeFactory>());
 
 app.UseCors();
 
-// Country list
 var countryNames = new Dictionary<string, string>
 {
-    ["AT"] = "Austria", ["BE"] = "Belgium", ["BG"] = "Bulgaria",
-    ["CH"] = "Switzerland", ["CZ"] = "Czechia", ["DE"] = "Germany",
-    ["DK"] = "Denmark", ["EE"] = "Estonia", ["ES"] = "Spain",
-    ["FI"] = "Finland", ["FR"] = "France", ["GR"] = "Greece",
-    ["HR"] = "Croatia", ["HU"] = "Hungary", ["IE"] = "Ireland",
-    ["IT"] = "Italy", ["LT"] = "Lithuania", ["LV"] = "Latvia",
-    ["NL"] = "Netherlands", ["NO"] = "Norway", ["PL"] = "Poland",
-    ["PT"] = "Portugal", ["RO"] = "Romania", ["SE"] = "Sweden",
-    ["SI"] = "Slovenia", ["SK"] = "Slovakia",
+    ["AT"] = "Austria",     ["BE"] = "Belgium",     ["BG"] = "Bulgaria",
+    ["CH"] = "Switzerland", ["CZ"] = "Czechia",     ["DE"] = "Germany",
+    ["DK"] = "Denmark",     ["EE"] = "Estonia",     ["ES"] = "Spain",
+    ["FI"] = "Finland",     ["FR"] = "France",      ["GR"] = "Greece",
+    ["HR"] = "Croatia",     ["HU"] = "Hungary",     ["IE"] = "Ireland",
+    ["IT"] = "Italy",       ["LT"] = "Lithuania",   ["LV"] = "Latvia",
+    ["NL"] = "Netherlands", ["NO"] = "Norway",      ["PL"] = "Poland",
+    ["PT"] = "Portugal",    ["RO"] = "Romania",     ["SE"] = "Sweden",
+    ["SI"] = "Slovenia",    ["SK"] = "Slovakia",
 };
 
-// Endpoint 1: list of countries
 app.MapGet("/api/countries", () =>
     countryNames.Select(kv => new CountryInfo
     {
@@ -54,7 +48,7 @@ app.MapGet("/api/countries", () =>
         Name = kv.Value
     }));
 
-// Endpoint 2: generation data for a country — reads from DB, fetches from ENTSO-E only if stale
+// Always reads from DB — instant response, never blocks on API call
 app.MapGet("/api/generation/{iso}", async (string iso) =>
 {
     iso = iso.ToUpper();
@@ -72,44 +66,43 @@ app.MapGet("/api/generation/{iso}", async (string iso) =>
     }
 });
 
-// Background cache warm-up: fetch all countries on startup with 2s delay between each
-// Data is saved to PostgreSQL so it survives restarts
+// Startup warm-up: populate DB for any country not yet stored
 _ = Task.Run(async () =>
 {
-    // Wait a few seconds for the app to fully start
     await Task.Delay(3000);
-
+    Console.WriteLine("Starting startup warm-up...");
     foreach (var kv in countryNames)
     {
         try
         {
             await entsoe.GetGenerationAsync(kv.Key, kv.Value);
-            Console.WriteLine($"Cached: {kv.Key}");
+            Console.WriteLine($"Warm-up: {kv.Key}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error for {kv.Key}: {ex.Message}");
+            Console.WriteLine($"Warm-up error {kv.Key}: {ex.Message}");
         }
         await Task.Delay(2000);
     }
-    Console.WriteLine("All countries cached in PostgreSQL.");
+    Console.WriteLine("Warm-up complete.");
 });
 
-// Background refresh: re-fetch all countries every 15 minutes
+// Scheduled refresh: every 15 minutes, fetch ALL countries from ENTSO-E
+// and update the DB in the background. The frontend is never affected —
+// it always reads the previous data from the DB until the refresh is done.
 _ = Task.Run(async () =>
 {
     while (true)
     {
         await Task.Delay(TimeSpan.FromMinutes(15));
-        Console.WriteLine("Starting 15-minute refresh...");
-
-        using var scope = app.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<EnergyDbContext>();
+        Console.WriteLine("Starting 15-minute scheduled refresh...");
 
         foreach (var kv in countryNames)
         {
             try
             {
+                using var scope = app.Services.CreateScope();
+                var db = scope.ServiceProvider.GetRequiredService<EnergyDbContext>();
                 var existing = await db.GenerationRecords
                     .FirstOrDefaultAsync(r => r.IsoCode == kv.Key);
                 await entsoe.FetchAndSaveAsync(kv.Key, kv.Value, db, existing);
@@ -117,11 +110,12 @@ _ = Task.Run(async () =>
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Refresh error for {kv.Key}: {ex.Message}");
+                Console.WriteLine($"Refresh error {kv.Key}: {ex.Message}");
             }
             await Task.Delay(2000);
         }
-        Console.WriteLine("15-minute refresh complete.");
+
+        Console.WriteLine("Scheduled refresh complete.");
     }
 });
 
