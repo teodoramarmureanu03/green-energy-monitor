@@ -10,6 +10,7 @@ import { colors, fontFamily } from "@/lib/tokens";
 export default function App() {
   const [screen, setScreen] = useState<Screen>("home");
   const [selectedIso, setSelectedIso] = useState<string | null>(null);
+  const [collapsed, setCollapsed] = useState(false);
 
   function openCountry(iso: string) {
     setSelectedIso(iso);
@@ -25,7 +26,12 @@ export default function App() {
       display: "flex", minHeight: "100vh",
       background: colors.mist, fontFamily,
     }}>
-      <Sidebar active={screen} onNavigate={setScreen} />
+      <Sidebar
+        active={screen}
+        onNavigate={setScreen}
+        collapsed={collapsed}
+        onToggleCollapse={() => setCollapsed((c) => !c)}
+      />
 
       <main className="min-w-0 flex-1 overflow-x-auto px-6 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12">
         <div style={{ maxWidth: 1320, margin: "0 auto" }}>
