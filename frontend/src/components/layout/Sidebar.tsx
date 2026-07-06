@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import { GitCompareArrows, Map, Leaf, Home, PanelLeftClose, PanelLeftOpen, Sun, Moon } from "lucide-react";
+import { GitCompareArrows, Map, Leaf, Home, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { colors, gradients } from "@/lib/tokens";
-import { useTheme } from "@/hooks/useTheme";
 
 export type Screen = "home" | "dashboard" | "comparison" | "map";
 
@@ -33,7 +32,6 @@ export function Sidebar({
   onToggleCollapse: () => void;
 }) {
   const now = useNow();
-  const { theme, toggleTheme } = useTheme();
 
   const timeStr = now.toLocaleTimeString("en-EN", {
     hour: "2-digit", minute: "2-digit", second: "2-digit",
@@ -44,13 +42,13 @@ export function Sidebar({
 
   // când e strâns: mereu îngust (76px). când nu: îngust pe mobil, lat pe desktop.
   const widthClass = collapsed ? "w-[76px]" : "w-[76px] lg:w-[280px]";
-  // ce se arată doar în modul lat (nu strâns): folosim "expanded" ca prescurtare
+  // ce se arată doar în modul lat (nu strâns)
   const showText = !collapsed;
 
   return (
     <nav
       className={cn(
-        "sticky top-0 flex h-screen flex-shrink-0 flex-col px-3 py-6 transition-all duration-300",
+        "sticky top-0 flex h-screen flex-shrink-0 flex-col overflow-y-auto overflow-x-hidden px-3 py-6 transition-all duration-300",
         widthClass,
         !collapsed && "lg:px-5"
       )}
@@ -145,35 +143,6 @@ export function Sidebar({
           💡 Click any country on the map to open its investment dashboard.
         </div>
       )}
-
-      {/* footer — pinned to bottom, theme toggle stays reachable even when collapsed */}
-      <div className="mt-auto flex flex-col gap-3 pt-5">
-        <button
-          onClick={toggleTheme}
-          title={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
-          aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
-          className={cn(
-            "flex items-center gap-2.5 rounded-[9px] border px-3 py-2.5 text-[13px] font-medium transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white",
-            collapsed ? "justify-center" : "justify-center lg:justify-start"
-          )}
-          style={{ borderColor: "rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: colors.sidebarText4 }}
-        >
-          {theme === "light" ? <Moon className="h-4 w-4 flex-shrink-0" /> : <Sun className="h-4 w-4 flex-shrink-0" />}
-          {showText && (
-            <span className="hidden lg:inline">{theme === "light" ? "Dark mode" : "Light mode"}</span>
-          )}
-        </button>
-
-        {/* attribution — doar în modul lat */}
-        {showText && (
-          <div className="hidden border-t px-2 pt-4 text-[10px] leading-relaxed lg:block" style={{ borderColor: "rgba(255,255,255,0.1)", color: colors.sidebarText1 }}>
-            Data:{" "}
-            <a href="https://energy-charts.info" target="_blank" rel="noreferrer" className="underline hover:text-white">
-              Energy-Charts.info
-            </a>
-          </div>
-        )}
-      </div>
     </nav>
   );
 }

@@ -5,16 +5,16 @@ import type { Country, CountryGeneration, SourceBreakdown } from "@/types/contra
 import { colors } from "@/lib/tokens";
 
 const WIND_COLOR  = colors.indigoDeep;
-const SOLAR_COLOR = "#b45309";
+const SOLAR_COLOR = colors.rankGoldText;
 const GREEN_DARK  = colors.forest;
 const GREEN_MID   = colors.forestMid;
-const CARD_BG     = "#ffffff";
-const CARD_BORDER = "#b8cdb8";
-const HEADER_BG   = "#e8f3ea";
-const TEXT_DARK   = "#111827";
-const TEXT_MID    = "#374151";
-const TEXT_MUTED  = "#6b7280";
-const ROW_HOVER   = "#f0faf2";
+const CARD_BG     = colors.surface;
+const CARD_BORDER = colors.borderAccent;
+const HEADER_BG   = colors.tableHeaderBg;
+const TEXT_DARK   = colors.ink;
+const TEXT_MID    = colors.slate;
+const TEXT_MUTED  = colors.muted;
+const ROW_HOVER   = colors.rowHoverBg;
 
 function aggregateSources(bySource: SourceBreakdown[]) {
   let windMw = 0, solarMw = 0;
@@ -37,7 +37,7 @@ function FlagCircle({ iso }: { iso: string }) {
         width: 36, height: 27,
         borderRadius: 4,
         objectFit: "cover",
-        border: "1px solid rgba(0,0,0,0.1)",
+        border: `1px solid ${colors.flagBorder}`,
         flexShrink: 0,
       }}
       onError={(e) => {
@@ -70,78 +70,12 @@ function FallbackBadge({ iso }: { iso: string }) {
   );
 }
 
-<<<<<<< HEAD
-// ---- Pinned card ----
-function PinnedCard({ iso, data, onRemove, onOpen }: {
-  iso: string; data: CountryGeneration | null; onRemove: () => void; onOpen: () => void;
-}) {
-  const { windMw, solarMw } = data ? aggregateSources(data.bySource) : { windMw: 0, solarMw: 0 };
-  const total = windMw + solarMw;
-  const displayName = data?.country ?? iso;
-  return (
-    <div
-      role="button" tabIndex={0}
-      onClick={onOpen}
-      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen(); } }}
-      aria-label={`Open dashboard for ${displayName}`}
-      style={{
-        background: CARD_BG, border: `1px solid ${BORDER}`, borderRadius: 16,
-        padding: "20px 22px", position: "relative", cursor: "pointer",
-        borderLeft: `4px solid ${GREEN_MID}`,
-        boxShadow: shadows.ambientCard, transition: "box-shadow 0.15s",
-      }}
-    >
-      <button
-        type="button"
-        onClick={(e) => { e.stopPropagation(); onRemove(); }}
-        style={{
-          position: "absolute", top: 14, right: 14,
-          background: colors.chipBg, border: "none", width: 26, height: 26,
-          borderRadius: "50%", fontSize: 14, color: TEXT_MUTED, cursor: "pointer",
-          display: "flex", alignItems: "center", justifyContent: "center",
-        }}
-        aria-label={`Unpin ${displayName}`}
-      >×</button>
-      <div style={{ marginBottom: 8 }}><CountryBadge iso={iso} /></div>
-      <div style={{ fontSize: 16, fontWeight: 700, color: TEXT_DARK, marginBottom: 14 }}>{displayName}</div>
-      {data ? (
-        <>
-          {[
-            { label: "Wind", val: windMw, color: WIND_COLOR },
-            { label: "Solar", val: solarMw, color: SOLAR_COLOR },
-          ].map(({ label, val, color }) => (
-            <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 0", borderBottom: `1px solid ${BORDER}` }}>
-              <span style={{ fontSize: 12, color: TEXT_MUTED }}>{label}</span>
-              <span style={{ fontSize: 13, fontWeight: 700, color }}>{fmt(val)} <span style={{ fontSize: 11, fontWeight: 400 }}>MW</span></span>
-            </div>
-          ))}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 10 }}>
-            <span style={{ fontSize: 12, color: TEXT_MUTED }}>Total</span>
-            <span style={{ fontSize: 18, fontWeight: 700, color: GREEN_DARK }}>{fmt(total)} MW</span>
-          </div>
-        </>
-      ) : (
-        <div style={{ height: 72, background: colors.mist, borderRadius: 8 }} />
-      )}
-    </div>
-  );
-}
-
-// ---- Rank indicator — clean number, no medals ----
-function RankCell({ rank }: { rank: number }) {
-  const top3Colors: Record<number, string> = { 1: colors.rankGoldText, 2: TEXT_MUTED, 3: colors.rankBronzeText };
-  return (
-    <span style={{
-      display: "inline-flex", alignItems: "center", justifyContent: "center",
-      width: 28, height: 28, borderRadius: 6,
-      background: rank <= 3 ? (rank === 2 ? colors.chipBg : colors.rankAmberBg) : "transparent",
-=======
 // ---- Rank badge ----
 function RankBadge({ rank }: { rank: number }) {
-  const configs: Record<number, { bg: string; color: string }> = {
-    1: { bg: "#fef3c7", color: "#b45309" },
-    2: { bg: "#f1f5f9", color: "#64748b" },
-    3: { bg: "#fff7ed", color: "#c2410c" },
+  const configs: Record<number, { bg: string; color: string; border: string }> = {
+    1: { bg: colors.rankGoldBg, color: colors.rankGoldText, border: colors.rankGoldBorder },
+    2: { bg: colors.rankSilverBg, color: colors.rankSilverText, border: colors.rankSilverBorder },
+    3: { bg: colors.rankBronzeBg, color: colors.rankBronzeText, border: colors.rankBronzeBorder },
   };
   const cfg = configs[rank];
   return (
@@ -149,10 +83,9 @@ function RankBadge({ rank }: { rank: number }) {
       display: "inline-flex", alignItems: "center", justifyContent: "center",
       width: 30, height: 30, borderRadius: 8,
       background: cfg?.bg ?? "transparent",
->>>>>>> f5173e7176b4740aeda7eaecf1dfabc8b532d4ec
       fontSize: 13, fontWeight: 700,
       color: cfg?.color ?? TEXT_MUTED,
-      border: cfg ? `1px solid ${cfg.color}44` : "none",
+      border: cfg ? `1px solid ${cfg.border}` : "none",
     }}>
       {rank}
     </span>
@@ -205,52 +138,18 @@ function RankRow({ rank, country, generation, maxMw, onOpen }: {
       {/* Bar + total */}
       <td style={{ padding: "14px 24px", minWidth: 240 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-<<<<<<< HEAD
-          <div style={{ flex: 1, height: 6, background: colors.trackBg, borderRadius: 3, overflow: "hidden" }}>
-            <div
-              className="progress-fill"
-              style={{
-                width: "100%", height: "100%",
-                background: `linear-gradient(90deg, ${GREEN_MID}, ${GREEN_DARK})`,
-                borderRadius: 3, transform: `scaleX(${barW / 100})`,
-              }}
-            />
-=======
-          <div style={{ flex: 1, height: 6, background: "#d1fae5", borderRadius: 3, overflow: "hidden" }}>
+          <div style={{ flex: 1, height: 6, background: colors.sageTint, borderRadius: 3, overflow: "hidden" }}>
             <div style={{
               width: `${barW}%`, height: "100%",
               background: `linear-gradient(90deg, ${GREEN_MID}, ${GREEN_DARK})`,
               borderRadius: 3, transition: "width 0.5s ease",
             }} />
->>>>>>> f5173e7176b4740aeda7eaecf1dfabc8b532d4ec
           </div>
           <span style={{ fontSize: 13, fontWeight: 700, color: GREEN_DARK, width: 96, textAlign: "right" }}>
             {fmt(totalRenewable)} MW
           </span>
         </div>
       </td>
-<<<<<<< HEAD
-
-      {/* Pin */}
-      <td style={{ padding: "16px 20px", textAlign: "right" }} onClick={(e) => e.stopPropagation()}>
-        <button
-          type="button"
-          onClick={onPin}
-          aria-pressed={isPinned}
-          aria-label={isPinned ? `Unpin ${country.name}` : `Pin ${country.name}`}
-          style={{
-            fontSize: 12, fontWeight: 500, padding: "5px 14px",
-            borderRadius: 7, cursor: "pointer", border: "none",
-            background: isPinned ? GREEN_LIGHT : colors.chipBg,
-            color: isPinned ? GREEN_DARK : TEXT_MUTED,
-            transition: "all 0.15s",
-          }}
-        >
-          {isPinned ? "★ Pinned" : "Pin"}
-        </button>
-      </td>
-=======
->>>>>>> f5173e7176b4740aeda7eaecf1dfabc8b532d4ec
     </tr>
   );
 }
@@ -313,7 +212,7 @@ export function ComparisonScreen({ onOpenCountry }: { onOpenCountry: (iso: strin
         </div>
         <div style={{
           display: "flex", alignItems: "center", gap: 2,
-          background: "#ffffff", borderRadius: 10, padding: 4,
+          background: colors.surface, borderRadius: 10, padding: 4,
           border: `1.5px solid ${CARD_BORDER}`,
           boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
         }}>
@@ -327,7 +226,7 @@ export function ComparisonScreen({ onOpenCountry }: { onOpenCountry: (iso: strin
                 padding: "6px 18px", borderRadius: 7, border: "none",
                 cursor: "pointer", transition: "all 0.15s",
                 background: sortBy === key ? GREEN_DARK : "transparent",
-                color: sortBy === key ? "#ffffff" : TEXT_MUTED,
+                color: sortBy === key ? colors.btnSolidText : TEXT_MUTED,
               }}
             >
               {key === "total" ? "Total" : key === "wind" ? "Wind" : "Solar"}

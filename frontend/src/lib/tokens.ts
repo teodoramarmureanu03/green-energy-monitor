@@ -33,6 +33,11 @@ export const colors = {
   hoverGray: "var(--hover-gray)",
   barHoverWash: "var(--bar-hover-wash)",
   rowHoverWash: "var(--row-hover-wash)",
+  borderAccent: "var(--border-accent)",
+  tableHeaderBg: "var(--table-header-bg)",
+  rowHoverBg: "var(--row-hover-bg)",
+  flagBorder: "var(--flag-border)",
+  btnSolidText: "var(--btn-solid-text)",
 
   // Tertiary — data-viz categories (unchanged in role; never used for chrome). Adaptive.
   windBlue: "var(--wind-blue)",
@@ -49,7 +54,14 @@ export const colors = {
 
   // Rank medals (comparison table). Adaptive.
   rankGoldText: "var(--rank-gold-text)",
+  rankGoldBg: "var(--rank-gold-bg)",
+  rankGoldBorder: "var(--rank-gold-border)",
+  rankSilverText: "var(--rank-silver-text)",
+  rankSilverBg: "var(--rank-silver-bg)",
+  rankSilverBorder: "var(--rank-silver-border)",
   rankBronzeText: "var(--rank-bronze-text)",
+  rankBronzeBg: "var(--rank-bronze-bg)",
+  rankBronzeBorder: "var(--rank-bronze-border)",
   rankAmberBg: "var(--rank-amber-bg)",
 
   // Map chrome — non-data-encoding pixels (borders, hover, no-data fill, labels). Adaptive.

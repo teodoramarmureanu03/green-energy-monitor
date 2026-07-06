@@ -3,11 +3,28 @@ import { DashboardScreen } from "@/components/dashboard/DashboardScreen";
 import { ComparisonScreen } from "@/components/comparison/ComparisonScreen";
 import { EuropeMap } from "@/components/map/EuropeMap";
 import { Sidebar, type Screen } from "@/components/layout/Sidebar";
+import { Toolbar } from "@/components/layout/Toolbar";
 import { EuropeSummary } from "@/components/EuropeSummary";
 import { HomeScreen } from "@/components/home/HomeScreen";
 import { colors, fontFamily } from "@/lib/tokens";
 
-const PAGE_BG = "#c8ddc8";
+const PAGE_BG = colors.mist;
+
+// titlul + subtitlul din toolbar, în funcție de ecranul curent
+function toolbarInfo(screen: Screen, iso: string | null): { title: string; subtitle?: string } {
+  switch (screen) {
+    case "home":
+      return { title: "Home", subtitle: "EU renewable energy overview" };
+    case "map":
+      return { title: "Europe Map", subtitle: "Solar & wind across the EU" };
+    case "comparison":
+      return { title: "Country Comparison", subtitle: "Ranked by renewable capacity" };
+    case "dashboard":
+      return { title: "Dashboard", subtitle: iso ? `${iso} · solar & wind investment` : undefined };
+    default:
+      return { title: "EU Renewables Monitor" };
+  }
+}
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>("home");
@@ -23,6 +40,8 @@ export default function App() {
     setScreen("map");
   }
 
+  const { title, subtitle } = toolbarInfo(screen, selectedIso);
+
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: PAGE_BG, fontFamily }}>
       <Sidebar
@@ -34,6 +53,13 @@ export default function App() {
 
       <main className="min-w-0 flex-1 overflow-x-auto px-6 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12">
         <div style={{ maxWidth: 1320, margin: "0 auto" }}>
+
+          {/* Toolbar sus, pe toate ecranele */}
+          <Toolbar
+            title={title}
+            subtitle={subtitle}
+            onRefresh={() => window.location.reload()}
+          />
 
           {screen === "home" && <HomeScreen />}
           {screen !== "home" && <EuropeSummary />}
@@ -62,9 +88,9 @@ export default function App() {
                 </p>
               </div>
               <div style={{
-                background: "#ffffff",
+                background: colors.surface,
                 borderRadius: 24, padding: 36,
-                border: "1.5px solid #b8cdb8",
+                border: `1.5px solid ${colors.borderAccent}`,
                 boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
                 width: "100%", minHeight: 560,
               }}>

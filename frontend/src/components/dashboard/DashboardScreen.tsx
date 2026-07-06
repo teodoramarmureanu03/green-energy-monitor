@@ -6,37 +6,18 @@ import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList,
 } from "recharts";
-<<<<<<< HEAD
 import { colors, shadows, skeletonGradient } from "@/lib/tokens";
-import { Wind, Sun, Zap, BarChart2, MapPin } from "lucide-react";
 
 // ---- Enevo brand colors ----
-const WIND_COLOR   = colors.indigoDeep;
-const SOLAR_COLOR  = colors.sentryTeal;
-const KPI_WIND     = colors.indigoDeep;
-const KPI_SOLAR    = colors.sentryTeal;
-const KPI_SHARE    = colors.kpiShare;
-const GREEN_DARK   = colors.forest;
-const GREEN_LIGHT  = colors.sageTint;
-const CARD_BG      = colors.surface;
-const TEXT_DARK    = colors.ink;
-const TEXT_MID     = colors.slate;
-const TEXT_MUTED   = colors.muted;
-const BORDER       = colors.borderSage;
-=======
-import { colors, shadows } from "@/lib/tokens";
-
-// ---- Enevo brand colors ----
-const WIND_COLOR  = colors.indigoDeep;   // #192168
-const SOLAR_COLOR = colors.sentryTeal;   // #03bdc2
+const WIND_COLOR  = colors.indigoDeep;
+const SOLAR_COLOR = colors.sentryTeal;
 const GREEN_DARK  = colors.forest;
 const GREEN_LIGHT = colors.sageTint;
 const CARD_BG     = colors.surface;
 const TEXT_DARK   = colors.ink;
 const TEXT_MID    = colors.slate;
 const TEXT_MUTED  = colors.muted;
-const BORDER      = "#b8cdb8";
->>>>>>> f5173e7176b4740aeda7eaecf1dfabc8b532d4ec
+const BORDER      = colors.borderAccent;
 
 function aggregateSources(bySource: SourceBreakdown[]) {
   let windMw = 0, solarMw = 0;
@@ -178,9 +159,9 @@ function PieSliceLabel(props: {
 
   return (
     <g>
-      <line x1={cx + outerRadius * cos} y1={cy + outerRadius * sin} x2={mx} y2={my} stroke="#999" strokeWidth={1.5} />
-      <line x1={mx} y1={my} x2={ex} y2={ey} stroke="#999" strokeWidth={1.5} />
-      <circle cx={ex} cy={ey} r={2} fill="#999" />
+      <line x1={cx + outerRadius * cos} y1={cy + outerRadius * sin} x2={mx} y2={my} stroke={TEXT_MUTED} strokeWidth={1.5} />
+      <line x1={mx} y1={my} x2={ex} y2={ey} stroke={TEXT_MUTED} strokeWidth={1.5} />
+      <circle cx={ex} cy={ey} r={2} fill={TEXT_MUTED} />
       <text x={ex + (cos >= 0 ? 6 : -6)} y={ey - 7} textAnchor={textAnchor} fill={TEXT_DARK} fontSize={12} fontWeight={700}>{name}</text>
       <text x={ex + (cos >= 0 ? 6 : -6)} y={ey + 8} textAnchor={textAnchor} fill={TEXT_MUTED} fontSize={11}>{k} MW · {pctStr}</text>
     </g>
@@ -266,23 +247,10 @@ function DashboardContent({ data, countryName }: { data: CountryGeneration; coun
 
       {/* KPI row — all 4 on one line */}
       <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 16 }}>
-<<<<<<< HEAD
-        <HeroKpiCard label="Wind + solar total" value={fmt(total)} unit="MW" sub="Combined renewable capacity for this country" />
-        <KpiCard label="Wind capacity" value={fmt(windMw)} unit="MW" sub="Onshore + offshore"
-          accentColor={KPI_WIND} iconBg={colors.iconBgWind}
-          icon={<Wind size={16} color={KPI_WIND} strokeWidth={2} />} />
-        <KpiCard label="Solar capacity" value={fmt(solarMw)} unit="MW" sub="Photovoltaic"
-          accentColor={KPI_SOLAR} iconBg={colors.iconBgSolar}
-          icon={<Sun size={16} color={KPI_SOLAR} strokeWidth={2} />} />
-        <KpiCard label="Share of output" value={shareOfTotal} unit="%" sub={`of ${fmt(data.total)} MW total`}
-          accentColor={KPI_SHARE} iconBg={colors.iconBgShare}
-          icon={<BarChart2 size={16} color={KPI_SHARE} strokeWidth={2} />} />
-=======
         <HeroKpiCard label="Wind + solar total" value={fmt(total)} unit="MW" sub="Combined renewable capacity for this country" icon="⚡" />
-        <KpiCard label="Wind capacity"   value={fmt(windMw)}    unit="MW" sub="Onshore + offshore" topColor={WIND_COLOR}  icon="💨" iconBg="#eef0f8" />
-        <KpiCard label="Solar capacity"  value={fmt(solarMw)}   unit="MW" sub="Photovoltaic"       topColor={SOLAR_COLOR} icon="☀️" iconBg="#e6f9fa" />
-        <KpiCard label="Share of output" value={shareOfTotal}   unit="%"  sub={`of ${fmt(data.total)} MW total`} topColor="#6d4c9e" icon="📊" iconBg="#f0ebf8" />
->>>>>>> f5173e7176b4740aeda7eaecf1dfabc8b532d4ec
+        <KpiCard label="Wind capacity"   value={fmt(windMw)}    unit="MW" sub="Onshore + offshore" topColor={WIND_COLOR}  icon="💨" iconBg={colors.iconBgWind} />
+        <KpiCard label="Solar capacity"  value={fmt(solarMw)}   unit="MW" sub="Photovoltaic"       topColor={SOLAR_COLOR} icon="☀️" iconBg={colors.iconBgSolar} />
+        <KpiCard label="Share of output" value={shareOfTotal}   unit="%"  sub={`of ${fmt(data.total)} MW total`} topColor={colors.kpiShare} icon="📊" iconBg={colors.iconBgShare} />
       </div>
 
       {/* Charts */}
@@ -326,25 +294,10 @@ function DashboardContent({ data, countryName }: { data: CountryGeneration; coun
           </div>
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={barData} margin={{ top: 28, right: 24, left: 0, bottom: 0 }} barSize={64}>
-<<<<<<< HEAD
               <CartesianGrid strokeDasharray="3 3" stroke={colors.trackBg} vertical={false} />
-              <XAxis
-                dataKey="name"
-                tick={{ fontSize: 13, fill: TEXT_MID, fontWeight: 600 }}
-                axisLine={false} tickLine={false}
-              />
-              <YAxis
-                tick={{ fontSize: 12, fill: TEXT_MUTED }}
-                axisLine={false} tickLine={false}
-                tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
-              />
-              <Tooltip content={<ChartTooltip />} cursor={{ fill: colors.barHoverWash }} />
-=======
-              <CartesianGrid strokeDasharray="3 3" stroke="#eef0f2" vertical={false} />
               <XAxis dataKey="name" tick={{ fontSize: 13, fill: TEXT_MID, fontWeight: 600 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 12, fill: TEXT_MUTED }} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-              <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(25,33,104,0.04)" }} />
->>>>>>> f5173e7176b4740aeda7eaecf1dfabc8b532d4ec
+              <Tooltip content={<ChartTooltip />} cursor={{ fill: colors.barHoverWash }} />
               <Bar dataKey="mw" radius={[8, 8, 0, 0]}>
                 <LabelList dataKey="mw" position="top" content={<BarTopLabel />} />
                 {barData.map((_, index) => (
@@ -360,13 +313,8 @@ function DashboardContent({ data, countryName }: { data: CountryGeneration; coun
       <Card title="Investment snapshot — wind vs solar breakdown">
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           {[
-<<<<<<< HEAD
-            { label: "Wind (onshore + offshore)", mw: windMw, pct: windPct, color: WIND_COLOR, bg: colors.iconBgWind, icon: <Wind size={18} color={WIND_COLOR} strokeWidth={2} /> },
-            { label: "Solar (photovoltaic)", mw: solarMw, pct: solarPct, color: SOLAR_COLOR, bg: colors.iconBgSolar, icon: <Sun size={18} color={SOLAR_COLOR} strokeWidth={2} /> },
-=======
-            { label: "Wind (onshore + offshore)", mw: windMw, pct: windPct, color: WIND_COLOR,  bg: "#eef0f8", icon: "💨" },
-            { label: "Solar (photovoltaic)",       mw: solarMw, pct: solarPct, color: SOLAR_COLOR, bg: "#e6f9fa", icon: "☀️" },
->>>>>>> f5173e7176b4740aeda7eaecf1dfabc8b532d4ec
+            { label: "Wind (onshore + offshore)", mw: windMw, pct: windPct, color: WIND_COLOR,  bg: colors.iconBgWind, icon: "💨" },
+            { label: "Solar (photovoltaic)",       mw: solarMw, pct: solarPct, color: SOLAR_COLOR, bg: colors.iconBgSolar, icon: "☀️" },
           ].map(({ label, mw, pct, color, bg, icon }) => (
             <div key={label}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
@@ -379,16 +327,8 @@ function DashboardContent({ data, countryName }: { data: CountryGeneration; coun
                 </div>
                 <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.01em", color }}>{pct}%</div>
               </div>
-<<<<<<< HEAD
               <div style={{ height: 8, background: colors.trackBg, borderRadius: 5, overflow: "hidden" }}>
-                <div
-                  className="progress-fill"
-                  style={{ width: "100%", height: "100%", background: color, borderRadius: 5, transform: `scaleX(${pct / 100})` }}
-                />
-=======
-              <div style={{ height: 8, background: "#eef0f2", borderRadius: 5, overflow: "hidden" }}>
                 <div className="progress-fill" style={{ width: "100%", height: "100%", background: color, borderRadius: 5, transform: `scaleX(${pct / 100})` }} />
->>>>>>> f5173e7176b4740aeda7eaecf1dfabc8b532d4ec
               </div>
             </div>
           ))}
