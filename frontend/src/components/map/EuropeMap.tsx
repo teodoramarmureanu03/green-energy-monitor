@@ -8,6 +8,7 @@ import europeMap from "@/assets/europe.json";
 
 import countriesRaw from "@/data/countries.json";
 import type { Country } from "@/types/contract";
+import type { Feature, Geometry } from "geojson";
 const countriesData = countriesRaw as Country[];
 
 
@@ -28,10 +29,9 @@ interface GeoProperties {
   name?: string;
 }
 
-interface GeoFeature {
-  rsmKey: string;  //o cheie adaugata pt fiecare tara, un fel de id unic
-  properties: GeoProperties;
-}
+// The geo objects are Feature objects with Geometry and our GeoProperties,
+// augmented by a library-added rsmKey field.
+type GeoFeature = Feature<Geometry, GeoProperties> & { rsmKey: string };
 
 function geoIso(geo: GeoFeature): string | null {
   const iso3 = geo.properties?.iso_a3?.toUpperCase();
@@ -118,15 +118,17 @@ export function EuropeMap({onSelectCountry,}: {onSelectCountry?: (iso: string) =
   style={{ width: "100%", height: "auto" }}
 >
         <Geographies geography={GEO_URL}>
-          {({ geographies }: { geographies: any[] }) =>
-            geographies.map((geo) => {
-              const iso = geoIso(geo);
-              const pct = iso ? pctByIso.get(iso) : undefined;
-              const isHover = iso === hoverIso;
-              return (
-                <Geography
-                  key={geo.rsmKey}
-                  geography={geo}
+          {(props) => {
+            const geographies = props.geographies as GeoFeature[];
+            return geographies.map((typedGeo) => {
+      const iso = geoIso(typedGeo);
+      const pct = iso ? pctByIso.get(iso) : undefined;
+      const isHover = iso === hoverIso;
+
+      return (
+        <Geography
+          key={typedGeo.rsmKey}
+          geography={typedGeo}
                   onMouseEnter={() => iso && handleEnter(iso)}
                   onMouseLeave={() => {
                     setHoverIso(null);
@@ -135,14 +137,14 @@ export function EuropeMap({onSelectCountry,}: {onSelectCountry?: (iso: string) =
                   onClick={() => iso && known.has(iso) && onSelectCountry?.(iso)}
                   style={{
                     default: {
-                      fill: pct != null ? shareToColor(pct) : colors.noData,
-                      stroke: colors.mapStroke,
+                      fill: pct != null ? shareToColor(pct) : "#e4e4e7",
+                      stroke: "#fafafa",
                       strokeWidth: 0.5,
                       outline: "none",
                     },
                     hover: {
-                      fill: isHover ? colors.mapHoverActiveFill : colors.mapHoverFill,
-                      stroke: colors.mapHoverStroke,
+                      fill: isHover ? "#71717a" : "#d4d4d8",
+                      stroke: "#fff",
                       strokeWidth: 0.75,
                       outline: "none",
                       cursor: iso && known.has(iso) ? "pointer" : "default",
@@ -151,8 +153,8 @@ export function EuropeMap({onSelectCountry,}: {onSelectCountry?: (iso: string) =
                   }}
                 />
               );
-            })
-          }
+            });
+          }}
         </Geographies>
         
         {countriesData.map((c) => (
@@ -162,8 +164,8 @@ export function EuropeMap({onSelectCountry,}: {onSelectCountry?: (iso: string) =
               style={{
                 fontSize: 7,
                 fontWeight: 700,
-                fill: colors.mapLabelFill,
-                stroke: colors.mapLabelStroke,
+                fill: "#1a1a1a",
+                stroke: "#ffffff",
                 strokeWidth: 0.4,
                 paintOrder: "stroke",
                 pointerEvents: "none",
@@ -179,26 +181,23 @@ export function EuropeMap({onSelectCountry,}: {onSelectCountry?: (iso: string) =
 
       {/* tooltip la hover */}
       {hoverData && (
-        <div
-          className="pointer-events-none absolute left-1/2 top-6 w-[220px] -translate-x-1/2 rounded-2xl border p-4 shadow-xl"
-          style={{ background: colors.surface, borderColor: colors.borderSage }}
-        >
-          <div className="text-[14px] font-semibold" style={{ color: colors.ink }}>
+        <div className="pointer-events-none absolute left-1/2 top-6 w-[220px] -translate-x-1/2 rounded-2xl border border-zinc-100 bg-white p-4 shadow-xl">
+          <div className="text-[14px] font-semibold text-zinc-800">
             {hoverData.country}
           </div>
-          <div className="mb-2.5 mt-1 text-[12px]" style={{ color: colors.muted }}>
-            Renewable share <b style={{ color: colors.ink }}>{hoverData.renewablePct}%</b>
+          <div className="mb-2.5 mt-1 text-[12px] text-zinc-500">
+            Renewable share <b className="text-zinc-900">{hoverData.renewablePct}%</b>
           </div>
-          <div className="text-[11px] font-medium" style={{ color: colors.muted }}>Click to open dashboard →</div>
+          <div className="text-[11px] font-medium text-zinc-400">Click to open dashboard →</div>
         </div>
       )}
 
       {/* legend */}
-      <div className="mt-6 flex items-center gap-3 text-[12px] font-medium" style={{ color: colors.muted }}>
+      <div className="mt-6 flex items-center gap-3 text-[12px] font-medium text-zinc-500">
         <span>Low share</span>
-        <div className="flex h-3.5 overflow-hidden rounded-full border" style={{ borderColor: colors.borderSage }}>
-          {[colors.forestPale, colors.forestSoft, colors.forestMid, colors.forest].map((c, i) => (
-            <div key={i} className="h-full w-9" style={{ background: c }} />
+        <div className="flex h-3.5 overflow-hidden rounded-full border border-zinc-100">
+          {[colors.forestPale, colors.forestSoft, colors.forestMid, colors.forest].map((c) => (
+            <div key={c} className="h-full w-9" style={{ background: c }} />
           ))}
         </div>
         <span>High share</span>
