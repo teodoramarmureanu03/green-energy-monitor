@@ -1,8 +1,11 @@
 using backend.Models;
 using backend;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(p =>
@@ -16,6 +19,8 @@ builder.Services.AddDbContext<EnergyDbContext>(options =>
 var apiKey = builder.Configuration["EntsoeApiKey"] ?? "";
 
 var app = builder.Build();
+app.UseSwagger();
+app.UseSwaggerUI();
 
 using (var scope = app.Services.CreateScope())
 {
