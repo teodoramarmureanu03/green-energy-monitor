@@ -18,7 +18,6 @@ public class EnergyDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             // IsoCode must be unique — one row per country
-            entity.HasIndex(e => e.IsoCode).IsUnique();
             entity.Property(e => e.IsoCode).HasMaxLength(10).IsRequired();
             entity.Property(e => e.CountryName).HasMaxLength(100).IsRequired();
             entity.Property(e => e.BySourceJson).HasColumnType("text");

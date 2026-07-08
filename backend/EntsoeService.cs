@@ -101,8 +101,11 @@ public class EntsoeService
         using var scope = _scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<EnergyDbContext>();
 
-        var record = await db.GenerationRecords
-            .FirstOrDefaultAsync(r => r.IsoCode == iso);
+        // --- COD MODIFICAT: Luăm cel mai recent rând ---
+    var record = await db.GenerationRecords
+    .Where(r => r.IsoCode == iso)
+    .OrderByDescending(r => r.FetchedAt)
+    .FirstOrDefaultAsync();
 
         // Data exists — return from DB immediately, no API call
         if (record != null)
@@ -156,17 +159,24 @@ public class EntsoeService
 
         if (existing == null)
         {
-            existing = new GenerationRecord { IsoCode = iso };
-            db.GenerationRecords.Add(existing);
-        }
+            // --- COD NOU: Inserăm mereu un rând nou pentru istoric ---
+            var newRecord = new GenerationRecord
+            {
+                IsoCode = iso,
+                CountryName = countryName,
+                FetchedAt = DateTime.UtcNow,
+                Total = Math.Round(total, 1),
+                RenewableMw = Math.Round(renewableMw, 1),
+                RenewablePct = pct,
+                BySourceJson = JsonSerializer.Serialize(bySource),
+                ZonesAggregatedJson = JsonSerializer.Serialize(zones.ToList())
+            };
 
-        existing.CountryName = countryName;
-        existing.FetchedAt = DateTime.UtcNow;
-        existing.Total = Math.Round(total, 1);
-        existing.RenewableMw = Math.Round(renewableMw, 1);
-        existing.RenewablePct = pct;
-        existing.BySourceJson = JsonSerializer.Serialize(bySource);
-        existing.ZonesAggregatedJson = JsonSerializer.Serialize(zones.ToList());
+            db.GenerationRecords.Add(newRecord);
+            await db.SaveChangesAsync();
+
+            return MapRecordToDto(newRecord);
+        }
 
         await db.SaveChangesAsync();
         return MapRecordToDto(existing);
@@ -231,4 +241,75 @@ public class EntsoeService
 
         return result;
     }
+    public async Task BackfillHistoryAsync(string iso, string countryName, EnergyDbContext db, int daysBack)
+{
+    iso = iso.ToUpper();
+    if (!ZoneCodes.ContainsKey(iso)) return;
+    
+    var zones = ZoneCodes[iso];
+
+    // Mergem înapoi în timp, pornind de la cea mai veche zi către prezent
+    for (int i = daysBack; i >= 1; i--)
+    {
+        var targetDate = DateTime.UtcNow.AddDays(-i);
+        string startStr = targetDate.ToString("yyyyMMdd") + "0000";
+        string endStr = targetDate.AddDays(1).ToString("yyyyMMdd") + "0000";
+
+        var totalBySource = new Dictionary<string, double>();
+
+        try
+        {
+            foreach (var zone in zones)
+            {
+                var url = $"https://web-api.tp.entsoe.eu/api?documentType=A75&processType=A16&in_Domain={zone}&periodStart={startStr}&periodEnd={endStr}&securityToken={_apiKey}";
+                
+                var xml = await _http.GetStringAsync(url);
+                var zoneData = ParseZone(xml); // Refolosim logica ta bună de parsare
+                
+                foreach (var kv in zoneData)
+                {
+                    if (!totalBySource.ContainsKey(kv.Key)) totalBySource[kv.Key] = 0;
+                    totalBySource[kv.Key] += kv.Value;
+                }
+            }
+
+            var bySource = new List<SourceBreakdown>();
+            foreach (var kv in totalBySource)
+            {
+                if (!SourceMap.ContainsKey(kv.Key)) continue;
+                var (name, renewable) = SourceMap[kv.Key];
+                bySource.Add(new SourceBreakdown { Source = name, Renewable = renewable, ValueMw = Math.Round(kv.Value, 1) });
+            }
+
+            var total = bySource.Sum(s => s.ValueMw);
+            var renewableMw = bySource.Where(s => s.Renewable).Sum(s => s.ValueMw);
+            var pct = total > 0 ? Math.Round(renewableMw / total * 100, 1) : 0;
+
+            // SALVĂM CU DATA DIN TRECUT
+            var newRecord = new GenerationRecord
+            {
+                IsoCode = iso,
+                CountryName = countryName,
+                FetchedAt = targetDate, 
+                Total = Math.Round(total, 1),
+                RenewableMw = Math.Round(renewableMw, 1),
+                RenewablePct = pct,
+                BySourceJson = JsonSerializer.Serialize(bySource),
+                ZonesAggregatedJson = JsonSerializer.Serialize(zones.ToList())
+            };
+
+            db.GenerationRecords.Add(newRecord);
+            Console.WriteLine($"[Backfill] Salvat {iso} pentru ziua {targetDate:yyyy-MM-dd}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Backfill Error] {iso} la data {targetDate:yyyy-MM-dd}: {ex.Message}");
+        }
+        
+        // Pauză mică între zile ca să nu ne blocheze firewall-ul ENTSO-E
+        await Task.Delay(500); 
+    }
+
+    await db.SaveChangesAsync();
+}
 }
