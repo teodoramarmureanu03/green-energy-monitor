@@ -48,7 +48,7 @@ export function Sidebar({
   return (
     <nav
       className={cn(
-        "sticky top-0 flex h-screen flex-shrink-0 flex-col overflow-y-auto overflow-x-hidden px-3 py-6 transition-all duration-300",
+        "sticky top-0 flex h-screen shrink-0 flex-col overflow-y-auto overflow-x-hidden px-3 py-6 transition-all duration-300",
         widthClass,
         !collapsed && "lg:px-5"
       )}
@@ -67,7 +67,7 @@ export function Sidebar({
       {/* logo */}
       <div className="mb-8 flex items-center justify-center gap-3 lg:justify-start">
         <div
-          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl text-white"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white"
           style={{ background: `linear-gradient(135deg, ${colors.forestMid}, ${colors.forest})`, boxShadow: "0 4px 14px rgba(28,107,42,0.45)" }}
         >
           <Leaf className="h-5 w-5" />
@@ -88,7 +88,7 @@ export function Sidebar({
         >
           <div className="mb-3 flex items-center gap-2">
             <span
-              className="inline-block h-[7px] w-[7px] rounded-full"
+              className="inline-block h-1.75 w-1.75 rounded-full"
               style={{ background: colors.sidebarLiveDot, boxShadow: "0 0 0 3px rgba(34,197,94,0.2)" }}
             />
             <span className="text-[11px]" style={{ color: colors.sidebarText2 }}>Live data · ENTSO-E</span>
@@ -101,7 +101,7 @@ export function Sidebar({
       )}
 
       {showText && (
-        <div className="hidden px-2 pb-3 text-[11px] font-semibold uppercase tracking-[0.1em] lg:block" style={{ color: colors.sidebarText3 }}>
+        <div className="hidden px-2 pb-3 text-[11px] font-semibold uppercase tracking-widest lg:block" style={{ color: colors.sidebarText3 }}>
           Navigation
         </div>
       )}
@@ -127,7 +127,7 @@ export function Sidebar({
                   : { color: colors.sidebarText4 }
               }
             >
-              <Icon className="h-[18px] w-[18px] flex-shrink-0" />
+              <Icon className="h-4.5 w-4.5 shrink-0" />
               {showText && <span className="hidden lg:inline">{item.label}</span>}
             </button>
           );

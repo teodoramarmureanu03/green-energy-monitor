@@ -47,7 +47,7 @@ export function Toolbar({
 
         {/* Refresh */}
         <button onClick={onRefresh} aria-label="Refresh data" title="Refresh data" style={iconBtn}>
-          <RefreshCw className="h-[17px] w-[17px]" />
+          <RefreshCw className="h-4.25 w-4.25" />
         </button>
 
         {/* Theme toggle */}
@@ -57,7 +57,7 @@ export function Toolbar({
           title={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
           style={iconBtn}
         >
-          {theme === "light" ? <Moon className="h-[17px] w-[17px]" /> : <Sun className="h-[17px] w-[17px]" />}
+          {theme === "light" ? <Moon className="h-4.25 w-4.25" /> : <Sun className="h-4.25 w-4.25" />}
         </button>
 
         {/* Separator */}
@@ -78,7 +78,7 @@ export function Toolbar({
           <span className="hidden sm:inline" style={{ fontSize: 13, fontWeight: 500, color: colors.ink }}>
             Teodora M.
           </span>
-          <ChevronDown className="h-[15px] w-[15px] hidden sm:block" style={{ color: colors.muted }} />
+          <ChevronDown className="h-3.75 w-3.75 hidden sm:block" style={{ color: colors.muted }} />
         </div>
 
       </div>
