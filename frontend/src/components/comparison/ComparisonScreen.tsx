@@ -1,197 +1,88 @@
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
+import type { CSSProperties } from "react";
 import { useCountries } from "@/hooks/useCountries";
-import { useGeneration } from "@/hooks/useGeneration";
-import type { Country, CountryGeneration, SourceBreakdown } from "@/types/contract";
 import { colors } from "@/lib/tokens";
 
-const WIND_COLOR  = colors.indigoDeep;
-const SOLAR_COLOR = colors.rankGoldText;
-const GREEN_DARK  = colors.forest;
-const GREEN_MID   = colors.forestMid;
-const CARD_BG     = colors.surface;
-const CARD_BORDER = colors.borderAccent;
-const HEADER_BG   = colors.tableHeaderBg;
-const TEXT_DARK   = colors.ink;
-const TEXT_MID    = colors.slate;
-const TEXT_MUTED  = colors.muted;
-const ROW_HOVER   = colors.rowHoverBg;
+import { ComparisonHeader } from "./ComparisonHeader";
+import { ComparisonTable } from "./ComparisonTable";
+import { useAllGeneration } from "./useAllGeneration";
+import {
+  aggregateSources,
+  type RankedCountryGeneration,
+  type SortKey,
+} from "./comparisonUtils";
 
-function aggregateSources(bySource: SourceBreakdown[]) {
-  let windMw = 0, solarMw = 0;
-  for (const s of bySource) {
-    if (s.source === "Wind onshore" || s.source === "Wind offshore") windMw += s.valueMw;
-    if (s.source === "Solar") solarMw += s.valueMw;
-  }
-  return { windMw, solarMw, totalRenewable: windMw + solarMw };
+import "./ComparisonScreen.css";
+
+interface ComparisonScreenProps {
+  onOpenCountry: (iso: string) => void;
 }
 
-function fmt(n: number) { return Math.round(n).toLocaleString("en-GB"); }
+const comparisonCssVariables = {
+  "--comparison-wind-color": colors.indigoDeep,
+  "--comparison-solar-color": colors.rankGoldText,
+  "--comparison-green-dark": colors.forest,
+  "--comparison-green-mid": colors.forestMid,
+  "--comparison-card-bg": colors.surface,
+  "--comparison-card-border": colors.borderAccent,
+  "--comparison-header-bg": colors.tableHeaderBg,
+  "--comparison-text-dark": colors.ink,
+  "--comparison-text-mid": colors.slate,
+  "--comparison-text-muted": colors.muted,
+  "--comparison-row-hover": colors.rowHoverBg,
+  "--comparison-sage-tint": colors.sageTint,
+  "--comparison-button-text": colors.btnSolidText,
+  "--comparison-flag-border": colors.flagBorder,
 
-// Circular flag image using flagcdn.com (free, reliable, no API key needed)
-function FlagCircle({ iso }: { iso: string }) {
-  return (
-    <img
-      src={`https://flagcdn.com/48x36/${iso.toLowerCase()}.png`}
-      alt={iso}
-      style={{
-        width: 36, height: 27,
-        borderRadius: 4,
-        objectFit: "cover",
-        border: `1px solid ${colors.flagBorder}`,
-        flexShrink: 0,
-      }}
-      onError={(e) => {
-        // Fallback to text badge if image fails
-        const el = e.currentTarget;
-        el.style.display = "none";
-        const next = el.nextElementSibling as HTMLElement;
-        if (next) next.style.display = "inline-flex";
-      }}
-    />
-  );
-}
+  "--comparison-rank-gold-bg": colors.rankGoldBg,
+  "--comparison-rank-gold-text": colors.rankGoldText,
+  "--comparison-rank-gold-border": colors.rankGoldBorder,
 
-// Text fallback badge (hidden by default, shown if image fails)
-function FallbackBadge({ iso }: { iso: string }) {
-  const hue = ((iso.charCodeAt(0) * 37 + iso.charCodeAt(1) * 17) % 280) + 160;
-  return (
-    <span style={{
-      display: "none",
-      alignItems: "center", justifyContent: "center",
-      minWidth: 36, height: 27, padding: "0 6px",
-      background: `hsl(${hue}, 55%, 92%)`,
-      color: `hsl(${hue}, 55%, 28%)`,
-      border: `1px solid hsl(${hue}, 40%, 78%)`,
-      borderRadius: 4, fontSize: 11, fontWeight: 800,
-      fontFamily: "monospace",
-    }}>
-      {iso.toUpperCase()}
-    </span>
-  );
-}
+  "--comparison-rank-silver-bg": colors.rankSilverBg,
+  "--comparison-rank-silver-text": colors.rankSilverText,
+  "--comparison-rank-silver-border": colors.rankSilverBorder,
 
-// ---- Rank badge ----
-function RankBadge({ rank }: { rank: number }) {
-  const configs: Record<number, { bg: string; color: string; border: string }> = {
-    1: { bg: colors.rankGoldBg, color: colors.rankGoldText, border: colors.rankGoldBorder },
-    2: { bg: colors.rankSilverBg, color: colors.rankSilverText, border: colors.rankSilverBorder },
-    3: { bg: colors.rankBronzeBg, color: colors.rankBronzeText, border: colors.rankBronzeBorder },
-  };
-  const cfg = configs[rank];
-  return (
-    <span style={{
-      display: "inline-flex", alignItems: "center", justifyContent: "center",
-      width: 30, height: 30, borderRadius: 8,
-      background: cfg?.bg ?? "transparent",
-      fontSize: 13, fontWeight: 700,
-      color: cfg?.color ?? TEXT_MUTED,
-      border: cfg ? `1px solid ${cfg.border}` : "none",
-    }}>
-      {rank}
-    </span>
-  );
-}
+  "--comparison-rank-bronze-bg": colors.rankBronzeBg,
+  "--comparison-rank-bronze-text": colors.rankBronzeText,
+  "--comparison-rank-bronze-border": colors.rankBronzeBorder,
+} as CSSProperties;
 
-// ---- Ranking row ----
-function RankRow({ rank, country, generation, maxMw, onOpen }: {
-  rank: number; country: Country; generation: CountryGeneration;
-  maxMw: number; onOpen: () => void;
-}) {
-  const { windMw, solarMw, totalRenewable } = aggregateSources(generation.bySource);
-  const barW = maxMw > 0 ? (totalRenewable / maxMw) * 100 : 0;
-
-  return (
-    <tr
-      tabIndex={0}
-      onClick={onOpen}
-      onKeyDown={(e) => { if (e.key === "Enter") onOpen(); }}
-      style={{ borderBottom: `1px solid ${CARD_BORDER}`, cursor: "pointer" }}
-      onMouseEnter={(e) => (e.currentTarget.style.background = ROW_HOVER)}
-      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-    >
-      {/* Rank */}
-      <td style={{ padding: "14px 16px 14px 20px", width: 52 }}>
-        <RankBadge rank={rank} />
-      </td>
-
-      {/* Flag + name */}
-      <td style={{ padding: "14px 12px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <FlagCircle iso={country.isoCode} />
-          <FallbackBadge iso={country.isoCode} />
-          <span style={{ fontSize: 14, fontWeight: 600, color: TEXT_DARK }}>{country.name}</span>
-        </div>
-      </td>
-
-      {/* Wind */}
-      <td style={{ padding: "14px 12px", textAlign: "right" }}>
-        <span style={{ fontSize: 15, fontWeight: 700, color: WIND_COLOR }}>{fmt(windMw)}</span>
-        <span style={{ fontSize: 11, color: TEXT_MUTED, marginLeft: 3 }}>MW</span>
-      </td>
-
-      {/* Solar */}
-      <td style={{ padding: "14px 12px", textAlign: "right" }}>
-        <span style={{ fontSize: 15, fontWeight: 700, color: SOLAR_COLOR }}>{fmt(solarMw)}</span>
-        <span style={{ fontSize: 11, color: TEXT_MUTED, marginLeft: 3 }}>MW</span>
-      </td>
-
-      {/* Bar + total */}
-      <td style={{ padding: "14px 24px", minWidth: 240 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ flex: 1, height: 6, background: colors.sageTint, borderRadius: 3, overflow: "hidden" }}>
-            <div style={{
-              width: `${barW}%`, height: "100%",
-              background: `linear-gradient(90deg, ${GREEN_MID}, ${GREEN_DARK})`,
-              borderRadius: 3, transition: "width 0.5s ease",
-            }} />
-          </div>
-          <span style={{ fontSize: 13, fontWeight: 700, color: GREEN_DARK, width: 96, textAlign: "right" }}>
-            {fmt(totalRenewable)} MW
-          </span>
-        </div>
-      </td>
-    </tr>
-  );
-}
-
-function useAllGeneration(isoCodes: string[]) {
-  const results = [
-    useGeneration(isoCodes[0]??null), useGeneration(isoCodes[1]??null),
-    useGeneration(isoCodes[2]??null), useGeneration(isoCodes[3]??null),
-    useGeneration(isoCodes[4]??null), useGeneration(isoCodes[5]??null),
-    useGeneration(isoCodes[6]??null), useGeneration(isoCodes[7]??null),
-    useGeneration(isoCodes[8]??null), useGeneration(isoCodes[9]??null),
-    useGeneration(isoCodes[10]??null), useGeneration(isoCodes[11]??null),
-    useGeneration(isoCodes[12]??null), useGeneration(isoCodes[13]??null),
-    useGeneration(isoCodes[14]??null), useGeneration(isoCodes[15]??null),
-    useGeneration(isoCodes[16]??null), useGeneration(isoCodes[17]??null),
-    useGeneration(isoCodes[18]??null), useGeneration(isoCodes[19]??null),
-    useGeneration(isoCodes[20]??null), useGeneration(isoCodes[21]??null),
-    useGeneration(isoCodes[22]??null), useGeneration(isoCodes[23]??null),
-    useGeneration(isoCodes[24]??null), useGeneration(isoCodes[25]??null),
-  ];
-  const map: Record<string, CountryGeneration> = {};
-  isoCodes.forEach((iso, i) => { if (results[i]?.data) map[iso] = results[i].data!; });
-  const loading = results.slice(0, isoCodes.length).some((r) => r.loading);
-  return { map, loading };
-}
-
-type SortKey = "total" | "wind" | "solar";
-
-export function ComparisonScreen({ onOpenCountry }: { onOpenCountry: (iso: string) => void }) {
+export function ComparisonScreen({ onOpenCountry }: ComparisonScreenProps) {
   const { countries, loading: countriesLoading } = useCountries();
   const [sortBy, setSortBy] = useState<SortKey>("total");
-  const isoCodes = countries.map((c) => c.isoCode);
-  const { map: generationMap, loading: genLoading } = useAllGeneration(isoCodes);
-  const loading = countriesLoading || genLoading;
 
-  const ranked = useMemo(() => {
+  const isoCodes = countries.map((country) => country.isoCode);
+  const { map: generationMap, loading: generationLoading } =
+    useAllGeneration(isoCodes);
+
+  const loading = countriesLoading || generationLoading;
+
+  const ranked = useMemo<RankedCountryGeneration[]>(() => {
     return countries
-      .filter((c) => generationMap[c.isoCode])
-      .map((c) => ({ country: c, generation: generationMap[c.isoCode], ...aggregateSources(generationMap[c.isoCode].bySource) }))
+      .flatMap((country) => {
+        const generation = generationMap[country.isoCode];
+
+        if (!generation) {
+          return [];
+        }
+
+        return [
+          {
+            country,
+            generation,
+            ...aggregateSources(generation.bySource),
+          },
+        ];
+      })
       .sort((a, b) => {
-        if (sortBy === "wind") return b.windMw - a.windMw;
-        if (sortBy === "solar") return b.solarMw - a.solarMw;
+        if (sortBy === "wind") {
+          return b.windMw - a.windMw;
+        }
+
+        if (sortBy === "solar") {
+          return b.solarMw - a.solarMw;
+        }
+
         return b.totalRenewable - a.totalRenewable;
       });
   }, [countries, generationMap, sortBy]);
@@ -199,82 +90,17 @@ export function ComparisonScreen({ onOpenCountry }: { onOpenCountry: (iso: strin
   const maxMw = ranked[0]?.totalRenewable ?? 1;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
-      {/* Header */}
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
-        <div>
-          <h1 style={{ fontSize: 32, fontWeight: 700, color: TEXT_DARK, letterSpacing: "-0.02em" }}>
-            Country Comparison
-          </h1>
-          <p style={{ fontSize: 14, color: TEXT_MUTED, marginTop: 4 }}>
-            Ranked by solar & wind capacity · Click a row to open its dashboard
-          </p>
-        </div>
-        <div style={{
-          display: "flex", alignItems: "center", gap: 2,
-          background: colors.surface, borderRadius: 10, padding: 4,
-          border: `1.5px solid ${CARD_BORDER}`,
-          boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
-        }}>
-          {(["total", "wind", "solar"] as SortKey[]).map((key) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setSortBy(key)}
-              style={{
-                fontSize: 13, fontWeight: sortBy === key ? 600 : 400,
-                padding: "6px 18px", borderRadius: 7, border: "none",
-                cursor: "pointer", transition: "all 0.15s",
-                background: sortBy === key ? GREEN_DARK : "transparent",
-                color: sortBy === key ? colors.btnSolidText : TEXT_MUTED,
-              }}
-            >
-              {key === "total" ? "Total" : key === "wind" ? "Wind" : "Solar"}
-            </button>
-          ))}
-        </div>
-      </div>
+    <div className="comparison-screen" style={comparisonCssVariables}>
+      <ComparisonHeader sortBy={sortBy} onSortChange={setSortBy} />
 
-      {/* Table */}
-      <div style={{
-        background: CARD_BG, border: `1.5px solid ${CARD_BORDER}`,
-        borderRadius: 16, overflow: "hidden",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-      }}>
-        {loading ? (
-          <div style={{ padding: 48, textAlign: "center", fontSize: 14, color: TEXT_MUTED }}>
-            Loading country data…
-          </div>
-        ) : (
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", minWidth: 640, borderCollapse: "collapse" }}>
-              <thead>
-                <tr style={{ background: HEADER_BG, borderBottom: `1.5px solid ${CARD_BORDER}` }}>
-                  <th style={{ padding: "13px 16px 13px 20px", width: 52, textAlign: "left", fontSize: 11, fontWeight: 700, color: TEXT_MUTED, textTransform: "uppercase", letterSpacing: "0.07em" }}>#</th>
-                  <th style={{ padding: "13px 12px", textAlign: "left", fontSize: 11, fontWeight: 700, color: TEXT_MID, textTransform: "uppercase", letterSpacing: "0.07em" }}>Country</th>
-                  <th style={{ padding: "13px 12px", textAlign: "right", fontSize: 11, fontWeight: 700, color: WIND_COLOR, textTransform: "uppercase", letterSpacing: "0.07em" }}>Wind (MW)</th>
-                  <th style={{ padding: "13px 12px", textAlign: "right", fontSize: 11, fontWeight: 700, color: SOLAR_COLOR, textTransform: "uppercase", letterSpacing: "0.07em" }}>Solar (MW)</th>
-                  <th style={{ padding: "13px 24px", textAlign: "left", fontSize: 11, fontWeight: 700, color: GREEN_DARK, textTransform: "uppercase", letterSpacing: "0.07em" }}>Total (MW)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ranked.map(({ country, generation }, i) => (
-                  <RankRow
-                    key={country.isoCode}
-                    rank={i + 1}
-                    country={country}
-                    generation={generation}
-                    maxMw={maxMw}
-                    onOpen={() => onOpenCountry(country.isoCode)}
-                  />
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      <ComparisonTable
+        loading={loading}
+        ranked={ranked}
+        maxMw={maxMw}
+        onOpenCountry={onOpenCountry}
+      />
 
-      <p style={{ fontSize: 11, textAlign: "center", color: TEXT_MUTED }}>
+      <p className="comparison-footer">
         Solar & wind data · Energy-Charts.info (CC BY 4.0)
       </p>
     </div>

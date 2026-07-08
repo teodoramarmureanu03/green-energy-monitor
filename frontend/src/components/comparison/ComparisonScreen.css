@@ -1,0 +1,313 @@
+.comparison-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* Header */
+
+.comparison-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.comparison-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--comparison-text-dark);
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.comparison-subtitle {
+  font-size: 14px;
+  color: var(--comparison-text-muted);
+  margin-top: 4px;
+  margin-bottom: 0;
+}
+
+/* Sort buttons */
+
+.comparison-sort-control {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--comparison-card-bg);
+  border-radius: 10px;
+  padding: 4px;
+  border: 1.5px solid var(--comparison-card-border);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.comparison-sort-button {
+  font-size: 13px;
+  font-weight: 400;
+  padding: 6px 18px;
+  border-radius: 7px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: transparent;
+  color: var(--comparison-text-muted);
+}
+
+.comparison-sort-button:hover {
+  background: var(--comparison-row-hover);
+}
+
+.comparison-sort-button-active {
+  font-weight: 600;
+  background: var(--comparison-green-dark);
+  color: var(--comparison-button-text);
+}
+
+.comparison-sort-button-active:hover {
+  background: var(--comparison-green-dark);
+}
+
+/* Table card */
+
+.comparison-table-card {
+  background: var(--comparison-card-bg);
+  border: 1.5px solid var(--comparison-card-border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.comparison-loading {
+  padding: 48px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--comparison-text-muted);
+}
+
+.comparison-table-scroll {
+  overflow-x: auto;
+}
+
+.comparison-table {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+}
+
+.comparison-table-head-row {
+  background: var(--comparison-header-bg);
+  border-bottom: 1.5px solid var(--comparison-card-border);
+}
+
+.comparison-table-heading {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.comparison-rank-heading {
+  padding: 13px 16px 13px 20px;
+  width: 52px;
+  text-align: left;
+  color: var(--comparison-text-muted);
+}
+
+.comparison-country-heading {
+  padding: 13px 12px;
+  text-align: left;
+  color: var(--comparison-text-mid);
+}
+
+.comparison-wind-heading {
+  padding: 13px 12px;
+  text-align: right;
+  color: var(--comparison-wind-color);
+}
+
+.comparison-solar-heading {
+  padding: 13px 12px;
+  text-align: right;
+  color: var(--comparison-solar-color);
+}
+
+.comparison-total-heading {
+  padding: 13px 24px;
+  text-align: left;
+  color: var(--comparison-green-dark);
+}
+
+/* Rows */
+
+.comparison-rank-row {
+  border-bottom: 1px solid var(--comparison-card-border);
+  cursor: pointer;
+  background: transparent;
+}
+
+.comparison-rank-row:hover {
+  background: var(--comparison-row-hover);
+}
+
+.comparison-rank-row:focus-visible {
+  outline: 2px solid var(--comparison-green-mid);
+  outline-offset: -2px;
+}
+
+.comparison-rank-cell {
+  padding: 14px 16px 14px 20px;
+  width: 52px;
+}
+
+.comparison-country-cell {
+  padding: 14px 12px;
+}
+
+.comparison-energy-cell {
+  padding: 14px 12px;
+  text-align: right;
+}
+
+.comparison-total-cell {
+  padding: 14px 24px;
+  min-width: 240px;
+}
+
+/* Country */
+
+.comparison-country-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.comparison-country-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--comparison-text-dark);
+}
+
+.comparison-flag {
+  width: 36px;
+  height: 27px;
+  border-radius: 4px;
+  object-fit: cover;
+  border: 1px solid var(--comparison-flag-border);
+  flex-shrink: 0;
+}
+
+.comparison-fallback-badge {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 27px;
+  padding: 0 6px;
+  background: var(--fallback-bg);
+  color: var(--fallback-color);
+  border: 1px solid var(--fallback-border);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  font-family: monospace;
+}
+
+/* Rank badge */
+
+.comparison-rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--comparison-text-muted);
+  border: none;
+}
+
+.comparison-rank-badge-gold {
+  background: var(--comparison-rank-gold-bg);
+  color: var(--comparison-rank-gold-text);
+  border: 1px solid var(--comparison-rank-gold-border);
+}
+
+.comparison-rank-badge-silver {
+  background: var(--comparison-rank-silver-bg);
+  color: var(--comparison-rank-silver-text);
+  border: 1px solid var(--comparison-rank-silver-border);
+}
+
+.comparison-rank-badge-bronze {
+  background: var(--comparison-rank-bronze-bg);
+  color: var(--comparison-rank-bronze-text);
+  border: 1px solid var(--comparison-rank-bronze-border);
+}
+
+/* Energy values */
+
+.comparison-energy-value {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.comparison-wind-value {
+  color: var(--comparison-wind-color);
+}
+
+.comparison-solar-value {
+  color: var(--comparison-solar-color);
+}
+
+.comparison-energy-unit {
+  font-size: 11px;
+  color: var(--comparison-text-muted);
+  margin-left: 3px;
+}
+
+/* Progress bar */
+
+.comparison-total-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.comparison-progress-bar {
+  flex: 1;
+  height: 6px;
+  background: var(--comparison-sage-tint);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.comparison-progress-fill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--comparison-green-mid),
+    var(--comparison-green-dark)
+  );
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.comparison-total-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--comparison-green-dark);
+  width: 96px;
+  text-align: right;
+}
+
+/* Footer */
+
+.comparison-footer {
+  font-size: 11px;
+  text-align: center;
+  color: var(--comparison-text-muted);
+  margin: 0;
+}
