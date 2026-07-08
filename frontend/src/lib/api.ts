@@ -11,17 +11,13 @@
 //   return res.json();
 // și gata.
 // ============================================================================
-const API_BASE = "http://localhost:5243";
+
 import type { Country, CountryGeneration } from "@/types/contract";
+const API_BASE = "http://localhost:5243";
 //import countriesData from "@/data/countries.json";
 //import generationData from "@/data/generation-latest.json";
 
-// Când treceți pe backend real, puneți aici adresa lui (ex. "http://localhost:5000")
-// și decomentați liniile cu fetch din funcțiile de mai jos.
-// export const API_BASE = "http://localhost:5000";
 
-// mică întârziere artificială ca să vedem stările de „loading" în UI
-//const fakeDelay = (ms = 250) => new Promise((r) => setTimeout(r, ms));
 
 /** Lista tuturor țărilor (pentru hartă și pentru selector). */
 export async function fetchCountries(): Promise<Country[]> {

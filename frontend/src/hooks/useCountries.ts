@@ -1,24 +1,22 @@
-// HOOK: useCountries() — încarcă lista de țări o dată, la pornire.
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
+import { fetchCountries } from "@/lib/api"; // Asigură-te că aduci funcția din api.ts
 import type { Country } from "@/types/contract";
-import { fetchCountries } from "@/lib/api";
 
 export function useCountries() {
   const [countries, setCountries] = useState<Country[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let cancelled = false;
+    // Apelăm backend-ul
     fetchCountries()
       .then((data) => {
-        if (!cancelled) setCountries(data);
+        setCountries(data);
+        setLoading(false);
       })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+      .catch((err) => {
+        console.error("Eroare la încărcarea țărilor:", err);
+        setLoading(false);
       });
-    return () => {
-      cancelled = true;
-    };
   }, []);
 
   return { countries, loading };
