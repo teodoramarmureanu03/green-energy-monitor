@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ComposableMap, Geographies, Geography, Marker } from "@vnedyalk0v/react19-simple-maps";
+import { ComposableMap, Geographies, Geography, Marker, type Longitude, type Latitude } from "@vnedyalk0v/react19-simple-maps";
 import { useCountries } from "@/hooks/useCountries";
 import { fetchGeneration } from "@/lib/api";
 import { colors, shareToColor } from "@/lib/tokens";
@@ -112,7 +112,7 @@ export function EuropeMap({onSelectCountry,}: {onSelectCountry?: (iso: string) =
   width={800}
   height={520}
   projectionConfig={{
-          center: [13, 52],
+          center: [13 as Longitude, 52 as Latitude],
           scale: 700,
         }}
   style={{ width: "100%", height: "auto" }}
@@ -181,7 +181,7 @@ export function EuropeMap({onSelectCountry,}: {onSelectCountry?: (iso: string) =
 
       {/* tooltip la hover */}
       {hoverData && (
-        <div className="pointer-events-none absolute left-1/2 top-6 w-[220px] -translate-x-1/2 rounded-2xl border border-zinc-100 bg-white p-4 shadow-xl">
+        <div className="pointer-events-none absolute left-1/2 top-6 w-55 -translate-x-1/2 rounded-2xl border border-zinc-100 bg-white p-4 shadow-xl">
           <div className="text-[14px] font-semibold text-zinc-800">
             {hoverData.country}
           </div>
