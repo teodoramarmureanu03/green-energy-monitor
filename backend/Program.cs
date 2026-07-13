@@ -1,8 +1,11 @@
+
 using backend;
 using backend.Models;
 using backend.Repositories;
 using backend.Services;
 using Microsoft.EntityFrameworkCore;
+
+DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,13 +36,12 @@ builder.Services.AddDbContext<EnergyDbContext>(options =>
 // 3. ANGAJAREA ECHIPEI (DEPENDENCY INJECTION)
 // ==========================================
 // Înregistrăm HttpClient (necesar pentru ca EntsoeService să poată descărca date de pe internet)
-builder.Services.AddHttpClient<EntsoeService, EntsoeService>();
+builder.Services.AddHttpClient<EntsoeService>();
 
 builder.Services.AddScoped<IGenerationRepository, GenerationRepository>();
 builder.Services.AddScoped<IGenerationService, GenerationService>();
 
-// Gata, am scos comentariul și am activat EntsoeService în echipă!
-builder.Services.AddScoped<EntsoeService, EntsoeService>();
+builder.Services.AddScoped<EntsoeService>();
 
 var app = builder.Build();
 

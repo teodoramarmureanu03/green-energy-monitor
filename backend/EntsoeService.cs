@@ -5,7 +5,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration; // Am adăugat asta înapoi
 using backend.Models;
 
 namespace backend.Services;
@@ -14,13 +14,13 @@ public class EntsoeService
 {
     private readonly HttpClient _httpClient;
     private readonly EnergyDbContext _db;
-    private readonly IConfiguration _config;
+    private readonly IConfiguration _config; // Adăugat înapoi
 
     public EntsoeService(HttpClient httpClient, EnergyDbContext db, IConfiguration config)
     {
         _httpClient = httpClient;
         _db = db;
-        _config = config;
+        _config = config; // Adăugat înapoi
     }
 
     public async Task BackfillHistoryAsync(string iso, DateTime start, DateTime end)
@@ -38,7 +38,11 @@ public class EntsoeService
         var dbSources = await _db.EnergySources.ToListAsync();
         var sourceMap = dbSources.ToDictionary(s => s.Code, s => new { s.Name, s.IsRenewable });
 
-        string apiKey = _config["EntsoeApiKey"] ?? throw new Exception("Cheia 'EntsoeApiKey' lipsește.");
+        // CITIREA DUPĂ REGULA MENTORULUI:
+        // Luăm șablonul "%ENTSOE_API_KEY%" din appsettings și îl înlocuim cu valoarea reală din sistem
+        string rawKey = _config["EntsoeApiKey"] ?? throw new Exception("Cheia lipsește din appsettings.");
+        string apiKey = Environment.ExpandEnvironmentVariables(rawKey);
+
         string startStr = start.Date.ToString("yyyyMMdd0000");
         string endStr = DateTime.Now.Date.AddDays(1).ToString("yyyyMMdd2359");
 
@@ -75,8 +79,6 @@ public class EntsoeService
                                     IsRenewable = sourceInfo.IsRenewable,
                                     ValueMw = quantity,
                                     Timestamp = start,
-                                    
-                                    // Păstrăm și câmpurile vechi cerute de restul aplicației tale:
                                     IsoCode = iso.ToUpper(),
                                     FetchedAt = DateTime.UtcNow
                                 };
