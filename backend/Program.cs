@@ -52,6 +52,7 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider
         .GetRequiredService<EnergyDbContext>();
 
+    await DatabaseSchemaBootstrap.EnsureAsync(db);
     db.Database.Migrate();
 }
 

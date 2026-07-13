@@ -105,6 +105,18 @@ public class EntsoeService
             ?? throw new Exception("EntsoeApiKey missing");
 
         _apiKey = Environment.ExpandEnvironmentVariables(rawKey);
+
+        if (
+            string.IsNullOrWhiteSpace(_apiKey) ||
+            _apiKey.Contains("ENTSOE_API_KEY", StringComparison.Ordinal)
+        )
+        {
+            throw new InvalidOperationException(
+                "ENTSO-E API key is not configured. " +
+                "Set the ENTSOE_API_KEY environment variable " +
+                "or add EntsoeApiKey to appsettings.Development.json."
+            );
+        }
     }
 
     public async Task<CountryGeneration?> GetFromDatabaseAsync(
