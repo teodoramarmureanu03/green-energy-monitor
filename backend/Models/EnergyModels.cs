@@ -1,10 +1,8 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace backend.Models;
 
-// ---- API response models (same shape as before, mirroring contract.ts) ----
+// ---- API response models ----
 
 public class SourceBreakdown
 {
@@ -32,49 +30,61 @@ public class CountryInfo
     public string Name { get; set; } = "";
 }
 
-
 // ---- EF Core database entities ----
 
-// Stores the latest generation snapshot per country
-// Stores the latest generation snapshot per country
+// Aggregated live snapshot per country (written by background sync)
 public class GenerationRecord
 {
     public int Id { get; set; }
-    
-    // Câmpurile noi pentru logica directă cu tabelele din PostgreSQL (ENTSO-E)
-    public string CountryIso { get; set; } = string.Empty;
-    public string ZoneCode { get; set; } = string.Empty;
-    public string EnergySourceCode { get; set; } = string.Empty;
-    public string EnergySourceName { get; set; } = string.Empty;
-    public bool IsRenewable { get; set; }
-    public double ValueMw { get; set; }
-    public DateTime Timestamp { get; set; }
 
-    // Câmpurile vechi restaurate pentru Repository și Service
-    public string IsoCode { get; set; } = string.Empty;
+    public string IsoCode { get; set; } = "";
+    public string CountryName { get; set; } = "";
     public DateTime FetchedAt { get; set; } = DateTime.UtcNow;
-
-    // ULTIMELE CÂMPURI REPARATE: Cele cerute acum de GenerationService.cs
-    public string BySourceJson { get; set; } = string.Empty;
     public double Total { get; set; }
     public double RenewableMw { get; set; }
     public double RenewablePct { get; set; }
+    public string BySourceJson { get; set; } = "[]";
+    public string ZonesAggregatedJson { get; set; } = "[]";
+
+    // Legacy per-source columns kept for existing DB schema compatibility
+    public string CountryIso { get; set; } = "";
+    public string ZoneCode { get; set; } = "";
+    public string EnergySourceCode { get; set; } = "";
+    public string EnergySourceName { get; set; } = "";
+    public bool IsRenewable { get; set; }
+    public double ValueMw { get; set; }
+    public DateTime Timestamp { get; set; }
 }
 
-// Tabelul pentru Sursele de Energie (Biomasă, Solar, etc.)
+// Pre-aggregated chart history (Day / Week / Month)
+public class GenerationChartPoint
+{
+    public int Id { get; set; }
+    public string IsoCode { get; set; } = "";
+    public string CountryName { get; set; } = "";
+    public string PeriodType { get; set; } = "";
+    public DateTime PeriodStart { get; set; }
+    public DateTime PeriodEnd { get; set; }
+    public double Total { get; set; }
+    public double RenewableMw { get; set; }
+    public double RenewablePct { get; set; }
+    public double WindMw { get; set; }
+    public double SolarMw { get; set; }
+    public DateTime UpdatedAt { get; set; }
+}
+
 public class EnergySource
 {
-    [Key] // Codul "B01", "B02" va fi cheia primară
+    [Key]
     public string Code { get; set; } = "";
     public string Name { get; set; } = "";
     public bool IsRenewable { get; set; }
 }
 
-// Tabelul pentru Zonele Țărilor
 public class CountryZone
 {
     [Key]
-    public int Id { get; set; } // ID generat automat
-    public string IsoCode { get; set; } = ""; // "RO", "AT"
-    public string ZoneCode { get; set; } = ""; // "10YRO-TEL------P"
+    public int Id { get; set; }
+    public string IsoCode { get; set; } = "";
+    public string ZoneCode { get; set; } = "";
 }

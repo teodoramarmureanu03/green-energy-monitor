@@ -1,4 +1,3 @@
-
 using backend;
 using backend.Models;
 using backend.Repositories;
@@ -9,10 +8,7 @@ DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ==========================================
-// 1. SETĂRI DE BAZĂ (ROUTING, SWAGGER, CORS)
-// ==========================================
-builder.Services.AddControllers(); 
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -20,32 +16,29 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReact", policy =>
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+        policy
+            .WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
     });
 });
 
-// ==========================================
-// 2. CONECTAREA LA BAZA DE DATE
-// ==========================================
 builder.Services.AddDbContext<EnergyDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString(
+            "DefaultConnection"
+        )
+    );
+});
 
-// ==========================================
-// 3. ANGAJAREA ECHIPEI (DEPENDENCY INJECTION)
-// ==========================================
-// Înregistrăm HttpClient (necesar pentru ca EntsoeService să poată descărca date de pe internet)
 builder.Services.AddHttpClient<EntsoeService>();
 builder.Services.AddScoped<GenerationService>();
 builder.Services.AddScoped<IGenerationRepository, GenerationRepository>();
-builder.Services.AddScoped<EntsoeService>();
+builder.Services.AddHostedService<EntsoeDataSyncService>();
 
 var app = builder.Build();
 
-// ==========================================
-// 4. REGULILE CASEI (MIDDLEWARE)
-// ==========================================
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -54,9 +47,14 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AllowReact");
 
-// ==========================================
-// 5. PORNIREA RUTELOR
-// ==========================================
-app.MapControllers(); 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider
+        .GetRequiredService<EnergyDbContext>();
+
+    db.Database.Migrate();
+}
+
+app.MapControllers();
 
 app.Run();

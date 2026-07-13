@@ -1,34 +1,54 @@
-// ============================================================================
-// STRATUL DE DATE — singurul loc care „știe" de unde vin datele.
-//
-// ACUM: citește din fișierele mock din src/data (instant, fără server).
-// MAI TÂRZIU: schimbi DOAR funcțiile de aici ca să facă fetch la backend-ul
-// vostru .NET. Restul aplicației (hook, componente) NU se schimbă deloc,
-// pentru că forma returnată (Country / CountryGeneration) rămâne identică.
-//
-// Ca să treci pe backend real, înlocuiește corpul celor două funcții cu:
-//   const res = await fetch(`${API_BASE}/api/countries`);
-//   return res.json();
-// și gata.
-// ============================================================================
+import type {
+  Country,
+  CountryGeneration,
+  GenerationHistoryApiPoint,
+  HistoryPeriod,
+} from "@/types/contract";
 
-import type { Country, CountryGeneration } from "@/types/contract";
 const API_BASE = "http://localhost:5243";
-//import countriesData from "@/data/countries.json";
-//import generationData from "@/data/generation-latest.json";
 
-
-
-/** Lista tuturor țărilor (pentru hartă și pentru selector). */
 export async function fetchCountries(): Promise<Country[]> {
-  const res = await fetch(`${API_BASE}/api/countries`);
-  if (!res.ok) throw new Error("Nu am putut încărca țările");
-  return res.json();
+  const response = await fetch(`${API_BASE}/api/countries`);
+
+  if (!response.ok) {
+    throw new Error("Could not load countries.");
+  }
+
+  return response.json();
 }
 
-/** Datele de producție pentru o țară, după codul ISO (ex. "DE"). */
-export async function fetchGeneration(isoCode: string): Promise<CountryGeneration> {
-  const res = await fetch(`${API_BASE}/api/generation/${isoCode}`);
-  if (!res.ok) throw new Error(`Nu există date pentru ${isoCode}`);
-  return res.json();
+export async function fetchGeneration(
+  isoCode: string
+): Promise<CountryGeneration> {
+  const response = await fetch(
+    `${API_BASE}/api/generation/${isoCode}`
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      `No generation data available for ${isoCode}.`
+    );
+  }
+
+  return response.json();
+}
+
+export async function fetchGenerationHistory(
+  isoCode: string,
+  period: HistoryPeriod
+): Promise<GenerationHistoryApiPoint[]> {
+  const response = await fetch(
+    `${API_BASE}/api/generation/history/${isoCode}?period=${period}`,
+    {
+      cache: "no-store",
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      `No ${period} history available for ${isoCode}.`
+    );
+  }
+
+  return response.json();
 }

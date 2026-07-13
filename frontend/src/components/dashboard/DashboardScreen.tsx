@@ -63,7 +63,11 @@ export function DashboardScreen({ initialIso }: DashboardScreenProps) {
       {error && <div className="dashboard-error">⚠️ {error}</div>}
 
       {data && !loading && (
-        <DashboardContent data={data} countryName={countryName} />
+        <DashboardContent
+          data={data}
+          countryName={countryName}
+          selectedIso={selectedIso}
+        />
       )}
     </div>
   );

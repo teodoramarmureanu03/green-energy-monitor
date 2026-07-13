@@ -1,24 +1,45 @@
+import { useState } from "react";
 import type { CSSProperties } from "react";
 
-import type { CountryGeneration } from "@/types/contract";
+import type { CountryGeneration, HistoryPeriod } from "@/types/contract";
 import { colors } from "@/lib/tokens";
+import { useGenerationHistory } from "@/hooks/useGenerationHistory";
 
 import { Card, HeroKpiCard, KpiCard } from "./DashboardCards";
 import { CapacityBarChart } from "./charts/CapacityBarChart";
 import { SolarWindPieChart } from "./charts/SolarWindPieChart";
 import {
+  RenewableHistoryChart,
+  TotalEnergyHistoryChart,
+} from "./charts/HistoryCharts";
+
+import {
   aggregateSources,
   formatDateTime,
   formatMw,
   getSourcePercentages,
+  parseHistoryPoints,
 } from "./dashboardUtils";
 
 interface DashboardContentProps {
   data: CountryGeneration;
   countryName: string;
+  selectedIso: string;
 }
 
-export function DashboardContent({ data, countryName }: DashboardContentProps) {
+export function DashboardContent({
+  data,
+  countryName,
+  selectedIso,
+}: DashboardContentProps) {
+  const [historyPeriod, setHistoryPeriod] = useState<HistoryPeriod>("week");
+
+  const {
+    historyByPeriod,
+    loading: historyLoading,
+    error: historyError,
+  } = useGenerationHistory(selectedIso);
+
   const { windMw, solarMw } = aggregateSources(data.bySource);
 
   const totalRenewable = windMw + solarMw;
@@ -27,6 +48,10 @@ export function DashboardContent({ data, countryName }: DashboardContentProps) {
 
   const { windPct, solarPct } = getSourcePercentages(windMw, solarMw);
   const updatedAt = formatDateTime(data.timestamp);
+  const historyData = parseHistoryPoints(
+    historyByPeriod[historyPeriod],
+    historyPeriod
+  );
 
   const pieData = [
     {
@@ -120,6 +145,72 @@ export function DashboardContent({ data, countryName }: DashboardContentProps) {
 
         <CapacityBarChart data={barData} />
       </div>
+
+      <Card title="Production history">
+        <div className="dashboard-history-header">
+          <div>
+            <p className="dashboard-history-title">
+              Historical production trend
+            </p>
+
+            <p className="dashboard-history-subtitle">
+              Compare wind, solar, and total energy production using backend
+              history data.
+            </p>
+          </div>
+
+          <div className="dashboard-history-periods">
+            {(["week", "month", "year"] as HistoryPeriod[]).map((period) => (
+              <button
+                key={period}
+                type="button"
+                className={
+                  historyPeriod === period
+                    ? "dashboard-history-period dashboard-history-period-active"
+                    : "dashboard-history-period"
+                }
+                onClick={() => setHistoryPeriod(period)}
+              >
+                {period === "week"
+                  ? "Week"
+                  : period === "month"
+                    ? "Month"
+                    : "Year"}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {historyLoading && (
+          <div className="dashboard-history-loading">
+            Loading history data…
+          </div>
+        )}
+
+        {historyError && (
+          <div className="dashboard-history-error">{historyError}</div>
+        )}
+
+        {!historyLoading && !historyError && historyData.length > 0 && (
+          <div className="dashboard-history-grid">
+            <RenewableHistoryChart
+              data={historyData}
+              period={historyPeriod}
+            />
+
+            <TotalEnergyHistoryChart
+              data={historyData}
+              period={historyPeriod}
+            />
+          </div>
+        )}
+
+        {!historyLoading && !historyError && historyData.length === 0 && (
+          <div className="dashboard-history-empty">
+            No history data available for this period.
+          </div>
+        )}
+      </Card>
 
       <Card title="Investment snapshot — wind vs solar breakdown">
         <div className="dashboard-investment-list">

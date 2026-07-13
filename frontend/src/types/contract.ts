@@ -1,21 +1,16 @@
-// ============================================================================
-// CONTRACTUL PARTAJAT — sursa unică de adevăr pentru forma datelor.
-// Frontend-ul scrie cod pe baza acestor tipuri; backend-ul (C#) le oglindește
-// ca DTO-uri. Atât timp cât forma asta nu se schimbă, harta, panoul și backend-ul
-// nu se blochează unul pe altul. NU modifica fără să anunți cealaltă persoană.
-// ============================================================================
+import type {
+  Latitude,
+  Longitude,
+} from "@vnedyalk0v/react19-simple-maps";
 
-import type { Latitude, Longitude } from "@vnedyalk0v/react19-simple-maps";
-
-/** GET /api/countries  →  Country[] */
 export interface Country {
-  id: string;          // iso cu litere mici, ex. "ro"
-  isoCode: string;     // "RO"
-  name: string;        // "Romania"
+  id: string;
+  isoCode: string;
+  name: string;
   lat: Latitude;
   lng: Longitude;
-  multiZone: boolean;  // true dacă ENTSO-E împarte țara (IT, NO, SE, DK...)
-  zones: string[];     // sub-zonele pe care backend-ul le adună într-o singură țară
+  multiZone: boolean;
+  zones: string[];
 }
 
 export type EnergySourceName =
@@ -36,37 +31,66 @@ export interface SourceBreakdown {
   valueMw: number;
 }
 
-/** GET /api/generation/{isoCode}  →  CountryGeneration (instantaneul cel mai recent) */
 export interface CountryGeneration {
   isoCode: string;
   country: string;
-  timestamp: string;        // ISO 8601 UTC
+  timestamp: string;
   zonesAggregated: string[];
-  total: number;            // MW, toate sursele adunate
+  total: number;
   renewableMw: number;
   renewablePct: number;
   bySource: SourceBreakdown[];
 }
 
-/** Opțional: GET /api/generation/{isoCode}/timeseries?date=YYYY-MM-DD */
-export interface TimeseriesPoint { timestamp: string; total: number; renewableMw: number; }
+export type HistoryPeriod = "week" | "month" | "year";
+
+export interface GenerationHistoryApiPoint {
+  date: string;
+  total: number;
+  renewableMw: number;
+  renewablePct: number;
+  windMw: number;
+  solarMw: number;
+}
+
+export interface GenerationHistoryPoint {
+  date: string;
+  label: string;
+  tooltipLabel: string;
+  total: number;
+  renewableMw: number;
+  windMw: number;
+  solarMw: number;
+}
+
+export interface TimeseriesPoint {
+  timestamp: string;
+  total: number;
+  renewableMw: number;
+}
+
 export interface CountryTimeseries {
   isoCode: string;
   date: string;
   points: TimeseriesPoint[];
 }
 
-// ----------------------------------------------------------------------------
-// Grupare în categorii „mari" pentru afișare (Wind = onshore + offshore etc.)
-// Folosit de panou și de graficul de mix ca să nu avem 10 felii minuscule.
-// ----------------------------------------------------------------------------
-export type DisplayCategory = "Wind" | "Solar" | "Hydro" | "Biomass" | "Nuclear" | "Fossil";
+export type DisplayCategory =
+  | "Wind"
+  | "Solar"
+  | "Hydro"
+  | "Biomass"
+  | "Nuclear"
+  | "Fossil";
 
-export function toDisplayCategory(source: EnergySourceName): DisplayCategory {
+export function toDisplayCategory(
+  source: EnergySourceName
+): DisplayCategory {
   if (source.startsWith("Wind")) return "Wind";
   if (source === "Solar") return "Solar";
   if (source.startsWith("Hydro")) return "Hydro";
   if (source === "Biomass") return "Biomass";
   if (source === "Nuclear") return "Nuclear";
+
   return "Fossil";
 }

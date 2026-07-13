@@ -60,6 +60,61 @@ namespace backend.Migrations
                     b.ToTable("EnergySources");
                 });
 
+            modelBuilder.Entity("backend.Models.GenerationChartPoint", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CountryName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("IsoCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<DateTime>("PeriodEnd")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("PeriodStart")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PeriodType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<double>("RenewableMw")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("RenewablePct")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("SolarMw")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("Total")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<double>("WindMw")
+                        .HasColumnType("double precision");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsoCode", "PeriodType", "PeriodStart")
+                        .IsUnique();
+
+                    b.ToTable("GenerationChartPoints");
+                });
+
             modelBuilder.Entity("backend.Models.GenerationRecord", b =>
                 {
                     b.Property<int>("Id")
@@ -75,6 +130,11 @@ namespace backend.Migrations
                     b.Property<string>("CountryIso")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<string>("CountryName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("EnergySourceCode")
                         .IsRequired()
@@ -92,7 +152,8 @@ namespace backend.Migrations
 
                     b.Property<string>("IsoCode")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
 
                     b.Property<double>("RenewableMw")
                         .HasColumnType("double precision");
@@ -113,7 +174,13 @@ namespace backend.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("ZonesAggregatedJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("IsoCode", "FetchedAt");
 
                     b.ToTable("GenerationRecords");
                 });

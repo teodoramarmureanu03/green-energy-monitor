@@ -1,4 +1,9 @@
-import type { SourceBreakdown } from "@/types/contract";
+import type {
+  GenerationHistoryApiPoint,
+  GenerationHistoryPoint,
+  HistoryPeriod,
+  SourceBreakdown,
+} from "@/types/contract";
 
 export interface AggregatedSources {
   windMw: number;
@@ -6,13 +11,16 @@ export interface AggregatedSources {
 }
 
 export function aggregateSources(
-  bySource: SourceBreakdown[]
+  sources: SourceBreakdown[]
 ): AggregatedSources {
   let windMw = 0;
   let solarMw = 0;
 
-  for (const source of bySource) {
-    if (source.source === "Wind onshore" || source.source === "Wind offshore") {
+  for (const source of sources) {
+    if (
+      source.source === "Wind onshore" ||
+      source.source === "Wind offshore"
+    ) {
       windMw += source.valueMw;
     }
 
@@ -27,29 +35,49 @@ export function aggregateSources(
   };
 }
 
-export function formatMw(value: number) {
+export function formatMw(
+  value: number | null | undefined
+): string {
+  if (value === null || value === undefined) {
+    return "—";
+  }
+
   return Math.round(value).toLocaleString("en-GB");
 }
 
-export function formatCompactMw(value: number) {
-  if (value >= 1000) {
+export function formatCompactMw(
+  value: number | null | undefined
+): string {
+  if (value === null || value === undefined) {
+    return "—";
+  }
+
+  if (Math.abs(value) >= 1000) {
     return `${(value / 1000).toFixed(1)}k`;
   }
 
   return String(Math.round(value));
 }
 
-export function formatDateTime(timestamp: string) {
-  return new Date(timestamp).toLocaleString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+export function formatDateTime(
+  timestamp: string
+): string {
+  return new Date(timestamp).toLocaleString(
+    "en-GB",
+    {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }
+  );
 }
 
-export function getSourcePercentages(windMw: number, solarMw: number) {
+export function getSourcePercentages(
+  windMw: number,
+  solarMw: number
+) {
   const total = windMw + solarMw;
 
   if (total <= 0) {
@@ -59,10 +87,126 @@ export function getSourcePercentages(windMw: number, solarMw: number) {
     };
   }
 
-  const windPct = Math.round((windMw / total) * 100);
+  const windPct = Math.round(
+    (windMw / total) * 100
+  );
 
   return {
     windPct,
     solarPct: 100 - windPct,
   };
+}
+
+export function parseHistoryPoints(
+  points: GenerationHistoryApiPoint[],
+  period: HistoryPeriod
+): GenerationHistoryPoint[] {
+  return points
+    .map((point) => {
+      const date = parseDateKey(point.date);
+
+      return {
+        date: point.date,
+
+        label: formatChartLabel(
+          date,
+          period
+        ),
+
+        tooltipLabel: formatTooltipLabel(
+          date,
+          period
+        ),
+
+        total: point.total,
+        renewableMw: point.renewableMw,
+        windMw: point.windMw,
+        solarMw: point.solarMw,
+      };
+    })
+    .sort(
+      (first, second) =>
+        first.date.localeCompare(second.date)
+    );
+}
+
+function parseDateKey(value: string): Date {
+  const [year, month, day] = value
+    .slice(0, 10)
+    .split("-")
+    .map(Number);
+
+  return new Date(
+    Date.UTC(year, month - 1, day)
+  );
+}
+
+function formatChartLabel(
+  date: Date,
+  period: HistoryPeriod
+): string {
+  if (period === "week") {
+    return formatUtcDate(date, {
+      weekday: "short",
+      day: "2-digit",
+      month: "short",
+    });
+  }
+
+  if (period === "month") {
+    return formatUtcDate(date, {
+      day: "2-digit",
+      month: "short",
+    });
+  }
+
+  return formatUtcDate(date, {
+    month: "short",
+  });
+}
+
+function formatTooltipLabel(
+  date: Date,
+  period: HistoryPeriod
+): string {
+  if (period === "week") {
+    return formatUtcDate(date, {
+      weekday: "long",
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+  }
+
+  if (period === "month") {
+    const weekEnd = new Date(date);
+    weekEnd.setUTCDate(
+      weekEnd.getUTCDate() + 6
+    );
+
+    return `${formatUtcDate(date, {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    })} – ${formatUtcDate(weekEnd, {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    })}`;
+  }
+
+  return formatUtcDate(date, {
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function formatUtcDate(
+  date: Date,
+  options: Intl.DateTimeFormatOptions
+): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    ...options,
+    timeZone: "UTC",
+  }).format(date);
 }

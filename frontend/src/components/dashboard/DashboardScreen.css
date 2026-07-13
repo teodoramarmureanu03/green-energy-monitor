@@ -232,7 +232,8 @@
 
 /* Tooltip */
 
-.dashboard-chart-tooltip {
+.dashboard-chart-tooltip,
+.dashboard-history-tooltip {
   background: #15212e;
   border-radius: 10px;
   padding: 10px 14px;
@@ -248,6 +249,120 @@
 
 .dashboard-chart-tooltip-value {
   color: rgba(255, 255, 255, 0.7);
+}
+
+/* History */
+
+.dashboard-history-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.dashboard-history-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--dashboard-text-dark);
+  margin: 0;
+}
+
+.dashboard-history-subtitle {
+  font-size: 12px;
+  color: var(--dashboard-text-muted);
+  margin: 4px 0 0;
+}
+
+.dashboard-history-periods {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--dashboard-card-bg);
+  border: 1.5px solid var(--dashboard-border);
+  border-radius: 10px;
+  padding: 4px;
+}
+
+.dashboard-history-period {
+  border: none;
+  background: transparent;
+  color: var(--dashboard-text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dashboard-history-period:hover {
+  background: var(--dashboard-green-light);
+  color: var(--dashboard-green-dark);
+}
+
+.dashboard-history-period-active {
+  background: var(--dashboard-green-dark);
+  color: #ffffff;
+}
+
+.dashboard-history-period-active:hover {
+  background: var(--dashboard-green-dark);
+  color: #ffffff;
+}
+
+.dashboard-history-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+}
+
+.dashboard-history-loading,
+.dashboard-history-empty,
+.dashboard-history-error {
+  padding: 36px;
+  text-align: center;
+  border-radius: 14px;
+  font-size: 14px;
+}
+
+.dashboard-history-loading,
+.dashboard-history-empty {
+  background: var(--dashboard-green-light);
+  color: var(--dashboard-green-dark);
+}
+
+.dashboard-history-error {
+  background: var(--dashboard-error-bg);
+  color: var(--dashboard-error-text);
+  border: 1px solid var(--dashboard-error-border);
+}
+
+.dashboard-history-tooltip {
+  min-width: 170px;
+}
+
+.dashboard-history-tooltip-title {
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.dashboard-history-tooltip-row {
+  display: grid;
+  grid-template-columns: 10px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+.dashboard-history-tooltip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
 }
 
 /* Investment snapshot */
@@ -368,7 +483,8 @@
   }
 
   .dashboard-charts-grid,
-  .dashboard-skeleton-chart-grid {
+  .dashboard-skeleton-chart-grid,
+  .dashboard-history-grid {
     grid-template-columns: 1fr;
   }
 }

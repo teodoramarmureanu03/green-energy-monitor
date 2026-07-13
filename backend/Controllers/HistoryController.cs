@@ -1,46 +1,75 @@
-using System;
-using System.Threading.Tasks;
+using backend;
 using Microsoft.AspNetCore.Mvc;
-using backend.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace backend.Controllers;
 
 [ApiController]
-[Route("api/history")]
+[Route("api/generation/history")]
 public class HistoryController : ControllerBase
 {
-    private readonly GenerationService _generationService;
+    private readonly EnergyDbContext _db;
 
-    public HistoryController(GenerationService generationService)
+    public HistoryController(EnergyDbContext db)
     {
-        _generationService = generationService;
+        _db = db;
     }
 
-    // Endpoint principal care întoarce istoricul gata calculat pentru frontend
     [HttpGet("{iso}")]
-    public async Task<IActionResult> GetHistory(string iso, [FromQuery] string period = "week")
+    public async Task<IActionResult> GetHistory(
+        string iso,
+        [FromQuery] string? period
+    )
     {
-        if (string.IsNullOrWhiteSpace(iso))
+        iso = iso.ToUpper();
+
+        if (!CountryCatalog.Names.ContainsKey(iso))
         {
-            return BadRequest(new { Error = "Codul ISO al țării este obligatoriu." });
+            return NotFound(
+                new { Message = $"Unknown country: {iso}" }
+            );
         }
 
-        try
-        {
-            // Apelează serviciul tău existent care știe să adune megawații,
-            // să calculeze procentele de RenewablePct și să le organizeze în formatul Dto
-            var historyData = await _generationService.GetHistoryAsync(iso.ToUpper(), period);
-
-            if (historyData == null)
+        var periodType =
+            period?.ToLower() switch
             {
-                return NotFound(new { Message = $"Nu există date istorice pentru {iso.ToUpper()} în perioada specificată ({period})." });
-            }
+                "month" => "Week",
+                "year" => "Month",
+                _ => "Day"
+            };
 
-            return Ok(historyData);
-        }
-        catch (Exception ex)
+        var limit = periodType switch
         {
-            return StatusCode(500, new { Error = $"A apărut o eroare la calcularea istoricului: {ex.Message}" });
-        }
+            "Day" => 7,
+            "Week" => 5,
+            "Month" => 12,
+            _ => 7
+        };
+
+        var history =
+            await _db.GenerationChartPoints
+                .AsNoTracking()
+                .Where(point =>
+                    point.IsoCode == iso &&
+                    point.PeriodType == periodType
+                )
+                .OrderByDescending(
+                    point => point.PeriodStart
+                )
+                .Take(limit)
+                .OrderBy(point => point.PeriodStart)
+                .Select(point => new
+                {
+                    Date = point.PeriodStart
+                        .ToString("yyyy-MM-dd"),
+                    point.Total,
+                    point.RenewableMw,
+                    point.RenewablePct,
+                    point.WindMw,
+                    point.SolarMw
+                })
+                .ToListAsync();
+
+        return Ok(history);
     }
 }
