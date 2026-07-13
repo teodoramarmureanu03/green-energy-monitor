@@ -1,5 +1,5 @@
 using backend;
-using backend.Models; // (Sau unde ai tu EnergyDbContext)
+using backend.Models;
 using backend.Repositories;
 using backend.Services;
 using Microsoft.EntityFrameworkCore;
@@ -9,14 +9,10 @@ var builder = WebApplication.CreateBuilder(args);
 // ==========================================
 // 1. SETĂRI DE BAZĂ (ROUTING, SWAGGER, CORS)
 // ==========================================
-
-// Spunem aplicației să citească fișierele din folderul Controllers
 builder.Services.AddControllers(); 
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Setăm CORS pentru a permite React-ului să citească datele
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReact", policy =>
@@ -36,13 +32,14 @@ builder.Services.AddDbContext<EnergyDbContext>(options =>
 // ==========================================
 // 3. ANGAJAREA ECHIPEI (DEPENDENCY INJECTION)
 // ==========================================
-// Aici legăm interfețele de implementările lor
+// Înregistrăm HttpClient (necesar pentru ca EntsoeService să poată descărca date de pe internet)
+builder.Services.AddHttpClient<EntsoeService, EntsoeService>();
+
 builder.Services.AddScoped<IGenerationRepository, GenerationRepository>();
 builder.Services.AddScoped<IGenerationService, GenerationService>();
 
-// (Dacă ai și un serviciu pentru ENTSO-E, îl pui tot aici)
-// builder.Services.AddScoped<EntsoeService>();
-
+// Gata, am scos comentariul și am activat EntsoeService în echipă!
+builder.Services.AddScoped<EntsoeService, EntsoeService>();
 
 var app = builder.Build();
 
@@ -58,9 +55,8 @@ if (app.Environment.IsDevelopment())
 app.UseCors("AllowReact");
 
 // ==========================================
-// 5. PORNIREA RÚTELOR
+// 5. PORNIREA RUTELOR
 // ==========================================
-// Această comandă activează automat orice fișier cu [ApiController] din folderul Controllers
 app.MapControllers(); 
 
 app.Run();

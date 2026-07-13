@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using backend;
@@ -11,9 +12,11 @@ using backend;
 namespace backend.Migrations
 {
     [DbContext(typeof(EnergyDbContext))]
-    partial class EnergyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260713100047_CleanDbContextTables")]
+    partial class CleanDbContextTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -72,23 +75,12 @@ namespace backend.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("CountryIso")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("EnergySourceCode")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("EnergySourceName")
+                    b.Property<string>("CountryName")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime>("FetchedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsRenewable")
-                        .HasColumnType("boolean");
 
                     b.Property<string>("IsoCode")
                         .IsRequired()
@@ -100,16 +92,10 @@ namespace backend.Migrations
                     b.Property<double>("RenewablePct")
                         .HasColumnType("double precision");
 
-                    b.Property<DateTime>("Timestamp")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<double>("Total")
                         .HasColumnType("double precision");
 
-                    b.Property<double>("ValueMw")
-                        .HasColumnType("double precision");
-
-                    b.Property<string>("ZoneCode")
+                    b.Property<string>("ZonesAggregatedJson")
                         .IsRequired()
                         .HasColumnType("text");
 

@@ -1,371 +1,97 @@
+using System;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
 using System.Xml.Linq;
-using System.Globalization;
-using System.Text.Json;
-using backend.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using backend.Models;
 
-namespace backend;
+namespace backend.Services;
 
 public class EntsoeService
 {
-    private readonly HttpClient _http = new();
-    private readonly string _apiKey;
-    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly HttpClient _httpClient;
+    private readonly EnergyDbContext _db;
+    private readonly IConfiguration _config;
 
-    public EntsoeService(string apiKey, IServiceScopeFactory scopeFactory)
+    public EntsoeService(HttpClient httpClient, EnergyDbContext db, IConfiguration config)
     {
-        _apiKey = apiKey;
-        _scopeFactory = scopeFactory;
+        _httpClient = httpClient;
+        _db = db;
+        _config = config;
     }
 
-    private static readonly Dictionary<string, (string Name, bool Renewable)> SourceMap = new()
+    public async Task BackfillHistoryAsync(string iso, DateTime start, DateTime end)
     {
-        ["B01"] = ("Biomass", true),
-        ["B02"] = ("Fossil brown coal", false),
-        ["B03"] = ("Fossil coal-derived gas", false),
-        ["B04"] = ("Fossil gas", false),
-        ["B05"] = ("Fossil hard coal", false),
-        ["B06"] = ("Fossil oil", false),
-        ["B09"] = ("Geothermal", true),
-        ["B10"] = ("Hydro pumped storage", true),
-        ["B11"] = ("Hydro Run-of-River", true),
-        ["B12"] = ("Hydro water reservoir", true),
-        ["B14"] = ("Nuclear", false),
-        ["B15"] = ("Other renewable", true),
-        ["B16"] = ("Solar", true),
-        ["B17"] = ("Waste", false),
-        ["B18"] = ("Wind offshore", true),
-        ["B19"] = ("Wind onshore", true),
-        ["B20"] = ("Other", false),
-    };
+        var zoneCodes = await _db.CountryZones
+            .Where(z => z.IsoCode == iso.ToUpper())
+            .Select(z => z.ZoneCode)
+            .ToListAsync();
 
-    private static readonly Dictionary<string, string[]> ZoneCodes = new()
-    {
-        ["AT"] = new[] { "10YAT-APG------L" },
-        ["BE"] = new[] { "10YBE----------2" },
-        ["BG"] = new[] { "10YCA-BULGARIA-R" },
-        ["CH"] = new[] { "10YCH-SWISSGRIDZ" },
-        ["CZ"] = new[] { "10YCZ-CEPS-----N" },
-        ["DE"] = new[] { "10Y1001A1001A83F" },
-        ["DK"] = new[] { "10YDK-1--------W", "10YDK-2--------M" },
-        ["EE"] = new[] { "10Y1001A1001A39I" },
-        ["ES"] = new[] { "10YES-REE------0" },
-        ["FI"] = new[] { "10YFI-1--------U" },
-        ["FR"] = new[] { "10YFR-RTE------C" },
-        ["GR"] = new[] { "10YGR-HTSO-----Y" },
-        ["HR"] = new[] { "10YHR-HEP------M" },
-        ["HU"] = new[] { "10YHU-MAVIR----U" },
-        ["IE"] = new[] { "10Y1001A1001A59C" },
-        ["IT"] = new[] {
-            "10Y1001A1001A73I",
-            "10Y1001A1001A70O",
-            "10Y1001A1001A71M",
-            "10Y1001A1001A788",
-            "10Y1001A1001A75E",
-            "10Y1001A1001A74G",
-        },
-        ["LT"] = new[] { "10YLT-1001A0008Q" },
-        ["LV"] = new[] { "10YLV-1001A00074" },
-        ["NL"] = new[] { "10YNL----------L" },
-        ["NO"] = new[] {
-            "10YNO-1--------2",
-            "10YNO-2--------T",
-            "10YNO-3--------J",
-            "10YNO-4--------9",
-            "10Y1001A1001A48H",
-        },
-        ["PL"] = new[] { "10YPL-AREA-----S" },
-        ["PT"] = new[] { "10YPT-REN------W" },
-        ["RO"] = new[] { "10YRO-TEL------P" },
-        ["SE"] = new[] {
-            "10Y1001A1001A44P",
-            "10Y1001A1001A45N",
-            "10Y1001A1001A46L",
-            "10Y1001A1001A47J",
-        },
-        ["SI"] = new[] { "10YSI-ELES-----O" },
-        ["SK"] = new[] { "10YSK-SEPS-----K" },
-    };
-
-    //este chemata de prima ruta, cea basic
-    public async Task<CountryGeneration> GetGenerationAsync(string iso, string countryName)
-    {
-        iso = iso.ToUpper();
-
-        using var scope = _scopeFactory.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<EnergyDbContext>();
-        //se ia cel mai recent rand din db
-        var record = await db.GenerationRecords
-        .Where(r => r.IsoCode == iso)
-        .OrderByDescending(r => r.FetchedAt)
-        .FirstOrDefaultAsync();
-
-        // data exists — return from DB, no API call
-        if (record != null)
-            return MapRecordToDto(record);
-
-        // No data yet (first startup) — fetch once and save
-        return await FetchAndSaveAsync(iso, countryName, db, null);
-    }
-
-    // FetchAndSaveAsync — called only by the scheduled refresh loop in Program.cs (every 15 minutes) and during first-run warm-up.
-    public async Task<CountryGeneration> FetchAndSaveAsync(
-        string iso, string countryName, EnergyDbContext db, GenerationRecord? existing)
-    {
-        if (!ZoneCodes.ContainsKey(iso))
-            throw new Exception($"No EIC code for {iso}");
-
-        var zones = ZoneCodes[iso];
-        var totalBySource = new Dictionary<string, double>();
-
-        foreach (var zone in zones)
+        if (!zoneCodes.Any())
         {
-            var xml = await FetchZoneXml(zone);
-            var zoneData = ParseZone(xml);
-            foreach (var kv in zoneData)
-            {
-                //daca energia nu e regenerabila , ii dau 0
-                if (!totalBySource.ContainsKey(kv.Key))
-                    totalBySource[kv.Key] = 0;
-                totalBySource[kv.Key] += kv.Value;
-            }
+            throw new ArgumentException($"Țara cu codul ISO '{iso}' nu este configurată în baza de date.");
         }
 
-        var bySource = new List<SourceBreakdown>();
-        foreach (var kv in totalBySource)
+        var dbSources = await _db.EnergySources.ToListAsync();
+        var sourceMap = dbSources.ToDictionary(s => s.Code, s => new { s.Name, s.IsRenewable });
+
+        string apiKey = _config["EntsoeApiKey"] ?? throw new Exception("Cheia 'EntsoeApiKey' lipsește.");
+        string startStr = start.Date.ToString("yyyyMMdd0000");
+        string endStr = DateTime.Now.Date.AddDays(1).ToString("yyyyMMdd2359");
+
+        foreach (var zoneCode in zoneCodes)
         {
-            if (!SourceMap.ContainsKey(kv.Key)) continue;
-            var (name, renewable) = SourceMap[kv.Key];
-            bySource.Add(new SourceBreakdown
-            {
-                Source = name,
-                Renewable = renewable,
-                ValueMw = Math.Round(kv.Value, 1)
-            });
-        }
-
-        var total = bySource.Sum(s => s.ValueMw);
-        var renewableMw = bySource.Where(s => s.Renewable).Sum(s => s.ValueMw);
-        // Calculam procentul de energie regenerabila
-        var pct = total > 0 ? Math.Round(renewableMw / total * 100, 1) : 0;
-
-        if (existing == null)
-        {
-            // Inseram mereu un rând nou pentru istoric 
-            var newRecord = new GenerationRecord
-            {
-                IsoCode = iso,
-                CountryName = countryName,
-                FetchedAt = DateTime.UtcNow,
-                Total = Math.Round(total, 1),
-                RenewableMw = Math.Round(renewableMw, 1),
-                RenewablePct = pct,
-                BySourceJson = JsonSerializer.Serialize(bySource),
-                ZonesAggregatedJson = JsonSerializer.Serialize(zones.ToList())
-            };
-
-            db.GenerationRecords.Add(newRecord);
-            await db.SaveChangesAsync();
-
-            return MapRecordToDto(newRecord);
-        }
-
-        await db.SaveChangesAsync();
-        return MapRecordToDto(existing);
-    }
-
-    private static CountryGeneration MapRecordToDto(GenerationRecord record)
-    {
-        var bySource = JsonSerializer.Deserialize<List<SourceBreakdown>>(record.BySourceJson)
-                       ?? new List<SourceBreakdown>();
-        var zones = JsonSerializer.Deserialize<List<string>>(record.ZonesAggregatedJson)
-                    ?? new List<string>();
-
-        return new CountryGeneration
-        {
-            IsoCode = record.IsoCode,
-            Country = record.CountryName,
-            Timestamp = record.FetchedAt.ToString("o"),
-            ZonesAggregated = zones,
-            Total = record.Total,
-            RenewableMw = record.RenewableMw,
-            RenewablePct = record.RenewablePct,
-            BySource = bySource
-        };
-    }
-
-    private async Task<string> FetchZoneXml(string zoneCode)
-    {
-        var now = DateTime.UtcNow;
-        var start = now.AddDays(-1).ToString("yyyyMMdd") + "0000";
-        var end = now.AddDays(1).ToString("yyyyMMdd") + "0000";
-
-        var url = "https://web-api.tp.entsoe.eu/api"
-            + "?documentType=A75&processType=A16"
-            + $"&in_Domain={zoneCode}"
-            + $"&periodStart={start}&periodEnd={end}"
-            + $"&securityToken={_apiKey}";
-
-        return await _http.GetStringAsync(url);
-    }
-
-    private Dictionary<string, double> ParseZone(string xmlText)
-    {
-        var result = new Dictionary<string, double>();
-        var doc = XDocument.Parse(xmlText);
-        var ns = doc.Root!.Name.Namespace;
-
-        foreach (var ts in doc.Descendants(ns + "TimeSeries"))
-        {
-            var psr = ts.Descendants(ns + "psrType").FirstOrDefault()?.Value;
-            if (psr == null) continue;
-
-            var points = ts.Descendants(ns + "Point").ToList();
-            if (points.Count == 0) continue;
-
-            var lastQty = points
-                .Select(p => double.Parse(p.Element(ns + "quantity")!.Value, CultureInfo.InvariantCulture))
-                .Last();
-
-            if (!result.ContainsKey(psr)) result[psr] = 0;
-            result[psr] += lastQty;
-        }
-
-        return result;
-    }
-
-    private Dictionary<DateTime, Dictionary<string, double>> ParseZoneHistory(string xmlText)
-    {
-        var result = new Dictionary<DateTime, Dictionary<string, double>>();
-        var doc = XDocument.Parse(xmlText);
-        var ns = doc.Root!.Name.Namespace;
-
-        foreach (var ts in doc.Descendants(ns + "TimeSeries"))
-        {
-            var psr = ts.Descendants(ns + "psrType").FirstOrDefault()?.Value;
-            if (psr == null) continue;
-
-            var period = ts.Descendants(ns + "Period").FirstOrDefault();
-            if (period == null) continue;
-
-            // Luăm ora de start a zilei și rezoluția (la câte minute vin datele)
-            var startStr = period.Element(ns + "timeInterval")?.Element(ns + "start")?.Value;
-            var resStr = period.Element(ns + "resolution")?.Value; // ex: "PT15M" sau "PT60M"
-
-            if (startStr == null || resStr == null) continue;
-
-            var startTime = DateTime.Parse(startStr).ToUniversalTime();
-            int minutesToAdd = resStr.Contains("15M") ? 15 : 60; // De obicei datele vin la 15 sau 60 minute
-
-            var points = period.Descendants(ns + "Point");
-            foreach (var point in points)
-            {
-                var pos = int.Parse(point.Element(ns + "position")!.Value);
-                var qty = double.Parse(point.Element(ns + "quantity")!.Value, CultureInfo.InvariantCulture);
-
-                // Calculăm ora exactă pentru acest punct
-                var pointTime = startTime.AddMinutes((pos - 1) * minutesToAdd);
-
-                if (!result.ContainsKey(pointTime))
-                    result[pointTime] = new Dictionary<string, double>();
-
-                if (!result[pointTime].ContainsKey(psr))
-                    result[pointTime][psr] = 0;
-
-                result[pointTime][psr] += qty;
-            }
-        }
-        return result;
-    }
-
-    public async Task BackfillHistoryAsync(string iso, string countryName, EnergyDbContext db, int daysBack)
-    {
-        iso = iso.ToUpper();
-        if (!ZoneCodes.ContainsKey(iso)) return;
-
-        var zones = ZoneCodes[iso];
-
-        for (int i = daysBack; i >= 0; i--)
-        {
-            var targetDate = DateTime.UtcNow.AddDays(-i);
-            string startStr = targetDate.ToString("yyyyMMdd") + "0000";
-            string endStr = targetDate.AddDays(1).ToString("yyyyMMdd") + "0000";
-
-            // Aici vom aduna TOATE citirile (la 15 min) din acea zi, pentru toate zonele
-            var dailyAggregated = new Dictionary<DateTime, Dictionary<string, double>>();
+            string url = $"https://web-api.tp.entsoe.eu/api?securityToken={apiKey}&documentType=A75&processType=A16&in_Domain={zoneCode}&periodStart={startStr}&periodEnd={endStr}";
 
             try
             {
-                foreach (var zone in zones)
+                var response = await _httpClient.GetStringAsync(url);
+                var xmlDoc = XDocument.Parse(response);
+                XNamespace ns = xmlDoc.Root?.GetDefaultNamespace() ?? XNamespace.None;
+
+                var timeSeriesList = xmlDoc.Descendants(ns + "TimeSeries");
+
+                foreach (var ts in timeSeriesList)
                 {
-                    var url = $"https://web-api.tp.entsoe.eu/api?documentType=A75&processType=A16&in_Domain={zone}&periodStart={startStr}&periodEnd={endStr}&securityToken={_apiKey}";
-                    var xml = await _http.GetStringAsync(url);
+                    string? psrType = ts.Element(ns + "MktPSRType")?.Element(ns + "psrType")?.Value;
 
-                    // Folosim NOUA funcție care scoate fiecare oră
-                    var zoneHistory = ParseZoneHistory(xml);
-
-                    foreach (var (timestamp, sources) in zoneHistory)
+                    if (psrType != null && sourceMap.TryGetValue(psrType, out var sourceInfo))
                     {
-                        if (!dailyAggregated.ContainsKey(timestamp))
-                            dailyAggregated[timestamp] = new Dictionary<string, double>();
-
-                        foreach (var (psr, qty) in sources)
+                        var points = ts.Descendants(ns + "Point");
+                        foreach (var point in points)
                         {
-                            if (!dailyAggregated[timestamp].ContainsKey(psr))
-                                dailyAggregated[timestamp][psr] = 0;
-                            dailyAggregated[timestamp][psr] += qty;
+                            string? quantityStr = point.Element(ns + "quantity")?.Value;
+                            if (double.TryParse(quantityStr, out double quantity))
+                            {
+                                var record = new GenerationRecord
+                                {
+                                    CountryIso = iso.ToUpper(),
+                                    ZoneCode = zoneCode,
+                                    EnergySourceCode = psrType,
+                                    EnergySourceName = sourceInfo.Name,
+                                    IsRenewable = sourceInfo.IsRenewable,
+                                    ValueMw = quantity,
+                                    Timestamp = start,
+                                    
+                                    // Păstrăm și câmpurile vechi cerute de restul aplicației tale:
+                                    IsoCode = iso.ToUpper(),
+                                    FetchedAt = DateTime.UtcNow
+                                };
+
+                                _db.GenerationRecords.Add(record);
+                            }
                         }
                     }
                 }
-
-                // Acum salvăm fiecare citire (fiecare oră/15 minute) din acea zi în baza de date
-                int insertedCount = 0;
-                foreach (var (timestamp, sources) in dailyAggregated)
-                {
-                    // PAZNICUL: Verificăm dacă avem deja date pentru țara asta, la secunda asta
-                    bool exists = await db.GenerationRecords
-                        .AnyAsync(r => r.IsoCode == iso && r.FetchedAt == timestamp);
-
-                    if (exists) continue; // Dacă există, sărim peste! Fără clone.
-
-                    // Traducem și calculăm
-                    var bySource = new List<SourceBreakdown>();
-                    foreach (var kv in sources)
-                    {
-                        if (!SourceMap.ContainsKey(kv.Key)) continue;
-                        var (name, renewable) = SourceMap[kv.Key];
-                        bySource.Add(new SourceBreakdown { Source = name, Renewable = renewable, ValueMw = Math.Round(kv.Value, 1) });
-                    }
-
-                    var total = bySource.Sum(s => s.ValueMw);
-                    var renewableMw = bySource.Where(s => s.Renewable).Sum(s => s.ValueMw);
-                    var pct = total > 0 ? Math.Round(renewableMw / total * 100, 1) : 0;
-
-                    var newRecord = new GenerationRecord
-                    {
-                        IsoCode = iso,
-                        CountryName = countryName,
-                        FetchedAt = timestamp, // Salvăm cu ORA EXACTĂ din istoric
-                        Total = Math.Round(total, 1),
-                        RenewableMw = Math.Round(renewableMw, 1),
-                        RenewablePct = pct,
-                        BySourceJson = JsonSerializer.Serialize(bySource),
-                        ZonesAggregatedJson = JsonSerializer.Serialize(zones.ToList())
-                    };
-
-                    db.GenerationRecords.Add(newRecord);
-                    insertedCount++;
-                }
-
-                await db.SaveChangesAsync();
-                Console.WriteLine($"[Backfill] Salvat {insertedCount} înregistrări noi pentru {iso} pe data {targetDate:yyyy-MM-dd}");
+                await _db.SaveChangesAsync();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[Backfill Error] {iso} la data {targetDate:yyyy-MM-dd}: {ex.Message}");
+                Console.WriteLine($"Eroare zona {zoneCode}: {ex.Message}");
             }
-
-            await Task.Delay(500); // Pauză ca să nu ne baneze ENTSO-E
         }
     }
 }
