@@ -1,5 +1,6 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
@@ -31,7 +32,7 @@ namespace backend.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     IsoCode = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: false),
                     CountryName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     PeriodType = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
