@@ -19,3 +19,6 @@ build/
 
 backend/obj/
 backend/bin/
+
+.claude/
+.impeccable/

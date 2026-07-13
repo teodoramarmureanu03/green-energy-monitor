@@ -87,27 +87,20 @@ public class EntsoeService
         ["SK"] = new[] { "10YSK-SEPS-----K" },
     };
 
-    // -----------------------------------------------------------------------
-    // GetGenerationAsync — called by the API endpoint.
-    // Always reads from the database and returns immediately.
-    // Never calls ENTSO-E — that is done only by the scheduled refresh loop.
-    // If no data exists yet (very first startup before warm-up finishes),
-    // fetches once and waits, then never blocks again.
-    // -----------------------------------------------------------------------
+    //este chemata de prima ruta, cea basic
     public async Task<CountryGeneration> GetGenerationAsync(string iso, string countryName)
     {
         iso = iso.ToUpper();
 
         using var scope = _scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<EnergyDbContext>();
+        //se ia cel mai recent rand din db
+        var record = await db.GenerationRecords
+        .Where(r => r.IsoCode == iso)
+        .OrderByDescending(r => r.FetchedAt)
+        .FirstOrDefaultAsync();
 
-        // --- COD MODIFICAT: Luăm cel mai recent rând ---
-    var record = await db.GenerationRecords
-    .Where(r => r.IsoCode == iso)
-    .OrderByDescending(r => r.FetchedAt)
-    .FirstOrDefaultAsync();
-
-        // Data exists — return from DB immediately, no API call
+        // data exists — return from DB, no API call
         if (record != null)
             return MapRecordToDto(record);
 
@@ -115,11 +108,7 @@ public class EntsoeService
         return await FetchAndSaveAsync(iso, countryName, db, null);
     }
 
-    // -----------------------------------------------------------------------
-    // FetchAndSaveAsync — called only by the scheduled refresh loop in
-    // Program.cs (every 15 minutes) and during first-run warm-up.
-    // Never called during a user request (except very first startup).
-    // -----------------------------------------------------------------------
+    // FetchAndSaveAsync — called only by the scheduled refresh loop in Program.cs (every 15 minutes) and during first-run warm-up.
     public async Task<CountryGeneration> FetchAndSaveAsync(
         string iso, string countryName, EnergyDbContext db, GenerationRecord? existing)
     {
@@ -135,7 +124,9 @@ public class EntsoeService
             var zoneData = ParseZone(xml);
             foreach (var kv in zoneData)
             {
-                if (!totalBySource.ContainsKey(kv.Key)) totalBySource[kv.Key] = 0;
+                //daca energia nu e regenerabila , ii dau 0
+                if (!totalBySource.ContainsKey(kv.Key))
+                    totalBySource[kv.Key] = 0;
                 totalBySource[kv.Key] += kv.Value;
             }
         }
@@ -155,11 +146,12 @@ public class EntsoeService
 
         var total = bySource.Sum(s => s.ValueMw);
         var renewableMw = bySource.Where(s => s.Renewable).Sum(s => s.ValueMw);
+        // Calculam procentul de energie regenerabila
         var pct = total > 0 ? Math.Round(renewableMw / total * 100, 1) : 0;
 
         if (existing == null)
         {
-            // --- COD NOU: Inserăm mereu un rând nou pentru istoric ---
+            // Inseram mereu un rând nou pentru istoric 
             var newRecord = new GenerationRecord
             {
                 IsoCode = iso,
@@ -241,75 +233,139 @@ public class EntsoeService
 
         return result;
     }
-    public async Task BackfillHistoryAsync(string iso, string countryName, EnergyDbContext db, int daysBack)
-{
-    iso = iso.ToUpper();
-    if (!ZoneCodes.ContainsKey(iso)) return;
-    
-    var zones = ZoneCodes[iso];
 
-    // Mergem înapoi în timp, pornind de la cea mai veche zi către prezent
-    for (int i = daysBack; i >= 1; i--)
+    private Dictionary<DateTime, Dictionary<string, double>> ParseZoneHistory(string xmlText)
     {
-        var targetDate = DateTime.UtcNow.AddDays(-i);
-        string startStr = targetDate.ToString("yyyyMMdd") + "0000";
-        string endStr = targetDate.AddDays(1).ToString("yyyyMMdd") + "0000";
+        var result = new Dictionary<DateTime, Dictionary<string, double>>();
+        var doc = XDocument.Parse(xmlText);
+        var ns = doc.Root!.Name.Namespace;
 
-        var totalBySource = new Dictionary<string, double>();
-
-        try
+        foreach (var ts in doc.Descendants(ns + "TimeSeries"))
         {
-            foreach (var zone in zones)
+            var psr = ts.Descendants(ns + "psrType").FirstOrDefault()?.Value;
+            if (psr == null) continue;
+
+            var period = ts.Descendants(ns + "Period").FirstOrDefault();
+            if (period == null) continue;
+
+            // Luăm ora de start a zilei și rezoluția (la câte minute vin datele)
+            var startStr = period.Element(ns + "timeInterval")?.Element(ns + "start")?.Value;
+            var resStr = period.Element(ns + "resolution")?.Value; // ex: "PT15M" sau "PT60M"
+
+            if (startStr == null || resStr == null) continue;
+
+            var startTime = DateTime.Parse(startStr).ToUniversalTime();
+            int minutesToAdd = resStr.Contains("15M") ? 15 : 60; // De obicei datele vin la 15 sau 60 minute
+
+            var points = period.Descendants(ns + "Point");
+            foreach (var point in points)
             {
-                var url = $"https://web-api.tp.entsoe.eu/api?documentType=A75&processType=A16&in_Domain={zone}&periodStart={startStr}&periodEnd={endStr}&securityToken={_apiKey}";
-                
-                var xml = await _http.GetStringAsync(url);
-                var zoneData = ParseZone(xml); // Refolosim logica ta bună de parsare
-                
-                foreach (var kv in zoneData)
-                {
-                    if (!totalBySource.ContainsKey(kv.Key)) totalBySource[kv.Key] = 0;
-                    totalBySource[kv.Key] += kv.Value;
-                }
+                var pos = int.Parse(point.Element(ns + "position")!.Value);
+                var qty = double.Parse(point.Element(ns + "quantity")!.Value, CultureInfo.InvariantCulture);
+
+                // Calculăm ora exactă pentru acest punct
+                var pointTime = startTime.AddMinutes((pos - 1) * minutesToAdd);
+
+                if (!result.ContainsKey(pointTime))
+                    result[pointTime] = new Dictionary<string, double>();
+
+                if (!result[pointTime].ContainsKey(psr))
+                    result[pointTime][psr] = 0;
+
+                result[pointTime][psr] += qty;
             }
-
-            var bySource = new List<SourceBreakdown>();
-            foreach (var kv in totalBySource)
-            {
-                if (!SourceMap.ContainsKey(kv.Key)) continue;
-                var (name, renewable) = SourceMap[kv.Key];
-                bySource.Add(new SourceBreakdown { Source = name, Renewable = renewable, ValueMw = Math.Round(kv.Value, 1) });
-            }
-
-            var total = bySource.Sum(s => s.ValueMw);
-            var renewableMw = bySource.Where(s => s.Renewable).Sum(s => s.ValueMw);
-            var pct = total > 0 ? Math.Round(renewableMw / total * 100, 1) : 0;
-
-            // SALVĂM CU DATA DIN TRECUT
-            var newRecord = new GenerationRecord
-            {
-                IsoCode = iso,
-                CountryName = countryName,
-                FetchedAt = targetDate, 
-                Total = Math.Round(total, 1),
-                RenewableMw = Math.Round(renewableMw, 1),
-                RenewablePct = pct,
-                BySourceJson = JsonSerializer.Serialize(bySource),
-                ZonesAggregatedJson = JsonSerializer.Serialize(zones.ToList())
-            };
-
-            db.GenerationRecords.Add(newRecord);
-            Console.WriteLine($"[Backfill] Salvat {iso} pentru ziua {targetDate:yyyy-MM-dd}");
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[Backfill Error] {iso} la data {targetDate:yyyy-MM-dd}: {ex.Message}");
-        }
-        
-        // Pauză mică între zile ca să nu ne blocheze firewall-ul ENTSO-E
-        await Task.Delay(500); 
+        return result;
     }
 
-    await db.SaveChangesAsync();
-}
+    public async Task BackfillHistoryAsync(string iso, string countryName, EnergyDbContext db, int daysBack)
+    {
+        iso = iso.ToUpper();
+        if (!ZoneCodes.ContainsKey(iso)) return;
+
+        var zones = ZoneCodes[iso];
+
+        for (int i = daysBack; i >= 0; i--)
+        {
+            var targetDate = DateTime.UtcNow.AddDays(-i);
+            string startStr = targetDate.ToString("yyyyMMdd") + "0000";
+            string endStr = targetDate.AddDays(1).ToString("yyyyMMdd") + "0000";
+
+            // Aici vom aduna TOATE citirile (la 15 min) din acea zi, pentru toate zonele
+            var dailyAggregated = new Dictionary<DateTime, Dictionary<string, double>>();
+
+            try
+            {
+                foreach (var zone in zones)
+                {
+                    var url = $"https://web-api.tp.entsoe.eu/api?documentType=A75&processType=A16&in_Domain={zone}&periodStart={startStr}&periodEnd={endStr}&securityToken={_apiKey}";
+                    var xml = await _http.GetStringAsync(url);
+
+                    // Folosim NOUA funcție care scoate fiecare oră
+                    var zoneHistory = ParseZoneHistory(xml);
+
+                    foreach (var (timestamp, sources) in zoneHistory)
+                    {
+                        if (!dailyAggregated.ContainsKey(timestamp))
+                            dailyAggregated[timestamp] = new Dictionary<string, double>();
+
+                        foreach (var (psr, qty) in sources)
+                        {
+                            if (!dailyAggregated[timestamp].ContainsKey(psr))
+                                dailyAggregated[timestamp][psr] = 0;
+                            dailyAggregated[timestamp][psr] += qty;
+                        }
+                    }
+                }
+
+                // Acum salvăm fiecare citire (fiecare oră/15 minute) din acea zi în baza de date
+                int insertedCount = 0;
+                foreach (var (timestamp, sources) in dailyAggregated)
+                {
+                    // PAZNICUL: Verificăm dacă avem deja date pentru țara asta, la secunda asta
+                    bool exists = await db.GenerationRecords
+                        .AnyAsync(r => r.IsoCode == iso && r.FetchedAt == timestamp);
+
+                    if (exists) continue; // Dacă există, sărim peste! Fără clone.
+
+                    // Traducem și calculăm
+                    var bySource = new List<SourceBreakdown>();
+                    foreach (var kv in sources)
+                    {
+                        if (!SourceMap.ContainsKey(kv.Key)) continue;
+                        var (name, renewable) = SourceMap[kv.Key];
+                        bySource.Add(new SourceBreakdown { Source = name, Renewable = renewable, ValueMw = Math.Round(kv.Value, 1) });
+                    }
+
+                    var total = bySource.Sum(s => s.ValueMw);
+                    var renewableMw = bySource.Where(s => s.Renewable).Sum(s => s.ValueMw);
+                    var pct = total > 0 ? Math.Round(renewableMw / total * 100, 1) : 0;
+
+                    var newRecord = new GenerationRecord
+                    {
+                        IsoCode = iso,
+                        CountryName = countryName,
+                        FetchedAt = timestamp, // Salvăm cu ORA EXACTĂ din istoric
+                        Total = Math.Round(total, 1),
+                        RenewableMw = Math.Round(renewableMw, 1),
+                        RenewablePct = pct,
+                        BySourceJson = JsonSerializer.Serialize(bySource),
+                        ZonesAggregatedJson = JsonSerializer.Serialize(zones.ToList())
+                    };
+
+                    db.GenerationRecords.Add(newRecord);
+                    insertedCount++;
+                }
+
+                await db.SaveChangesAsync();
+                Console.WriteLine($"[Backfill] Salvat {insertedCount} înregistrări noi pentru {iso} pe data {targetDate:yyyy-MM-dd}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Backfill Error] {iso} la data {targetDate:yyyy-MM-dd}: {ex.Message}");
+            }
+
+            await Task.Delay(500); // Pauză ca să nu ne baneze ENTSO-E
+        }
+    }
 }
