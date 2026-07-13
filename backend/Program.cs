@@ -37,10 +37,8 @@ builder.Services.AddDbContext<EnergyDbContext>(options =>
 // ==========================================
 // Înregistrăm HttpClient (necesar pentru ca EntsoeService să poată descărca date de pe internet)
 builder.Services.AddHttpClient<EntsoeService>();
-
+builder.Services.AddScoped<GenerationService>();
 builder.Services.AddScoped<IGenerationRepository, GenerationRepository>();
-builder.Services.AddScoped<IGenerationService, GenerationService>();
-
 builder.Services.AddScoped<EntsoeService>();
 
 var app = builder.Build();
