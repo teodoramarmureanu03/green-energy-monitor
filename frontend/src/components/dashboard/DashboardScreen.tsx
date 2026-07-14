@@ -1,8 +1,10 @@
 import { useState } from "react";
 import type { CSSProperties } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { useCountries } from "@/hooks/useCountries";
 import { useGeneration } from "@/hooks/useGeneration";
+import { paths } from "@/routes/paths";
 import { colors, shadows, skeletonGradient } from "@/lib/tokens";
 
 import { DashboardHeader } from "./DashboardHeader";
@@ -41,6 +43,7 @@ const dashboardCssVariables = {
 } as CSSProperties;
 
 export function DashboardScreen({ initialIso }: DashboardScreenProps) {
+  const navigate = useNavigate();
   const { countries } = useCountries();
   const [selectedIso, setSelectedIso] = useState(initialIso);
 
@@ -55,7 +58,10 @@ export function DashboardScreen({ initialIso }: DashboardScreenProps) {
       <DashboardHeader
         countries={countries}
         selectedIso={selectedIso}
-        onCountryChange={setSelectedIso}
+        onCountryChange={(iso) => {
+          setSelectedIso(iso);
+          navigate(paths.dashboard(iso));
+        }}
       />
 
       {loading && <DashboardSkeleton />}

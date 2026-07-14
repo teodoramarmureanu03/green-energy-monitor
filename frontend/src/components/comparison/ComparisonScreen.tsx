@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
 import type { CSSProperties } from "react";
+import { useNavigate } from "react-router-dom";
 import { useCountries } from "@/hooks/useCountries";
 import { colors } from "@/lib/tokens";
+import { paths } from "@/routes/paths";
 
 import { ComparisonHeader } from "./ComparisonHeader";
 import { ComparisonTable } from "./ComparisonTable";
@@ -13,10 +15,6 @@ import {
 } from "./comparisonUtils";
 
 import "./ComparisonScreen.css";
-
-interface ComparisonScreenProps {
-  onOpenCountry: (iso: string) => void;
-}
 
 const comparisonCssVariables = {
   "--comparison-wind-color": colors.indigoDeep,
@@ -47,7 +45,8 @@ const comparisonCssVariables = {
   "--comparison-rank-bronze-border": colors.rankBronzeBorder,
 } as CSSProperties;
 
-export function ComparisonScreen({ onOpenCountry }: ComparisonScreenProps) {
+export function ComparisonScreen() {
+  const navigate = useNavigate();
   const { countries, loading: countriesLoading } = useCountries();
   const [sortBy, setSortBy] = useState<SortKey>("total");
 
@@ -97,7 +96,9 @@ export function ComparisonScreen({ onOpenCountry }: ComparisonScreenProps) {
         loading={loading}
         ranked={ranked}
         maxMw={maxMw}
-        onOpenCountry={onOpenCountry}
+        onOpenCountry={(iso) =>
+          navigate(paths.dashboard(iso))
+        }
       />
 
       <p className="comparison-footer">
