@@ -1,8 +1,12 @@
 namespace backend;
 
+/// <summary>
+/// Canonical list of countries the application supports for sync and validation.
+/// ENTSO-E zone codes themselves are stored in the database (CountryZones table).
+/// </summary>
 public static class CountryCatalog
 {
-    public static readonly Dictionary<string, string> Names = new()
+    private static readonly Dictionary<string, string> Names = new(StringComparer.OrdinalIgnoreCase)
     {
         ["AT"] = "Austria",
         ["BE"] = "Belgium",
@@ -31,4 +35,14 @@ public static class CountryCatalog
         ["SI"] = "Slovenia",
         ["SK"] = "Slovakia",
     };
+
+    public static IReadOnlyDictionary<string, string> All => Names;
+
+    public static bool IsKnown(string iso) =>
+        Names.ContainsKey(iso);
+
+    public static string GetDisplayName(string iso) =>
+        Names.TryGetValue(iso.ToUpperInvariant(), out var name)
+            ? name
+            : iso.ToUpperInvariant();
 }

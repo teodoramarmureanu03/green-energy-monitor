@@ -6,5 +6,9 @@ public class HistoryDto
     public double Total { get; set; }
     public double RenewableMw { get; set; }
     public double RenewablePct { get; set; }
-    public string BySourceJson { get; set; } = string.Empty;
+
+    // Frontend-ul (GenerationHistoryApiPoint) citește direct windMw/solarMw,
+    // nu un blob JSON cu toate sursele.
+    public double WindMw { get; set; }
+    public double SolarMw { get; set; }
 }

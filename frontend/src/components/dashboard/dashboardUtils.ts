@@ -101,6 +101,7 @@ export function parseHistoryPoints(
   points: GenerationHistoryApiPoint[],
   period: HistoryPeriod
 ): GenerationHistoryPoint[] {
+  // One row per chart bucket; labels depend on whether we show days, weeks, or months.
   return points
     .map((point) => {
       const date = parseDateKey(point.date);
