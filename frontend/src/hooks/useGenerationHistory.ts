@@ -24,42 +24,13 @@ const EMPTY_HISTORY: HistoryByPeriod = {
   year: [],
 };
 
-const historyCache = new Map<string, HistoryByPeriod>();
-
-const POLL_INTERVAL_MS = 60_000;
-
-async function loadHistoryForIso(
-  isoCode: string
-): Promise<HistoryByPeriod> {
-  const [week, month, year] = await Promise.all([
-    fetchGenerationHistory(isoCode, "week"),
-    fetchGenerationHistory(isoCode, "month"),
-    fetchGenerationHistory(isoCode, "year"),
-  ]);
-
-  return {
-    week,
-    month,
-    year,
-  };
-}
-
-function hasAnyHistory(
-  history: HistoryByPeriod
-): boolean {
-  return (
-    history.week.length > 0 ||
-    history.month.length > 0 ||
-    history.year.length > 0
-  );
-}
+const PERIODS: HistoryPeriod[] = ["week", "month", "year"];
 
 export function useGenerationHistory(
   isoCode: string
 ): GenerationHistoryState {
   const [historyByPeriod, setHistoryByPeriod] =
     useState<HistoryByPeriod>(EMPTY_HISTORY);
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -71,34 +42,42 @@ export function useGenerationHistory(
 
     let cancelled = false;
 
-    const cachedHistory = historyCache.get(isoCode);
-
-    if (cachedHistory) {
-      setHistoryByPeriod(cachedHistory);
-      setLoading(false);
-      setError(null);
-    } else {
+    async function loadHistory() {
       setLoading(true);
       setError(null);
-    }
-
-    async function refresh(showLoading: boolean) {
-      if (showLoading) {
-        setLoading(true);
-        setError(null);
-      }
 
       try {
-        const loadedHistory =
-          await loadHistoryForIso(isoCode);
+        // Load each period separately so one missing range does not break the rest.
+        const results = await Promise.all(
+          PERIODS.map(async (period) => {
+            const points = await fetchGenerationHistory(
+              isoCode,
+              period
+            );
+            return [period, points] as const;
+          })
+        );
 
         if (cancelled) {
           return;
         }
 
-        historyCache.set(isoCode, loadedHistory);
-        setHistoryByPeriod(loadedHistory);
-        setError(null);
+        const nextHistory = { ...EMPTY_HISTORY };
+        for (const [period, points] of results) {
+          nextHistory[period] = points;
+        }
+
+        setHistoryByPeriod(nextHistory);
+
+        const hasAnyData = PERIODS.some(
+          (period) => nextHistory[period].length > 0
+        );
+
+        if (!hasAnyData) {
+          setError(
+            "No historical data yet. The background sync may still be running."
+          );
+        }
       } catch (requestError) {
         if (cancelled) {
           return;
@@ -108,33 +87,21 @@ export function useGenerationHistory(
           `History loading error for ${isoCode}:`,
           requestError
         );
-
-        // Keep showing stale data when a background refresh fails.
-        const currentHistory =
-          historyCache.get(isoCode) ?? EMPTY_HISTORY;
-
-        if (!hasAnyHistory(currentHistory)) {
-          setHistoryByPeriod(EMPTY_HISTORY);
-          setError(
-            "Could not load the historical production data."
-          );
-        }
+        setHistoryByPeriod(EMPTY_HISTORY);
+        setError(
+          "Could not load the historical production data."
+        );
       } finally {
-        if (!cancelled && showLoading) {
+        if (!cancelled) {
           setLoading(false);
         }
       }
     }
 
-    void refresh(!cachedHistory);
-
-    const intervalId = window.setInterval(() => {
-      void refresh(false);
-    }, POLL_INTERVAL_MS);
+    void loadHistory();
 
     return () => {
       cancelled = true;
-      window.clearInterval(intervalId);
     };
   }, [isoCode]);
 

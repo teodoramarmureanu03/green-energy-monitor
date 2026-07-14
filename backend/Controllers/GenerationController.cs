@@ -1,8 +1,6 @@
 using backend;
-using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace backend.Controllers;
 
@@ -10,47 +8,59 @@ namespace backend.Controllers;
 [Route("api/generation")]
 public class GenerationController : ControllerBase
 {
+    private readonly GenerationService _generationService;
     private readonly EntsoeService _entsoeService;
-    private readonly EnergyDbContext _db;
 
     public GenerationController(
-        EntsoeService entsoeService,
-        EnergyDbContext db
-    )
+        GenerationService generationService,
+        EntsoeService entsoeService)
     {
+        _generationService = generationService;
         _entsoeService = entsoeService;
-        _db = db;
     }
 
     [HttpGet("{iso}")]
-    public async Task<IActionResult> GetGeneration(string iso)
+    public async Task<IActionResult> GetLiveGeneration(string iso)
     {
-        iso = iso.ToUpper();
+        var liveData = await _generationService.GetLiveGenerationAsync(iso);
 
-        if (!CountryCatalog.Names.ContainsKey(iso))
+        if (liveData is null)
         {
-            return NotFound(
-                new { Message = $"Unknown country: {iso}" }
-            );
+            return NotFound(new { Message = $"No recent data for {iso.ToUpper()}." });
         }
 
-        var data = await _entsoeService.GetFromDatabaseAsync(
-            iso,
-            _db
-        );
+        return Ok(liveData);
+    }
 
-        if (data == null)
+    [HttpGet("countries")]
+    public async Task<IActionResult> GetConfiguredCountries()
+    {
+        var countries = await _generationService.GetCountriesAsync();
+        return Ok(countries);
+    }
+
+    [HttpPost("backfill/{iso}")]
+    public async Task<IActionResult> HandleBackfill(string iso, CancellationToken cancellationToken)
+    {
+        iso = iso.ToUpperInvariant();
+
+        if (!CountryCatalog.IsKnown(iso))
         {
-            return NotFound(
-                new
-                {
-                    Message =
-                        $"No data available yet for {iso}. " +
-                        "Background sync is still in progress."
-                }
-            );
+            return NotFound(new { Message = $"Unknown country: {iso}." });
         }
 
-        return Ok(data);
+        try
+        {
+            await _entsoeService.RefreshCountryDataAsync(
+                iso,
+                CountryCatalog.GetDisplayName(iso),
+                cancellationToken);
+
+            return Ok(new { Message = $"Backfill complete for {iso}." });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Error = ex.Message });
+        }
     }
 }

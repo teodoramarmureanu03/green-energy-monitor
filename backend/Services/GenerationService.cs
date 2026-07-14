@@ -1,88 +1,54 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using backend.Models;
+using backend.Repositories;
 
 namespace backend.Services;
 
+/// <summary>
+/// Read-side service for live generation snapshots exposed to the API.
+/// </summary>
 public class GenerationService
 {
-    private readonly EnergyDbContext _db;
+    private readonly IGenerationRepository _generationRepository;
 
-    public GenerationService(EnergyDbContext db)
+    public GenerationService(IGenerationRepository generationRepository)
     {
-        _db = db;
+        _generationRepository = generationRepository;
     }
 
-    public async Task<List<HistoryDto>> GetHistoryAsync(string iso, string period)
+    public async Task<CountryGeneration?> GetLiveGenerationAsync(string iso)
     {
-        var p = period.ToLower();
-        DateTime limitDate = DateTime.UtcNow;
-
-        if (p == "week")
-        {
-            limitDate = DateTime.UtcNow.AddDays(-7);
-        }
-        else if (p == "month")
-        {
-            limitDate = DateTime.UtcNow.AddDays(-30);
-        }
-        else if (p == "year")
-        {
-            limitDate = DateTime.UtcNow.AddDays(-365);
-        }
-
-        // Presupunem că aici ai interogarea inițială din baza de date
-        var rawHistory = await _db.GenerationRecords
-            .Where(r => r.CountryIso == iso.ToUpper() && r.Timestamp >= limitDate)
-            .ToListAsync();
-
-        // 3. Matematica: Dacă vrea lună sau an -> Grupăm pe ZILE. Dacă vrea săptămână -> Grupăm pe ORE
-        if (p == "month" || p == "year")
-        {
-            return rawHistory
-                .GroupBy(r => r.FetchedAt.Date)
-                .Select(BuildHistoryDto) // <--- Apelul curat către metoda extrasă!
-                .ToList();
-        }
-        else // implicit "week" sau altceva
-        {
-            // Dacă pentru week gruparea se făcea tot pe dată/oră, refolosim aceeași metodă extrasă
-            return rawHistory
-                .GroupBy(r => r.FetchedAt) 
-                .Select(BuildHistoryDto) // <--- Refolosire completă, adio duplicare!
-                .ToList();
-        }
+        var record = await _generationRepository.GetLatestRecordAsync(iso);
+        return record is null ? null : MapToCountryGeneration(record);
     }
 
-    // =========================================================================
-    // METODA EXTRASĂ REUTILIZABILĂ (Cerută de mentor pentru a elimina duplicarea)
-    // =========================================================================
-    private HistoryDto BuildHistoryDto(IGrouping<DateTime, GenerationRecord> g)
+    public async Task<List<CountryZone>> GetCountriesAsync()
     {
-        var toateSurseleDinZi = g.SelectMany(r =>
-            JsonSerializer.Deserialize<List<SourceBreakdown>>(r.BySourceJson) ?? new List<SourceBreakdown>()
-        );
+        return await _generationRepository.GetConfiguredCountriesAsync();
+    }
 
-        var surseMediate = toateSurseleDinZi
-            .GroupBy(s => s.Source)
-            .Select(sg => new SourceBreakdown
-            {
-                Source = sg.Key,
-                Renewable = sg.First().Renewable,
-                ValueMw = Math.Round(sg.Average(s => s.ValueMw), 1)
-            }).ToList();
+    private static CountryGeneration MapToCountryGeneration(GenerationRecord record)
+    {
+        var bySource = string.IsNullOrWhiteSpace(record.BySourceJson)
+            ? new List<SourceBreakdown>()
+            : JsonSerializer.Deserialize<List<SourceBreakdown>>(record.BySourceJson)
+                ?? new List<SourceBreakdown>();
 
-        return new HistoryDto
+        var zones = string.IsNullOrWhiteSpace(record.ZonesAggregatedJson)
+            ? new List<string>()
+            : JsonSerializer.Deserialize<List<string>>(record.ZonesAggregatedJson)
+                ?? new List<string>();
+
+        return new CountryGeneration
         {
-            Date = g.Key.ToString("yyyy-MM-dd HH:mm"), // Format flexibil pentru grupări
-            Total = Math.Round(g.Average(r => r.Total), 1),
-            RenewableMw = Math.Round(g.Average(r => r.RenewableMw), 1),
-            RenewablePct = Math.Round(g.Average(r => r.RenewablePct), 1),
-            BySourceJson = JsonSerializer.Serialize(surseMediate)
+            IsoCode = record.IsoCode,
+            Country = record.CountryName,
+            Timestamp = record.FetchedAt.ToString("o"),
+            ZonesAggregated = zones,
+            Total = record.Total,
+            RenewableMw = record.RenewableMw,
+            RenewablePct = record.RenewablePct,
+            BySource = bySource,
         };
     }
 }

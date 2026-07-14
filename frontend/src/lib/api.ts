@@ -4,19 +4,17 @@ import type {
   GenerationHistoryApiPoint,
   HistoryPeriod,
 } from "@/types/contract";
+import countriesCatalog from "@/data/countries.json";
 
 const API_BASE = "http://localhost:5243";
 
+// Country names and map coordinates stay in a local catalog.
+// Live generation numbers always come from the backend API.
 export async function fetchCountries(): Promise<Country[]> {
-  const response = await fetch(`${API_BASE}/api/countries`);
-
-  if (!response.ok) {
-    throw new Error("Could not load countries.");
-  }
-
-  return response.json();
+  return countriesCatalog as Country[];
 }
 
+// Latest production snapshot for one country.
 export async function fetchGeneration(
   isoCode: string
 ): Promise<CountryGeneration> {
@@ -33,20 +31,23 @@ export async function fetchGeneration(
   return response.json();
 }
 
+// Historical chart data for week / month / year views.
 export async function fetchGenerationHistory(
   isoCode: string,
   period: HistoryPeriod
 ): Promise<GenerationHistoryApiPoint[]> {
   const response = await fetch(
-    `${API_BASE}/api/generation/history/${isoCode}?period=${period}`,
-    {
-      cache: "no-store",
-    }
+    `${API_BASE}/api/history/${isoCode}?period=${period}`,
+    { cache: "no-store" }
   );
+
+  if (response.status === 404) {
+    return [];
+  }
 
   if (!response.ok) {
     throw new Error(
-      `No ${period} history available for ${isoCode}.`
+      `Could not load ${period} history for ${isoCode}.`
     );
   }
 
