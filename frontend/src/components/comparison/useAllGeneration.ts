@@ -1,49 +1,68 @@
-import { useGeneration } from "@/hooks/useGeneration";
+import { useState, useEffect } from "react";
+import { fetchGeneration } from "@/lib/api";
 import type { CountryGeneration } from "@/types/contract";
 
+const POLL_INTERVAL_MS = 60_000;
+
 export function useAllGeneration(isoCodes: string[]) {
-  const results = [
-    useGeneration(isoCodes[0] ?? null),
-    useGeneration(isoCodes[1] ?? null),
-    useGeneration(isoCodes[2] ?? null),
-    useGeneration(isoCodes[3] ?? null),
-    useGeneration(isoCodes[4] ?? null),
-    useGeneration(isoCodes[5] ?? null),
-    useGeneration(isoCodes[6] ?? null),
-    useGeneration(isoCodes[7] ?? null),
-    useGeneration(isoCodes[8] ?? null),
-    useGeneration(isoCodes[9] ?? null),
-    useGeneration(isoCodes[10] ?? null),
-    useGeneration(isoCodes[11] ?? null),
-    useGeneration(isoCodes[12] ?? null),
-    useGeneration(isoCodes[13] ?? null),
-    useGeneration(isoCodes[14] ?? null),
-    useGeneration(isoCodes[15] ?? null),
-    useGeneration(isoCodes[16] ?? null),
-    useGeneration(isoCodes[17] ?? null),
-    useGeneration(isoCodes[18] ?? null),
-    useGeneration(isoCodes[19] ?? null),
-    useGeneration(isoCodes[20] ?? null),
-    useGeneration(isoCodes[21] ?? null),
-    useGeneration(isoCodes[22] ?? null),
-    useGeneration(isoCodes[23] ?? null),
-    useGeneration(isoCodes[24] ?? null),
-    useGeneration(isoCodes[25] ?? null),
-  ];
+  const [map, setMap] = useState<Partial<Record<string, CountryGeneration>>>({});
+  const [loading, setLoading] = useState<boolean>(true);
 
-  const map: Partial<Record<string, CountryGeneration>> = {};
-
-  isoCodes.forEach((iso, index) => {
-    const generation = results[index]?.data;
-
-    if (generation) {
-      map[iso] = generation;
+  useEffect(() => {
+    // Dacă nu avem nicio țară, oprim execuția
+    if (!isoCodes || isoCodes.length === 0) {
+      setMap({});
+      setLoading(false);
+      return;
     }
-  });
 
-  const loading = results
-    .slice(0, isoCodes.length)
-    .some((result) => result.loading);
+    let cancelled = false;
+
+    async function fetchAll(showLoading: boolean) {
+      if (showLoading) setLoading(true);
+
+      try {
+        // 1. Creăm lista de cereri pentru toate țările
+        const promises = isoCodes.map((iso) => fetchGeneration(iso));
+        
+        // 2. Le trimitem pe toate simultan către server
+        const results = await Promise.allSettled(promises);
+
+        if (cancelled) return;
+
+        // 3. Construim map-ul doar cu datele care au venit cu succes
+        const newMap: Partial<Record<string, CountryGeneration>> = {};
+        
+        results.forEach((result, index) => {
+          if (result.status === "fulfilled" && result.value) {
+            newMap[isoCodes[index]] = result.value;
+          }
+        });
+
+        setMap(newMap);
+      } catch (err) {
+        console.error("Eroare la aducerea datelor pentru toate țările", err);
+      } finally {
+        if (!cancelled && showLoading) {
+          setLoading(false);
+        }
+      }
+    }
+
+    // Facem prima cerere
+    void fetchAll(true);
+
+    // 4. Setăm UN SINGUR timer pentru a reîmprospăta datele la fiecare 60s
+    const intervalId = window.setInterval(() => {
+      void fetchAll(false);
+    }, POLL_INTERVAL_MS);
+
+    // Funcția de curățare la demontarea componentei
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [isoCodes.join(",")]); // Refacem cererea doar dacă se schimbă lista de țări
 
   return {
     map,
