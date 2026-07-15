@@ -1,15 +1,13 @@
-import { RefreshCw, Sun, Moon, ChevronDown } from "lucide-react";
+import { Sun, Moon } from "lucide-react";
 import { colors } from "@/lib/tokens";
 import { useTheme } from "@/hooks/useTheme";
 
 export function Toolbar({
   title,
   subtitle,
-  onRefresh,
 }: {
   title: string;
   subtitle?: string;
-  onRefresh?: () => void;
 }) {
   const { theme, toggleTheme } = useTheme();
 
@@ -44,12 +42,7 @@ export function Toolbar({
 
       {/* Right — actions */}
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-
-        {/* Refresh */}
-        <button onClick={onRefresh} aria-label="Refresh data" title="Refresh data" style={iconBtn}>
-          <RefreshCw className="h-4.25 w-4.25" />
-        </button>
-
+        
         {/* Theme toggle */}
         <button
           onClick={toggleTheme}
@@ -59,27 +52,6 @@ export function Toolbar({
         >
           {theme === "light" ? <Moon className="h-4.25 w-4.25" /> : <Sun className="h-4.25 w-4.25" />}
         </button>
-
-        {/* Separator */}
-        <div style={{ width: 1, height: 24, background: colors.borderAccent, margin: "0 4px" }} />
-
-        {/* Avatar */}
-        <div style={{ display: "flex", alignItems: "center", gap: 9, cursor: "pointer" }}>
-          <div
-            style={{
-              width: 36, height: 36, borderRadius: "50%",
-              background: colors.indigoDeep, color: "#ffffff",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 13, fontWeight: 500,
-            }}
-          >
-            TM
-          </div>
-          <span className="hidden sm:inline" style={{ fontSize: 13, fontWeight: 500, color: colors.ink }}>
-            Teodora M.
-          </span>
-          <ChevronDown className="h-3.75 w-3.75 hidden sm:block" style={{ color: colors.muted }} />
-        </div>
 
       </div>
     </div>

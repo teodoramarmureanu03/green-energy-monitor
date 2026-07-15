@@ -78,7 +78,6 @@ export function AppLayout() {
           <Toolbar
             title={title}
             subtitle={subtitle}
-            onRefresh={() => window.location.reload()}
           />
 
           {screen !== "home" && <EuropeSummary />}
