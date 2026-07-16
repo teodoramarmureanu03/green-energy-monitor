@@ -60,7 +60,65 @@ using (var scope = app.Services.CreateScope())
             ON CONFLICT ("MigrationId") DO NOTHING
             """);
     }
+
+    await EnsureReferenceDataAsync(db);
 }
 
 app.MapControllers();
 app.Run();
+
+static async Task EnsureReferenceDataAsync(EnergyDbContext db)
+{
+    var existingZones = await db.CountryZones
+        .Select(zone => new { zone.IsoCode, zone.ZoneCode })
+        .ToListAsync();
+
+    var existingZoneKeys = existingZones
+        .Select(zone => (zone.IsoCode.ToUpperInvariant(), zone.ZoneCode))
+        .ToHashSet();
+
+    foreach (var (iso, zoneCodes) in CountryCatalog.ZoneCodes)
+    {
+        foreach (var zoneCode in zoneCodes)
+        {
+            if (existingZoneKeys.Contains((iso, zoneCode)))
+            {
+                continue;
+            }
+
+            db.CountryZones.Add(new backend.Models.CountryZone
+            {
+                IsoCode = iso,
+                ZoneCode = zoneCode,
+            });
+        }
+    }
+
+    var existingSourceCodes = await db.EnergySources
+        .Select(source => source.Code)
+        .ToListAsync();
+
+    var existingSourceSet = existingSourceCodes
+        .Select(code => code.ToUpperInvariant())
+        .ToHashSet();
+
+    foreach (var (code, source) in CountryCatalog.EnergySources)
+    {
+        if (existingSourceSet.Contains(code.ToUpperInvariant()))
+        {
+            continue;
+        }
+
+        db.EnergySources.Add(new backend.Models.EnergySource
+        {
+            Code = code,
+            Name = source.Name,
+            IsRenewable = source.Renewable,
+        });
+    }
+
+    if (db.ChangeTracker.HasChanges())
+    {
+        await db.SaveChangesAsync();
+    }
+}
