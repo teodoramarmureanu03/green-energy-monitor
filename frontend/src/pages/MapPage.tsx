@@ -34,8 +34,7 @@ export function MapPage() {
             marginTop: 6,
           }}
         >
-          Click a country to open its solar & wind investment
-          dashboard
+          Click a country to open its solar & wind investment dashboard
         </p>
       </div>
 
@@ -50,11 +49,7 @@ export function MapPage() {
           minHeight: 560,
         }}
       >
-        <EuropeMap
-          onSelectCountry={(iso) =>
-            navigate(paths.dashboard(iso))
-          }
-        />
+        <EuropeMap onSelectCountry={(iso) => navigate(paths.dashboard(iso))} />
       </div>
     </div>
   );

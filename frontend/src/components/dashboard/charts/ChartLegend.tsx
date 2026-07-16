@@ -22,13 +22,7 @@ export function ChartLegend() {
   );
 }
 
-function ChartLegendItem({
-  color,
-  label,
-}: {
-  color: string;
-  label: string;
-}) {
+function ChartLegendItem({ color, label }: { color: string; label: string }) {
   const legendStyle = {
     "--legend-color": color,
   } as CSSProperties;

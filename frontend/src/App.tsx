@@ -11,24 +11,12 @@ export default function App() {
   return (
     <Routes>
       <Route element={<AppLayout />}>
-        <Route
-          index
-          element={<Navigate to={paths.home} replace />}
-        />
+        <Route index element={<Navigate to={paths.home} replace />} />
         <Route path="home" element={<HomeScreen />} />
         <Route path="map" element={<MapPage />} />
-        <Route
-          path="comparison"
-          element={<ComparisonScreen />}
-        />
-        <Route
-          path="dashboard/:iso"
-          element={<DashboardPage />}
-        />
-        <Route
-          path="*"
-          element={<Navigate to={paths.home} replace />}
-        />
+        <Route path="comparison" element={<ComparisonScreen />} />
+        <Route path="dashboard/:iso" element={<DashboardPage />} />
+        <Route path="*" element={<Navigate to={paths.home} replace />} />
       </Route>
     </Routes>
   );

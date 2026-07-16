@@ -1,5 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { ComposableMap, Geographies, Geography, Marker, type Longitude, type Latitude } from "@vnedyalk0v/react19-simple-maps";
+import {
+  ComposableMap,
+  Geographies,
+  Geography,
+  Marker,
+  type Longitude,
+  type Latitude,
+} from "@vnedyalk0v/react19-simple-maps";
 import { useCountries } from "@/hooks/useCountries";
 import { fetchGeneration } from "@/lib/api";
 import { colors, shareToColor } from "@/lib/tokens";
@@ -11,16 +18,35 @@ import type { Country } from "@/types/contract";
 import type { Feature, Geometry } from "geojson";
 const countriesData = countriesRaw as Country[];
 
-
 const GEO_URL = europeMap as unknown as string;
- 
 
 const ISO3_TO_ISO2: Record<string, string> = {
-  AUT: "AT", BEL: "BE", BGR: "BG", CHE: "CH", CZE: "CZ", DEU: "DE",
-  DNK: "DK", EST: "EE", ESP: "ES", FIN: "FI", FRA: "FR", GRC: "GR",
-  HRV: "HR", HUN: "HU", IRL: "IE", ITA: "IT", LTU: "LT", LVA: "LV",
-  NLD: "NL", NOR: "NO", POL: "PL", PRT: "PT", ROU: "RO", SWE: "SE",
-  SVN: "SI", SVK: "SK",
+  AUT: "AT",
+  BEL: "BE",
+  BGR: "BG",
+  CHE: "CH",
+  CZE: "CZ",
+  DEU: "DE",
+  DNK: "DK",
+  EST: "EE",
+  ESP: "ES",
+  FIN: "FI",
+  FRA: "FR",
+  GRC: "GR",
+  HRV: "HR",
+  HUN: "HU",
+  IRL: "IE",
+  ITA: "IT",
+  LTU: "LT",
+  LVA: "LV",
+  NLD: "NL",
+  NOR: "NO",
+  POL: "PL",
+  PRT: "PT",
+  ROU: "RO",
+  SWE: "SE",
+  SVN: "SI",
+  SVK: "SK",
 };
 
 // Forma unei țări din fișierul hărții (ce câmpuri are în "properties")
@@ -35,16 +61,19 @@ type GeoFeature = Feature<Geometry, GeoProperties> & { rsmKey: string };
 
 function geoIso(geo: GeoFeature): string | null {
   const iso3 = geo.properties?.iso_a3?.toUpperCase();
-  if (!iso3) 
-    return null;
+  if (!iso3) return null;
   return ISO3_TO_ISO2[iso3] ?? null;
 }
- 
-export function EuropeMap({onSelectCountry,}: {onSelectCountry?: (iso: string) => void;}) {
+
+export function EuropeMap({
+  onSelectCountry,
+}: {
+  onSelectCountry?: (iso: string) => void;
+}) {
   const { countries } = useCountries();
   const [hoverIso, setHoverIso] = useState<string | null>(null);
   const [hoverData, setHoverData] = useState<CountryGeneration | null>(null);
- 
+
   // mapă rapidă isoCode -> % regenerabil, pentru colorat harta
   // SCHELET: aici colorăm pe baza datelor mock încărcate la hover.
   // Pentru colorat TOATE țările din start, încarcă toate datele o dată (vezi nota de jos).
@@ -70,13 +99,13 @@ export function EuropeMap({onSelectCountry,}: {onSelectCountry?: (iso: string) =
       cancelled = true;
     };
   }, [countries]);
- 
+
   // setul de coduri pe care le avem în date (ca să știm ce e „clickabil")
   const known = useMemo(
     () => new Set(countries.map((c) => c.isoCode)),
     [countries]
   );
- 
+
   async function handleEnter(iso: string) {
     setHoverIso(iso);
     if (!known.has(iso)) return;
@@ -87,7 +116,7 @@ export function EuropeMap({onSelectCountry,}: {onSelectCountry?: (iso: string) =
       setHoverData(null);
     }
   }
- 
+
   return (
     <div className="relative">
       {/* The choropleth SVG has no native keyboard/screen-reader path (react-simple-maps
@@ -97,9 +126,14 @@ export function EuropeMap({onSelectCountry,}: {onSelectCountry?: (iso: string) =
         <ul className="sr-only">
           {countries.map((c) => (
             <li key={c.isoCode}>
-              <button type="button" onClick={() => onSelectCountry?.(c.isoCode)}>
+              <button
+                type="button"
+                onClick={() => onSelectCountry?.(c.isoCode)}
+              >
                 {c.name}
-                {pctByIso.has(c.isoCode) ? ` — ${pctByIso.get(c.isoCode)}% renewable` : ""}
+                {pctByIso.has(c.isoCode)
+                  ? ` — ${pctByIso.get(c.isoCode)}% renewable`
+                  : ""}
               </button>
             </li>
           ))}
@@ -107,76 +141,78 @@ export function EuropeMap({onSelectCountry,}: {onSelectCountry?: (iso: string) =
       </nav>
 
       <div aria-hidden="true">
-      <ComposableMap
-  projection="geoMercator"
-  width={800}
-  height={520}
-  projectionConfig={{
-          center: [13 as Longitude, 52 as Latitude],
-          scale: 700,
-        }}
-  style={{ width: "100%", height: "auto" }}
->
-        <Geographies geography={GEO_URL}>
-          {(props) => {
-            const geographies = props.geographies as GeoFeature[];
-            return geographies.map((typedGeo) => {
-      const iso = geoIso(typedGeo);
-      const pct = iso ? pctByIso.get(iso) : undefined;
-      const isHover = iso === hoverIso;
-
-      return (
-        <Geography
-          key={typedGeo.rsmKey}
-          geography={typedGeo}
-                  onMouseEnter={() => iso && handleEnter(iso)}
-                  onMouseLeave={() => {
-                    setHoverIso(null);
-                    setHoverData(null);
-                  }}
-                  onClick={() => iso && known.has(iso) && onSelectCountry?.(iso)}
-                  style={{
-                    default: {
-                      fill: pct != null ? shareToColor(pct) : "#e4e4e7",
-                      stroke: "#fafafa",
-                      strokeWidth: 0.5,
-                      outline: "none",
-                    },
-                    hover: {
-                      fill: isHover ? "#71717a" : "#d4d4d8",
-                      stroke: "#fff",
-                      strokeWidth: 0.75,
-                      outline: "none",
-                      cursor: iso && known.has(iso) ? "pointer" : "default",
-                    },
-                    pressed: { fill: colors.forestMid, outline: "none" },
-                  }}
-                />
-              );
-            });
+        <ComposableMap
+          projection="geoMercator"
+          width={800}
+          height={520}
+          projectionConfig={{
+            center: [13 as Longitude, 52 as Latitude],
+            scale: 700,
           }}
-        </Geographies>
-        
-        {countriesData.map((c) => (
-          <Marker key={c.isoCode} coordinates={[c.lng, c.lat]}>
-            <text
-              textAnchor="middle"
-              style={{
-                fontSize: 7,
-                fontWeight: 700,
-                fill: "#1a1a1a",
-                stroke: "#ffffff",
-                strokeWidth: 0.4,
-                paintOrder: "stroke",
-                pointerEvents: "none",
-                fontFamily: "Roboto, sans-serif",
-              }}
-            >
-              {c.isoCode}
-            </text>
-          </Marker>
-        ))}
-      </ComposableMap>
+          style={{ width: "100%", height: "auto" }}
+        >
+          <Geographies geography={GEO_URL}>
+            {(props) => {
+              const geographies = props.geographies as GeoFeature[];
+              return geographies.map((typedGeo) => {
+                const iso = geoIso(typedGeo);
+                const pct = iso ? pctByIso.get(iso) : undefined;
+                const isHover = iso === hoverIso;
+
+                return (
+                  <Geography
+                    key={typedGeo.rsmKey}
+                    geography={typedGeo}
+                    onMouseEnter={() => iso && handleEnter(iso)}
+                    onMouseLeave={() => {
+                      setHoverIso(null);
+                      setHoverData(null);
+                    }}
+                    onClick={() =>
+                      iso && known.has(iso) && onSelectCountry?.(iso)
+                    }
+                    style={{
+                      default: {
+                        fill: pct != null ? shareToColor(pct) : "#e4e4e7",
+                        stroke: "#fafafa",
+                        strokeWidth: 0.5,
+                        outline: "none",
+                      },
+                      hover: {
+                        fill: isHover ? "#71717a" : "#d4d4d8",
+                        stroke: "#fff",
+                        strokeWidth: 0.75,
+                        outline: "none",
+                        cursor: iso && known.has(iso) ? "pointer" : "default",
+                      },
+                      pressed: { fill: colors.forestMid, outline: "none" },
+                    }}
+                  />
+                );
+              });
+            }}
+          </Geographies>
+
+          {countriesData.map((c) => (
+            <Marker key={c.isoCode} coordinates={[c.lng, c.lat]}>
+              <text
+                textAnchor="middle"
+                style={{
+                  fontSize: 7,
+                  fontWeight: 700,
+                  fill: "#1a1a1a",
+                  stroke: "#ffffff",
+                  strokeWidth: 0.4,
+                  paintOrder: "stroke",
+                  pointerEvents: "none",
+                  fontFamily: "Roboto, sans-serif",
+                }}
+              >
+                {c.isoCode}
+              </text>
+            </Marker>
+          ))}
+        </ComposableMap>
       </div>
 
       {/* tooltip la hover */}
@@ -186,9 +222,12 @@ export function EuropeMap({onSelectCountry,}: {onSelectCountry?: (iso: string) =
             {hoverData.country}
           </div>
           <div className="mb-2.5 mt-1 text-[12px] text-zinc-500">
-            Renewable share <b className="text-zinc-900">{hoverData.renewablePct}%</b>
+            Renewable share{" "}
+            <b className="text-zinc-900">{hoverData.renewablePct}%</b>
           </div>
-          <div className="text-[11px] font-medium text-zinc-400">Click to open dashboard →</div>
+          <div className="text-[11px] font-medium text-zinc-400">
+            Click to open dashboard →
+          </div>
         </div>
       )}
 
@@ -196,7 +235,12 @@ export function EuropeMap({onSelectCountry,}: {onSelectCountry?: (iso: string) =
       <div className="mt-6 flex items-center gap-3 text-[12px] font-medium text-zinc-500">
         <span>Low share</span>
         <div className="flex h-3.5 overflow-hidden rounded-full border border-zinc-100">
-          {[colors.forestPale, colors.forestSoft, colors.forestMid, colors.forest].map((c) => (
+          {[
+            colors.forestPale,
+            colors.forestSoft,
+            colors.forestMid,
+            colors.forest,
+          ].map((c) => (
             <div key={c} className="h-full w-9" style={{ background: c }} />
           ))}
         </div>

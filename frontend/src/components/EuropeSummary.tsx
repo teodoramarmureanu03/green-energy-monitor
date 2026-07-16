@@ -42,7 +42,12 @@ export function EuropeSummary() {
   const pct = totalMw > 0 ? Math.round((renewableMw / totalMw) * 100) : 0;
   const fmt = (n: number) => Math.round(n).toLocaleString("en-US");
 
-  const stats: { value: string; unit?: string; label: string; accent?: string }[] = [
+  const stats: {
+    value: string;
+    unit?: string;
+    label: string;
+    accent?: string;
+  }[] = [
     { value: fmt(totalMw), unit: "MW", label: "Total generation" },
     { value: `${pct}%`, label: "Renewable share", accent: colors.sentryTeal },
     { value: fmt(renewableMw), unit: "MW", label: "Renewable output" },
@@ -60,12 +65,32 @@ export function EuropeSummary() {
         marginBottom: 28,
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          marginBottom: 20,
+        }}
+      >
         <span
           aria-hidden="true"
-          style={{ width: 7, height: 7, borderRadius: "50%", background: colors.sentryTeal, boxShadow: `0 0 0 4px rgba(3,189,194,0.18)` }}
+          style={{
+            width: 7,
+            height: 7,
+            borderRadius: "50%",
+            background: colors.sentryTeal,
+            boxShadow: `0 0 0 4px rgba(3,189,194,0.18)`,
+          }}
         />
-        <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", color: "rgba(255,255,255,0.6)" }}>
+        <span
+          style={{
+            fontSize: 12,
+            fontWeight: 600,
+            letterSpacing: "0.04em",
+            color: "rgba(255,255,255,0.6)",
+          }}
+        >
           EUROPE — LIVE OVERVIEW
         </span>
       </div>
@@ -76,11 +101,32 @@ export function EuropeSummary() {
         <div className="stat-strip">
           {stats.map((s) => (
             <div key={s.label} className="stat-strip-item">
-              <div style={{ fontSize: 40, fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1, color: s.accent ?? "#fff" }}>
+              <div
+                style={{
+                  fontSize: 40,
+                  fontWeight: 700,
+                  letterSpacing: "-0.02em",
+                  lineHeight: 1,
+                  color: s.accent ?? "#fff",
+                }}
+              >
                 {s.value}
-                {s.unit && <span style={{ fontSize: 17, fontWeight: 500, opacity: 0.6, marginLeft: 6 }}>{s.unit}</span>}
+                {s.unit && (
+                  <span
+                    style={{
+                      fontSize: 17,
+                      fontWeight: 500,
+                      opacity: 0.6,
+                      marginLeft: 6,
+                    }}
+                  >
+                    {s.unit}
+                  </span>
+                )}
               </div>
-              <div style={{ fontSize: 13, opacity: 0.55, marginTop: 8 }}>{s.label}</div>
+              <div style={{ fontSize: 13, opacity: 0.55, marginTop: 8 }}>
+                {s.label}
+              </div>
             </div>
           ))}
         </div>

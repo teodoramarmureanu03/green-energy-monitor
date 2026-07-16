@@ -5,7 +5,9 @@ import type { CountryGeneration } from "@/types/contract";
 const POLL_INTERVAL_MS = 60_000;
 
 export function useAllGeneration(isoCodes: string[]) {
-  const [map, setMap] = useState<Partial<Record<string, CountryGeneration>>>({});
+  const [map, setMap] = useState<Partial<Record<string, CountryGeneration>>>(
+    {}
+  );
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -24,7 +26,7 @@ export function useAllGeneration(isoCodes: string[]) {
       try {
         // 1. Creăm lista de cereri pentru toate țările
         const promises = isoCodes.map((iso) => fetchGeneration(iso));
-        
+
         // 2. Le trimitem pe toate simultan către server
         const results = await Promise.allSettled(promises);
 
@@ -32,7 +34,7 @@ export function useAllGeneration(isoCodes: string[]) {
 
         // 3. Construim map-ul doar cu datele care au venit cu succes
         const newMap: Partial<Record<string, CountryGeneration>> = {};
-        
+
         results.forEach((result, index) => {
           if (result.status === "fulfilled" && result.value) {
             newMap[isoCodes[index]] = result.value;

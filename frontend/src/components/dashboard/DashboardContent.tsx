@@ -182,9 +182,7 @@ export function DashboardContent({
         </div>
 
         {historyLoading && (
-          <div className="dashboard-history-loading">
-            Loading history data…
-          </div>
+          <div className="dashboard-history-loading">Loading history data…</div>
         )}
 
         {historyError && (
@@ -193,10 +191,7 @@ export function DashboardContent({
 
         {!historyLoading && !historyError && historyData.length > 0 && (
           <div className="dashboard-history-grid">
-            <RenewableHistoryChart
-              data={historyData}
-              period={historyPeriod}
-            />
+            <RenewableHistoryChart data={historyData} period={historyPeriod} />
 
             <TotalEnergyHistoryChart
               data={historyData}

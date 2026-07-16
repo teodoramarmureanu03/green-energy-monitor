@@ -178,7 +178,8 @@ function FlagCircle({ iso }: CountryFlagProps) {
         const flagImage = event.currentTarget;
         flagImage.style.display = "none";
 
-        const fallbackBadge = flagImage.nextElementSibling as HTMLElement | null;
+        const fallbackBadge =
+          flagImage.nextElementSibling as HTMLElement | null;
 
         if (fallbackBadge) {
           fallbackBadge.style.display = "inline-flex";

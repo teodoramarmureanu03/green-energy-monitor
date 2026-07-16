@@ -1,9 +1,4 @@
-import {
-  Cell,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-} from "recharts";
+import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 
 import { colors } from "@/lib/tokens";
 import { Card } from "../DashboardCards";
