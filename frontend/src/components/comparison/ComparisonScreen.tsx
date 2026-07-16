@@ -96,9 +96,7 @@ export function ComparisonScreen() {
         loading={loading}
         ranked={ranked}
         maxMw={maxMw}
-        onOpenCountry={(iso) =>
-          navigate(paths.dashboard(iso))
-        }
+        onOpenCountry={(iso) => navigate(paths.dashboard(iso))}
       />
 
       <p className="comparison-footer">

@@ -1,7 +1,4 @@
-import type {
-  Latitude,
-  Longitude,
-} from "@vnedyalk0v/react19-simple-maps";
+import type { Latitude, Longitude } from "@vnedyalk0v/react19-simple-maps";
 
 export interface Country {
   id: string;
@@ -76,16 +73,9 @@ export interface CountryTimeseries {
 }
 
 export type DisplayCategory =
-  | "Wind"
-  | "Solar"
-  | "Hydro"
-  | "Biomass"
-  | "Nuclear"
-  | "Fossil";
+  "Wind" | "Solar" | "Hydro" | "Biomass" | "Nuclear" | "Fossil";
 
-export function toDisplayCategory(
-  source: EnergySourceName
-): DisplayCategory {
+export function toDisplayCategory(source: EnergySourceName): DisplayCategory {
   if (source.startsWith("Wind")) return "Wind";
   if (source === "Solar") return "Solar";
   if (source.startsWith("Hydro")) return "Hydro";

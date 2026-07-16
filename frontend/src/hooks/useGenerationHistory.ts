@@ -7,10 +7,7 @@ import type {
   HistoryPeriod,
 } from "@/types/contract";
 
-type HistoryByPeriod = Record<
-  HistoryPeriod,
-  GenerationHistoryApiPoint[]
->;
+type HistoryByPeriod = Record<HistoryPeriod, GenerationHistoryApiPoint[]>;
 
 interface GenerationHistoryState {
   historyByPeriod: HistoryByPeriod;
@@ -26,9 +23,7 @@ const EMPTY_HISTORY: HistoryByPeriod = {
 
 const PERIODS: HistoryPeriod[] = ["week", "month", "year"];
 
-export function useGenerationHistory(
-  isoCode: string
-): GenerationHistoryState {
+export function useGenerationHistory(isoCode: string): GenerationHistoryState {
   const [historyByPeriod, setHistoryByPeriod] =
     useState<HistoryByPeriod>(EMPTY_HISTORY);
   const [loading, setLoading] = useState(false);
@@ -50,10 +45,7 @@ export function useGenerationHistory(
         // Load each period separately so one missing range does not break the rest.
         const results = await Promise.all(
           PERIODS.map(async (period) => {
-            const points = await fetchGenerationHistory(
-              isoCode,
-              period
-            );
+            const points = await fetchGenerationHistory(isoCode, period);
             return [period, points] as const;
           })
         );
@@ -83,14 +75,9 @@ export function useGenerationHistory(
           return;
         }
 
-        console.error(
-          `History loading error for ${isoCode}:`,
-          requestError
-        );
+        console.error(`History loading error for ${isoCode}:`, requestError);
         setHistoryByPeriod(EMPTY_HISTORY);
-        setError(
-          "Could not load the historical production data."
-        );
+        setError("Could not load the historical production data.");
       } finally {
         if (!cancelled) {
           setLoading(false);

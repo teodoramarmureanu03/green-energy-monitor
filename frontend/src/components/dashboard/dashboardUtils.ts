@@ -17,10 +17,7 @@ export function aggregateSources(
   let solarMw = 0;
 
   for (const source of sources) {
-    if (
-      source.source === "Wind onshore" ||
-      source.source === "Wind offshore"
-    ) {
+    if (source.source === "Wind onshore" || source.source === "Wind offshore") {
       windMw += source.valueMw;
     }
 
@@ -35,9 +32,7 @@ export function aggregateSources(
   };
 }
 
-export function formatMw(
-  value: number | null | undefined
-): string {
+export function formatMw(value: number | null | undefined): string {
   if (value === null || value === undefined) {
     return "—";
   }
@@ -45,9 +40,7 @@ export function formatMw(
   return Math.round(value).toLocaleString("en-GB");
 }
 
-export function formatCompactMw(
-  value: number | null | undefined
-): string {
+export function formatCompactMw(value: number | null | undefined): string {
   if (value === null || value === undefined) {
     return "—";
   }
@@ -59,25 +52,17 @@ export function formatCompactMw(
   return String(Math.round(value));
 }
 
-export function formatDateTime(
-  timestamp: string
-): string {
-  return new Date(timestamp).toLocaleString(
-    "en-GB",
-    {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }
-  );
+export function formatDateTime(timestamp: string): string {
+  return new Date(timestamp).toLocaleString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
-export function getSourcePercentages(
-  windMw: number,
-  solarMw: number
-) {
+export function getSourcePercentages(windMw: number, solarMw: number) {
   const total = windMw + solarMw;
 
   if (total <= 0) {
@@ -87,9 +72,7 @@ export function getSourcePercentages(
     };
   }
 
-  const windPct = Math.round(
-    (windMw / total) * 100
-  );
+  const windPct = Math.round((windMw / total) * 100);
 
   return {
     windPct,
@@ -109,15 +92,9 @@ export function parseHistoryPoints(
       return {
         date: point.date,
 
-        label: formatChartLabel(
-          date,
-          period
-        ),
+        label: formatChartLabel(date, period),
 
-        tooltipLabel: formatTooltipLabel(
-          date,
-          period
-        ),
+        tooltipLabel: formatTooltipLabel(date, period),
 
         total: point.total,
         renewableMw: point.renewableMw,
@@ -125,27 +102,16 @@ export function parseHistoryPoints(
         solarMw: point.solarMw,
       };
     })
-    .sort(
-      (first, second) =>
-        first.date.localeCompare(second.date)
-    );
+    .sort((first, second) => first.date.localeCompare(second.date));
 }
 
 function parseDateKey(value: string): Date {
-  const [year, month, day] = value
-    .slice(0, 10)
-    .split("-")
-    .map(Number);
+  const [year, month, day] = value.slice(0, 10).split("-").map(Number);
 
-  return new Date(
-    Date.UTC(year, month - 1, day)
-  );
+  return new Date(Date.UTC(year, month - 1, day));
 }
 
-function formatChartLabel(
-  date: Date,
-  period: HistoryPeriod
-): string {
+function formatChartLabel(date: Date, period: HistoryPeriod): string {
   if (period === "week") {
     return formatUtcDate(date, {
       weekday: "short",
@@ -166,10 +132,7 @@ function formatChartLabel(
   });
 }
 
-function formatTooltipLabel(
-  date: Date,
-  period: HistoryPeriod
-): string {
+function formatTooltipLabel(date: Date, period: HistoryPeriod): string {
   if (period === "week") {
     return formatUtcDate(date, {
       weekday: "long",
@@ -181,9 +144,7 @@ function formatTooltipLabel(
 
   if (period === "month") {
     const weekEnd = new Date(date);
-    weekEnd.setUTCDate(
-      weekEnd.getUTCDate() + 6
-    );
+    weekEnd.setUTCDate(weekEnd.getUTCDate() + 6);
 
     return `${formatUtcDate(date, {
       day: "2-digit",

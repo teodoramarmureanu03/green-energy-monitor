@@ -44,10 +44,7 @@ function isItemActive(
   }
 
   if (itemId === "map") {
-    return (
-      pathname === paths.map ||
-      pathname.startsWith("/dashboard/")
-    );
+    return pathname === paths.map || pathname.startsWith("/dashboard/");
   }
 
   return pathname === paths.comparison;
@@ -184,10 +181,7 @@ export function Sidebar({
       <div className="flex flex-col gap-1">
         {ITEMS.map((item) => {
           const Icon = item.icon;
-          const isActive = isItemActive(
-            item.id,
-            location.pathname
-          );
+          const isActive = isItemActive(item.id, location.pathname);
 
           return (
             <NavLink
@@ -214,9 +208,7 @@ export function Sidebar({
             >
               <Icon className="h-4.5 w-4.5 shrink-0" />
               {showText && (
-                <span className="hidden lg:inline">
-                  {item.label}
-                </span>
+                <span className="hidden lg:inline">{item.label}</span>
               )}
             </NavLink>
           );
@@ -232,8 +224,7 @@ export function Sidebar({
             color: colors.sidebarHintText,
           }}
         >
-          💡 Click any country on the map to open its investment
-          dashboard.
+          💡 Click any country on the map to open its investment dashboard.
         </div>
       )}
     </nav>

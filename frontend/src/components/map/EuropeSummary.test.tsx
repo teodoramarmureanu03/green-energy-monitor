@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
-import * as React from 'react';
-import { useEffect, useState } from 'react';
-import * as api from '../../lib/api';
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import * as React from "react";
+import { useEffect, useState } from "react";
+import * as api from "../../lib/api";
 
 // Minimal in-test implementation of EuropeSummary to avoid missing module error.
 const EuropeSummary: React.FC = () => {
@@ -33,12 +33,14 @@ const EuropeSummary: React.FC = () => {
       setCountriesCount(list.length);
       setLoading(false);
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   if (loading) return <div>Loading European data</div>;
 
-  const nf = new Intl.NumberFormat('en-US');
+  const nf = new Intl.NumberFormat("en-US");
   return (
     <div>
       <div>{nf.format(total)}</div>
@@ -49,26 +51,26 @@ const EuropeSummary: React.FC = () => {
   );
 };
 
-describe('EuropeSummary Component', () => {
+describe("EuropeSummary Component", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
 
-  it('calculates and displays aggregated European power metrics correctly', async () => {
+  it("calculates and displays aggregated European power metrics correctly", async () => {
     // 1. Definim țările mock-uite
     const mockCountries = [
-      { isoCode: 'RO', name: 'Romania' },
-      { isoCode: 'DE', name: 'Germany' }
+      { isoCode: "RO", name: "Romania" },
+      { isoCode: "DE", name: "Germany" },
     ];
 
-    vi.spyOn(api, 'fetchCountries').mockResolvedValue(mockCountries as any);
+    vi.spyOn(api, "fetchCountries").mockResolvedValue(mockCountries as any);
 
     // 2. Definim datele lor energetice
-    vi.spyOn(api, 'fetchGeneration').mockImplementation(async (iso) => {
-      if (iso === 'RO') {
+    vi.spyOn(api, "fetchGeneration").mockImplementation(async (iso) => {
+      if (iso === "RO") {
         return { total: 1000, renewableMw: 400 } as any; // 40% regenerabil
       }
-      if (iso === 'DE') {
+      if (iso === "DE") {
         return { total: 3000, renewableMw: 1200 } as any; // 40% regenerabil
       }
       return null as any;
@@ -84,10 +86,10 @@ describe('EuropeSummary Component', () => {
     // Procent regenerabil: ((400 + 1200) / 4000) * 100 = 40%
     // Output total regenerabil: 400 + 1200 = 1600 MW
     await waitFor(() => {
-      expect(screen.getByText('4,000')).toBeInTheDocument(); // Generare totală
-      expect(screen.getByText('40%')).toBeInTheDocument();   // Cotă regenerabilă
-      expect(screen.getByText('1,600')).toBeInTheDocument(); // Putere regenerabilă
-      expect(screen.getByText('2')).toBeInTheDocument();     // 2 țări procesate
+      expect(screen.getByText("4,000")).toBeInTheDocument(); // Generare totală
+      expect(screen.getByText("40%")).toBeInTheDocument(); // Cotă regenerabilă
+      expect(screen.getByText("1,600")).toBeInTheDocument(); // Putere regenerabilă
+      expect(screen.getByText("2")).toBeInTheDocument(); // 2 țări procesate
     });
   });
 });

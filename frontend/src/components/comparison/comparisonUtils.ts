@@ -19,7 +19,9 @@ export interface RankedCountryGeneration extends AggregatedSources {
   generation: CountryGeneration;
 }
 
-export function aggregateSources(bySource: SourceBreakdown[]): AggregatedSources {
+export function aggregateSources(
+  bySource: SourceBreakdown[]
+): AggregatedSources {
   let windMw = 0;
   let solarMw = 0;
 
