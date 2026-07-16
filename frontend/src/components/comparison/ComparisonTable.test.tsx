@@ -56,9 +56,11 @@ describe("ComparisonTable Component", () => {
     expect(screen.getByText("3,000")).toBeInTheDocument(); // Solar DE
 
     // Verificăm lățimea bării de progres pentru România (primul rând de date)
-    const progressFills = container.querySelectorAll(".comparison-progress-fill");
+    const progressFills = container.querySelectorAll(
+      ".comparison-progress-fill"
+    );
     expect(progressFills.length).toBe(2);
-    
+
     // Verificăm stilul inline pentru primul rând (RO) -> width: 25%
     expect((progressFills[0] as HTMLElement).style.width).toBe("25%");
   });
@@ -77,7 +79,7 @@ describe("ComparisonTable Component", () => {
     // Facem click pe rândul României
     const row = screen.getByText("Romania").closest("tr");
     expect(row).toBeInTheDocument();
-    
+
     fireEvent.click(row!);
     expect(handleOpen).toHaveBeenCalledWith("RO");
   });

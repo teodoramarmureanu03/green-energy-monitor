@@ -3,9 +3,7 @@
     "isoCode": "AT",
     "country": "Austria",
     "timestamp": "2026-06-24T23:00:00.000Z",
-    "zonesAggregated": [
-      "AT"
-    ],
+    "zonesAggregated": ["AT"],
     "total": 4183.3,
     "renewableMw": 1628,
     "renewablePct": 38.9,
@@ -66,9 +64,7 @@
     "isoCode": "BE",
     "country": "Belgium",
     "timestamp": "2026-06-24T23:00:00.000Z",
-    "zonesAggregated": [
-      "BE"
-    ],
+    "zonesAggregated": ["BE"],
     "total": 4956.8,
     "renewableMw": 2145.9,
     "renewablePct": 43.3,
@@ -129,9 +125,7 @@
     "isoCode": "BG",
     "country": "Bulgaria",
     "timestamp": "2026-06-24T23:00:00.000Z",
-    "zonesAggregated": [
-      "BG"
-    ],
+    "zonesAggregated": ["BG"],
     "total": 2121.3,
     "renewableMw": 797.3,
     "renewablePct": 37.6,
@@ -192,9 +186,7 @@
     "isoCode": "CH",
     "country": "Switzerland",
     "timestamp": "2026-06-24T23:00:00.000Z",
-    "zonesAggregated": [
-      "CH"
-    ],
+    "zonesAggregated": ["CH"],
     "total": 3446.8,
     "renewableMw": 1247.4,
     "renewablePct": 36.2,
@@ -255,9 +247,7 @@
     "isoCode": "CZ",
     "country": "Czechia",
     "timestamp": "2026-06-24T23:00:00.000Z",
-    "zonesAggregated": [
-      "CZ"
-    ],
+    "zonesAggregated": ["CZ"],
     "total": 4057.2,
     "renewableMw": 1670.4,
     "renewablePct": 41.2,
@@ -318,9 +308,7 @@
     "isoCode": "DE",
     "country": "Germany",
     "timestamp": "2026-06-24T23:00:00.000Z",
-    "zonesAggregated": [
-      "DE-LU"
-    ],
+    "zonesAggregated": ["DE-LU"],
     "total": 29566.7,
     "renewableMw": 11544.9,
     "renewablePct": 39,
@@ -381,10 +369,7 @@
     "isoCode": "DK",
     "country": "Denmark",
     "timestamp": "2026-06-24T23:00:00.000Z",
-    "zonesAggregated": [
-      "DK1",
-      "DK2"
-    ],
+    "zonesAggregated": ["DK1", "DK2"],
     "total": 2131.7,
     "renewableMw": 890.1,
     "renewablePct": 41.8,
@@ -445,9 +430,7 @@
     "isoCode": "EE",
     "country": "Estonia",
     "timestamp": "2026-06-24T23:00:00.000Z",
-    "zonesAggregated": [
-      "EE"
-    ],
+    "zonesAggregated": ["EE"],
     "total": 636.4,
     "renewableMw": 243.5,
     "renewablePct": 38.3,
@@ -508,9 +491,7 @@
     "isoCode": "ES",
     "country": "Spain",
     "timestamp": "2026-06-24T23:00:00.000Z",
-    "zonesAggregated": [
-      "ES"
-    ],
+    "zonesAggregated": ["ES"],
     "total": 15474,
     "renewableMw": 7023,
     "renewablePct": 45.4,
@@ -571,9 +552,7 @@
     "isoCode": "FI",
     "country": "Finland",
     "timestamp": "2026-06-24T23:00:00.000Z",
-    "zonesAggregated": [
-      "FI"
-    ],
+    "zonesAggregated": ["FI"],
     "total": 5223.7,
     "renewableMw": 2108.1,
     "renewablePct": 40.4,
@@ -634,9 +613,7 @@
     "isoCode": "FR",
     "country": "France",
     "timestamp": "2026-06-24T23:00:00.000Z",
-    "zonesAggregated": [
-      "FR"
-    ],
+    "zonesAggregated": ["FR"],
     "total": 29874,
     "renewableMw": 13542.4,
     "renewablePct": 45.3,
@@ -697,9 +674,7 @@
     "isoCode": "GR",
     "country": "Greece",
     "timestamp": "2026-06-24T23:00:00.000Z",
-    "zonesAggregated": [
-      "GR"
-    ],
+    "zonesAggregated": ["GR"],
     "total": 3076.9,
     "renewableMw": 1207.5,
     "renewablePct": 39.2,
@@ -760,9 +735,7 @@
     "isoCode": "HR",
     "country": "Croatia",
     "timestamp": "2026-06-24T23:00:00.000Z",
-    "zonesAggregated": [
-      "HR"
-    ],
+    "zonesAggregated": ["HR"],
     "total": 1199.6,
     "renewableMw": 476.7,
     "renewablePct": 39.7,
@@ -823,9 +796,7 @@
     "isoCode": "HU",
     "country": "Hungary",
     "timestamp": "2026-06-24T23:00:00.000Z",
-    "zonesAggregated": [
-      "HU"
-    ],
+    "zonesAggregated": ["HU"],
     "total": 2541.4,
     "renewableMw": 1024.8,
     "renewablePct": 40.3,
@@ -886,9 +857,7 @@
     "isoCode": "IE",
     "country": "Ireland",
     "timestamp": "2026-06-24T23:00:00.000Z",
-    "zonesAggregated": [
-      "IE"
-    ],
+    "zonesAggregated": ["IE"],
     "total": 2362.5,
     "renewableMw": 1032.6,
     "renewablePct": 43.7,
@@ -1017,9 +986,7 @@
     "isoCode": "LT",
     "country": "Lithuania",
     "timestamp": "2026-06-24T23:00:00.000Z",
-    "zonesAggregated": [
-      "LT"
-    ],
+    "zonesAggregated": ["LT"],
     "total": 878.5,
     "renewableMw": 380,
     "renewablePct": 43.3,
@@ -1080,9 +1047,7 @@
     "isoCode": "LV",
     "country": "Latvia",
     "timestamp": "2026-06-24T23:00:00.000Z",
-    "zonesAggregated": [
-      "LV"
-    ],
+    "zonesAggregated": ["LV"],
     "total": 663.9,
     "renewableMw": 292.6,
     "renewablePct": 44.1,
@@ -1143,9 +1108,7 @@
     "isoCode": "NL",
     "country": "Netherlands",
     "timestamp": "2026-06-24T23:00:00.000Z",
-    "zonesAggregated": [
-      "NL"
-    ],
+    "zonesAggregated": ["NL"],
     "total": 7222.6,
     "renewableMw": 3216.6,
     "renewablePct": 44.5,
@@ -1206,13 +1169,7 @@
     "isoCode": "NO",
     "country": "Norway",
     "timestamp": "2026-06-24T23:00:00.000Z",
-    "zonesAggregated": [
-      "NO1",
-      "NO2",
-      "NO3",
-      "NO4",
-      "NO5"
-    ],
+    "zonesAggregated": ["NO1", "NO2", "NO3", "NO4", "NO5"],
     "total": 9714.5,
     "renewableMw": 4563.2,
     "renewablePct": 47,
@@ -1273,9 +1230,7 @@
     "isoCode": "PL",
     "country": "Poland",
     "timestamp": "2026-06-24T23:00:00.000Z",
-    "zonesAggregated": [
-      "PL"
-    ],
+    "zonesAggregated": ["PL"],
     "total": 10714.6,
     "renewableMw": 3744.8,
     "renewablePct": 35,
@@ -1336,9 +1291,7 @@
     "isoCode": "PT",
     "country": "Portugal",
     "timestamp": "2026-06-24T23:00:00.000Z",
-    "zonesAggregated": [
-      "PT"
-    ],
+    "zonesAggregated": ["PT"],
     "total": 3291.3,
     "renewableMw": 1325.5,
     "renewablePct": 40.3,
@@ -1399,9 +1352,7 @@
     "isoCode": "RO",
     "country": "Romania",
     "timestamp": "2026-06-24T23:00:00.000Z",
-    "zonesAggregated": [
-      "RO"
-    ],
+    "zonesAggregated": ["RO"],
     "total": 3362,
     "renewableMw": 1206.7,
     "renewablePct": 35.9,
@@ -1462,12 +1413,7 @@
     "isoCode": "SE",
     "country": "Sweden",
     "timestamp": "2026-06-24T23:00:00.000Z",
-    "zonesAggregated": [
-      "SE1",
-      "SE2",
-      "SE3",
-      "SE4"
-    ],
+    "zonesAggregated": ["SE1", "SE2", "SE3", "SE4"],
     "total": 8107.4,
     "renewableMw": 3344,
     "renewablePct": 41.2,
@@ -1528,9 +1474,7 @@
     "isoCode": "SI",
     "country": "Slovenia",
     "timestamp": "2026-06-24T23:00:00.000Z",
-    "zonesAggregated": [
-      "SI"
-    ],
+    "zonesAggregated": ["SI"],
     "total": 1123.7,
     "renewableMw": 478.3,
     "renewablePct": 42.6,
@@ -1591,9 +1535,7 @@
     "isoCode": "SK",
     "country": "Slovakia",
     "timestamp": "2026-06-24T23:00:00.000Z",
-    "zonesAggregated": [
-      "SK"
-    ],
+    "zonesAggregated": ["SK"],
     "total": 1533.4,
     "renewableMw": 606,
     "renewablePct": 39.5,

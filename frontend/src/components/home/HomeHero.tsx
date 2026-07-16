@@ -10,13 +10,11 @@ export function HomeHero() {
           </span>
         </div>
 
-        <h1 className="home-hero-title">
-          The future of energy is renewable
-        </h1>
+        <h1 className="home-hero-title">The future of energy is renewable</h1>
 
         <p className="home-hero-description">
-          Explore the six main types of renewable energy powering Europe's
-          clean transition. Click any tile to discover key facts and investment
+          Explore the six main types of renewable energy powering Europe's clean
+          transition. Click any tile to discover key facts and investment
           potential.
         </p>
       </div>

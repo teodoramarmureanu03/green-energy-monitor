@@ -18,14 +18,10 @@ export async function fetchCountries(): Promise<Country[]> {
 export async function fetchGeneration(
   isoCode: string
 ): Promise<CountryGeneration> {
-  const response = await fetch(
-    `${API_BASE}/api/generation/${isoCode}`
-  );
+  const response = await fetch(`${API_BASE}/api/generation/${isoCode}`);
 
   if (!response.ok) {
-    throw new Error(
-      `No generation data available for ${isoCode}.`
-    );
+    throw new Error(`No generation data available for ${isoCode}.`);
   }
 
   return response.json();
@@ -46,9 +42,7 @@ export async function fetchGenerationHistory(
   }
 
   if (!response.ok) {
-    throw new Error(
-      `Could not load ${period} history for ${isoCode}.`
-    );
+    throw new Error(`Could not load ${period} history for ${isoCode}.`);
   }
 
   return response.json();

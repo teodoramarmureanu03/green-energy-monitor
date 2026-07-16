@@ -1,9 +1,13 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { HeroKpiCard, KpiCard, Card, DashboardSkeleton } from "./DashboardCards";
+import {
+  HeroKpiCard,
+  KpiCard,
+  Card,
+  DashboardSkeleton,
+} from "./DashboardCards";
 
 describe("DashboardCards Components", () => {
-  
   // 1. Testăm HeroKpiCard
   describe("HeroKpiCard", () => {
     it("renders all provided props correctly", () => {
@@ -50,10 +54,12 @@ describe("DashboardCards Components", () => {
       // Verificăm dacă stilurile dinamice (variabilele CSS) au fost aplicate pe elementul wrapper
       const cardElement = container.querySelector(".dashboard-kpi-card");
       expect(cardElement).toBeInTheDocument();
-      
+
       const style = window.getComputedStyle(cardElement!);
       expect(style.getPropertyValue("--kpi-top-color")).toBe("#22c55e");
-      expect(style.getPropertyValue("--kpi-icon-bg")).toBe("rgba(34,197,94,0.1)");
+      expect(style.getPropertyValue("--kpi-icon-bg")).toBe(
+        "rgba(34,197,94,0.1)"
+      );
     });
   });
 
@@ -78,11 +84,15 @@ describe("DashboardCards Components", () => {
       const { container } = render(<DashboardSkeleton />);
 
       // Verificăm dacă se randează cele 4 blocuri de KPI
-      const kpiSkeletons = container.querySelectorAll(".dashboard-skeleton-kpi");
+      const kpiSkeletons = container.querySelectorAll(
+        ".dashboard-skeleton-kpi"
+      );
       expect(kpiSkeletons.length).toBe(4);
 
       // Verificăm dacă se randează cele 2 blocuri de grafic
-      const chartSkeletons = container.querySelectorAll(".dashboard-skeleton-chart");
+      const chartSkeletons = container.querySelectorAll(
+        ".dashboard-skeleton-chart"
+      );
       expect(chartSkeletons.length).toBe(2);
     });
   });

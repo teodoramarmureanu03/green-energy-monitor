@@ -7,38 +7,45 @@ import {
   getSourcePercentages,
   parseHistoryPoints,
 } from "./dashboardUtils";
-import type { SourceBreakdown, GenerationHistoryApiPoint } from "@/types/contract";
+import type {
+  SourceBreakdown,
+  GenerationHistoryApiPoint,
+} from "@/types/contract";
 
 describe("dashboardUtils", () => {
-  
   // 1. Testăm adunarea surselor de energie (Wind Onshore/Offshore & Solar)
   describe("aggregateSources", () => {
     it("should aggregate wind and solar correctly and ignore other sources", () => {
       const mockSources: SourceBreakdown[] = [
         {
-            source: "Wind onshore", valueMw: 150,
-            renewable: false
+          source: "Wind onshore",
+          valueMw: 150,
+          renewable: false,
         },
         {
-            source: "Wind offshore", valueMw: 50,
-            renewable: false
+          source: "Wind offshore",
+          valueMw: 50,
+          renewable: false,
         },
         {
-            source: "Solar", valueMw: 100,
-            renewable: false
+          source: "Solar",
+          valueMw: 100,
+          renewable: false,
         },
         {
-            source: "Coal" as SourceBreakdown["source"], valueMw: 500,
-            renewable: false
-        }, 
+          source: "Coal" as SourceBreakdown["source"],
+          valueMw: 500,
+          renewable: false,
+        },
         {
-            source: "Hydro" as SourceBreakdown["source"], valueMw: 300,
-            renewable: false
-        }, 
+          source: "Hydro" as SourceBreakdown["source"],
+          valueMw: 300,
+          renewable: false,
+        },
       ];
 
       const result = aggregateSources(mockSources);
-      expect(result.windMw).toBe(200);  // 150 + 50
+      expect(result.windMw).toBe(200); // 150 + 50
       expect(result.solarMw).toBe(100); // doar solar
     });
 
@@ -116,12 +123,20 @@ describe("dashboardUtils", () => {
     it("should sort points by date ascending and map correct labels for 'week' period", () => {
       const apiPoints: GenerationHistoryApiPoint[] = [
         {
-            date: "2026-07-16", total: 100, renewableMw: 50, windMw: 30, solarMw: 20,
-            renewablePct: 0
+          date: "2026-07-16",
+          total: 100,
+          renewableMw: 50,
+          windMw: 30,
+          solarMw: 20,
+          renewablePct: 0,
         },
         {
-            date: "2026-07-15", total: 200, renewableMw: 100, windMw: 60, solarMw: 40,
-            renewablePct: 0
+          date: "2026-07-15",
+          total: 200,
+          renewableMw: 100,
+          windMw: 60,
+          solarMw: 40,
+          renewablePct: 0,
         }, // Asta e mai devreme!
       ];
 

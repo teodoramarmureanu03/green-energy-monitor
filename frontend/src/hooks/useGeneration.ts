@@ -6,8 +6,8 @@ const generationCache = new Map<string, CountryGeneration>();
 const POLL_INTERVAL_MS = 60_000;
 
 export function useGeneration(iso: string) {
-  const [data, setData] = useState<CountryGeneration | null>(
-    () => (iso ? generationCache.get(iso) ?? null : null)
+  const [data, setData] = useState<CountryGeneration | null>(() =>
+    iso ? (generationCache.get(iso) ?? null) : null
   );
   const [loading, setLoading] = useState<boolean>(
     () => !iso || !generationCache.has(iso)
@@ -54,23 +54,14 @@ export function useGeneration(iso: string) {
           return;
         }
 
-        console.error(
-          `Eroare la încărcarea datelor pentru ${iso}:`,
-          err
-        );
+        console.error(`Eroare la încărcarea datelor pentru ${iso}:`, err);
 
         // Keep stale data visible during background refresh failures.
         if (!generationCache.has(iso)) {
-          setError(
-            "Nu am putut încărca datele pentru această țară."
-          );
+          setError("Nu am putut încărca datele pentru această țară.");
         }
       } finally {
-        if (
-          !cancelled &&
-          isoRef.current === iso &&
-          showLoading
-        ) {
+        if (!cancelled && isoRef.current === iso && showLoading) {
           setLoading(false);
         }
       }
@@ -111,8 +102,8 @@ export function useAllGeneration(isos: string[]) {
 
       try {
         // 1. Creăm un "batch" de cereri pentru toate țările
-        const promises = isos.map(iso => fetchGeneration(iso));
-        
+        const promises = isos.map((iso) => fetchGeneration(iso));
+
         // 2. Le executăm pe TOATE simultan
         const results = await Promise.allSettled(promises);
 
@@ -126,7 +117,8 @@ export function useAllGeneration(isos: string[]) {
         setData(successfulData);
         setError(null);
       } catch {
-        if (!cancelled) setError("Eroare la încărcarea datelor pentru țările selectate.");
+        if (!cancelled)
+          setError("Eroare la încărcarea datelor pentru țările selectate.");
       } finally {
         if (!cancelled && showLoading) setLoading(false);
       }
