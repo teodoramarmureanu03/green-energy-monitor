@@ -11,7 +11,7 @@ export function useAllGeneration(isoCodes: string[]) {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    // Dacă nu avem nicio țară, oprim execuția
+    // Stop early when there are no countries to load.
     if (!isoCodes || isoCodes.length === 0) {
       setMap({});
       setLoading(false);
@@ -24,15 +24,15 @@ export function useAllGeneration(isoCodes: string[]) {
       if (showLoading) setLoading(true);
 
       try {
-        // 1. Creăm lista de cereri pentru toate țările
+        // 1. Build one request per country.
         const promises = isoCodes.map((iso) => fetchGeneration(iso));
 
-        // 2. Le trimitem pe toate simultan către server
+        // 2. Send all requests to the server in parallel.
         const results = await Promise.allSettled(promises);
 
         if (cancelled) return;
 
-        // 3. Construim map-ul doar cu datele care au venit cu succes
+        // 3. Build the map from successful responses only.
         const newMap: Partial<Record<string, CountryGeneration>> = {};
 
         results.forEach((result, index) => {
@@ -43,7 +43,7 @@ export function useAllGeneration(isoCodes: string[]) {
 
         setMap(newMap);
       } catch (err) {
-        console.error("Eroare la aducerea datelor pentru toate țările", err);
+        console.error("Failed to fetch generation data for all countries", err);
       } finally {
         if (!cancelled && showLoading) {
           setLoading(false);
@@ -51,20 +51,20 @@ export function useAllGeneration(isoCodes: string[]) {
       }
     }
 
-    // Facem prima cerere
+    // Initial load.
     void fetchAll(true);
 
-    // 4. Setăm UN SINGUR timer pentru a reîmprospăta datele la fiecare 60s
+    // Single shared timer that refreshes data every 60s.
     const intervalId = window.setInterval(() => {
       void fetchAll(false);
     }, POLL_INTERVAL_MS);
 
-    // Funcția de curățare la demontarea componentei
+    // Cleanup when the component unmounts or the country list changes.
     return () => {
       cancelled = true;
       window.clearInterval(intervalId);
     };
-  }, [isoCodes.join(",")]); // Refacem cererea doar dacă se schimbă lista de țări
+  }, [isoCodes.join(",")]); // Rebuild requests only when the country list changes.
 
   return {
     map,

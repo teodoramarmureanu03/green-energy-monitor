@@ -2,7 +2,7 @@ import { vi } from "vitest";
 import * as api from "./lib/api";
 import type { CountryGeneration } from "./types/contract";
 
-// Această funcție va "simula" răspunsul de la server în timpul testelor
+// Mock the server response used by generation-related tests.
 export function mockGeneration(data: Partial<CountryGeneration>) {
   vi.spyOn(api, "fetchGeneration").mockResolvedValue({
     isoCode: "DE",
