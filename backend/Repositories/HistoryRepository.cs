@@ -46,7 +46,7 @@ public class HistoryRepository : IHistoryRepository
             .ToListAsync();
 
         return keys
-            .Select(key => (key.PeriodType, key.PeriodStart))
+            .Select(key => (key.PeriodType, key.PeriodStart.Date))
             .ToHashSet();
     }
 
@@ -54,7 +54,47 @@ public class HistoryRepository : IHistoryRepository
         IEnumerable<GenerationChartPoint> points,
         CancellationToken cancellationToken = default)
     {
-        _db.GenerationChartPoints.AddRange(points);
+        var pointList = points.ToList();
+
+        if (pointList.Count == 0)
+        {
+            return;
+        }
+
+        var iso = pointList[0].IsoCode.ToUpperInvariant();
+        var periodTypes = pointList.Select(point => point.PeriodType).Distinct().ToList();
+
+        var existingPoints = await _db.GenerationChartPoints
+            .Where(chartPoint =>
+                chartPoint.IsoCode == iso &&
+                periodTypes.Contains(chartPoint.PeriodType))
+            .ToListAsync(cancellationToken);
+
+        var existingByKey = existingPoints.ToDictionary(
+            point => (point.PeriodType, point.PeriodStart.Date),
+            point => point);
+
+        foreach (var point in pointList)
+        {
+            var key = (point.PeriodType, point.PeriodStart.Date);
+
+            if (existingByKey.TryGetValue(key, out var existing))
+            {
+                existing.CountryName = point.CountryName;
+                existing.PeriodEnd = point.PeriodEnd;
+                existing.Total = point.Total;
+                existing.RenewableMw = point.RenewableMw;
+                existing.RenewablePct = point.RenewablePct;
+                existing.WindMw = point.WindMw;
+                existing.SolarMw = point.SolarMw;
+                existing.UpdatedAt = point.UpdatedAt;
+                continue;
+            }
+
+            _db.GenerationChartPoints.Add(point);
+            existingByKey[key] = point;
+        }
+
         await _db.SaveChangesAsync(cancellationToken);
     }
 

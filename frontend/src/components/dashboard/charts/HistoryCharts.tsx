@@ -12,26 +12,17 @@ import {
 } from "recharts";
 
 import { colors } from "@/lib/tokens";
-import type {
-  GenerationHistoryPoint,
-  HistoryPeriod,
-} from "@/types/contract";
+import type { GenerationHistoryPoint, HistoryPeriod } from "@/types/contract";
 
 import { Card } from "../DashboardCards";
-import {
-  formatCompactMw,
-  formatMw,
-} from "../dashboardUtils";
+import { formatCompactMw, formatMw } from "../dashboardUtils";
 
 interface HistoryChartsProps {
   data: GenerationHistoryPoint[];
   period: HistoryPeriod;
 }
 
-export function RenewableHistoryChart({
-  data,
-  period,
-}: HistoryChartsProps) {
+export function RenewableHistoryChart({ data, period }: HistoryChartsProps) {
   return (
     <Card title="Solar and wind production history">
       <ResponsiveContainer width="100%" height={390}>
@@ -70,9 +61,7 @@ export function RenewableHistoryChart({
               fontSize: 12,
               fill: colors.muted,
             }}
-            tickFormatter={(value) =>
-              formatCompactMw(Number(value))
-            }
+            tickFormatter={(value) => formatCompactMw(Number(value))}
           />
 
           <Tooltip content={<HistoryTooltip />} />
@@ -135,10 +124,7 @@ export function RenewableHistoryChart({
   );
 }
 
-export function TotalEnergyHistoryChart({
-  data,
-  period,
-}: HistoryChartsProps) {
+export function TotalEnergyHistoryChart({ data, period }: HistoryChartsProps) {
   return (
     <Card title="Total energy production history">
       <ResponsiveContainer width="100%" height={390}>
@@ -159,17 +145,9 @@ export function TotalEnergyHistoryChart({
               x2="0"
               y2="1"
             >
-              <stop
-                offset="5%"
-                stopColor={colors.forest}
-                stopOpacity={0.3}
-              />
+              <stop offset="5%" stopColor={colors.forest} stopOpacity={0.3} />
 
-              <stop
-                offset="95%"
-                stopColor={colors.forest}
-                stopOpacity={0.02}
-              />
+              <stop offset="95%" stopColor={colors.forest} stopOpacity={0.02} />
             </linearGradient>
           </defs>
 
@@ -199,9 +177,7 @@ export function TotalEnergyHistoryChart({
               fontSize: 12,
               fill: colors.muted,
             }}
-            tickFormatter={(value) =>
-              formatCompactMw(Number(value))
-            }
+            tickFormatter={(value) => formatCompactMw(Number(value))}
           />
 
           <Tooltip content={<HistoryTooltip />} />
@@ -252,35 +228,24 @@ function HistoryTooltip({
     return null;
   }
 
-  const tooltipTitle =
-    payload[0].payload?.tooltipLabel ?? label ?? "";
+  const tooltipTitle = payload[0].payload?.tooltipLabel ?? label ?? "";
 
   return (
     <div className="dashboard-history-tooltip">
-      <div className="dashboard-history-tooltip-title">
-        {tooltipTitle}
-      </div>
+      <div className="dashboard-history-tooltip-title">{tooltipTitle}</div>
 
       {payload.map((item) => (
-        <div
-          key={item.name}
-          className="dashboard-history-tooltip-row"
-        >
+        <div key={item.name} className="dashboard-history-tooltip-row">
           <span
             className="dashboard-history-tooltip-dot"
             style={{
-              background:
-                item.color ??
-                item.stroke ??
-                colors.forest,
+              background: item.color ?? item.stroke ?? colors.forest,
             }}
           />
 
           <span>{item.name}</span>
 
-          <strong>
-            {formatMw(item.value)} MW
-          </strong>
+          <strong>{formatMw(item.value)} MW</strong>
         </div>
       ))}
     </div>

@@ -8,10 +8,7 @@ export function DashboardPage() {
   const { iso } = useParams<{ iso: string }>();
   const normalizedIso = iso?.toUpperCase();
 
-  if (
-    !normalizedIso ||
-    !/^[A-Z]{2}$/.test(normalizedIso)
-  ) {
+  if (!normalizedIso || !/^[A-Z]{2}$/.test(normalizedIso)) {
     return <Navigate to={paths.map} replace />;
   }
 
@@ -32,10 +29,7 @@ export function DashboardPage() {
         ← Back to map
       </button>
 
-      <DashboardScreen
-        key={normalizedIso}
-        initialIso={normalizedIso}
-      />
+      <DashboardScreen key={normalizedIso} initialIso={normalizedIso} />
     </div>
   );
 }

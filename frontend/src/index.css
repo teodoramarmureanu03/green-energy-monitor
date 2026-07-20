@@ -61,12 +61,12 @@
   --hover-gray: #e5e7eb;
   --skeleton-a: #f3f4f6;
   --skeleton-b: #e5e7eb;
-  --bar-hover-wash: rgba(25,33,104,0.06);
-  --row-hover-wash: rgba(18,84,29,0.05);
+  --bar-hover-wash: rgba(25, 33, 104, 0.06);
+  --row-hover-wash: rgba(18, 84, 29, 0.05);
   --border-accent: #b8cdb8;
   --table-header-bg: #e8f3ea;
   --row-hover-bg: #f0faf2;
-  --flag-border: rgba(0,0,0,0.1);
+  --flag-border: rgba(0, 0, 0, 0.1);
   --btn-solid-text: #ffffff;
 
   /* ---- Adaptive: data-viz categorical palette ---- */
@@ -85,13 +85,13 @@
   /* ---- Adaptive: rank medal colors (comparison table) ---- */
   --rank-gold-text: #b45309;
   --rank-gold-bg: #fef3c7;
-  --rank-gold-border: rgba(180,83,9,0.27);
+  --rank-gold-border: rgba(180, 83, 9, 0.27);
   --rank-silver-text: #64748b;
   --rank-silver-bg: #f1f5f9;
-  --rank-silver-border: rgba(100,116,139,0.27);
+  --rank-silver-border: rgba(100, 116, 139, 0.27);
   --rank-bronze-text: #c2410c;
   --rank-bronze-bg: #fff7ed;
-  --rank-bronze-border: rgba(194,65,12,0.27);
+  --rank-bronze-border: rgba(194, 65, 12, 0.27);
   --rank-amber-bg: #fef3c7;
 
   /* ---- Adaptive: map chrome (non-data-encoding pixels) ---- */
@@ -108,7 +108,8 @@
   --error-border: #fecaca;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-  --shadow-elevated: 0 1px 2px rgba(0,0,0,0.04), 0 20px 48px rgba(0,0,0,0.14);
+  --shadow-elevated:
+    0 1px 2px rgba(0, 0, 0, 0.04), 0 20px 48px rgba(0, 0, 0, 0.14);
 }
 
 :root[data-theme="dark"] {
@@ -133,12 +134,12 @@
   --hover-gray: #2f333d;
   --skeleton-a: #20232b;
   --skeleton-b: #2a2d36;
-  --bar-hover-wash: rgba(255,255,255,0.05);
-  --row-hover-wash: rgba(34,197,94,0.08);
+  --bar-hover-wash: rgba(255, 255, 255, 0.05);
+  --row-hover-wash: rgba(34, 197, 94, 0.08);
   --border-accent: #3a4a3d;
   --table-header-bg: #1c2b20;
   --row-hover-bg: #16281c;
-  --flag-border: rgba(255,255,255,0.15);
+  --flag-border: rgba(255, 255, 255, 0.15);
   --btn-solid-text: #052e13;
 
   --wind-blue: #5b8def;
@@ -155,13 +156,13 @@
 
   --rank-gold-text: #fbbf47;
   --rank-gold-bg: #3a2f14;
-  --rank-gold-border: rgba(251,191,71,0.35);
+  --rank-gold-border: rgba(251, 191, 71, 0.35);
   --rank-silver-text: #94a3b8;
   --rank-silver-bg: #262b33;
-  --rank-silver-border: rgba(148,163,184,0.35);
+  --rank-silver-border: rgba(148, 163, 184, 0.35);
   --rank-bronze-text: #fb923c;
   --rank-bronze-bg: #3a2415;
-  --rank-bronze-border: rgba(251,146,60,0.35);
+  --rank-bronze-border: rgba(251, 146, 60, 0.35);
   --rank-amber-bg: #3a2f14;
 
   --map-stroke: #1b1e26;
@@ -188,7 +189,9 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -210,10 +213,16 @@ body {
   border-radius: 8px;
   padding: 7px 14px;
   cursor: pointer;
-  transition: background-color 180ms var(--ease-out-expo), transform 120ms var(--ease-out-expo);
+  transition:
+    background-color 180ms var(--ease-out-expo),
+    transform 120ms var(--ease-out-expo);
 }
-.pill-btn:hover { background: var(--border-sage); }
-.pill-btn:active { transform: scale(0.97); }
+.pill-btn:hover {
+  background: var(--border-sage);
+}
+.pill-btn:active {
+  transform: scale(0.97);
+}
 
 .select-field {
   font-size: 14px;
@@ -224,23 +233,32 @@ body {
   background: var(--surface);
   color: var(--ink);
   cursor: pointer;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  transition: border-color 180ms var(--ease-out-expo), box-shadow 180ms var(--ease-out-expo);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  transition:
+    border-color 180ms var(--ease-out-expo),
+    box-shadow 180ms var(--ease-out-expo);
 }
-.select-field:hover { border-color: var(--forest-soft); }
+.select-field:hover {
+  border-color: var(--forest-soft);
+}
 
 .card-interactive {
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06); /* Ambient Card at rest — owned entirely by this class so :hover/:active can override it */
-  transition: box-shadow 200ms var(--ease-out-expo), transform 200ms var(--ease-out-expo);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); /* Ambient Card at rest — owned entirely by this class so :hover/:active can override it */
+  transition:
+    box-shadow 200ms var(--ease-out-expo),
+    transform 200ms var(--ease-out-expo);
   text-align: left;
   font: inherit;
 }
 .card-interactive:hover {
-  box-shadow: 0 6px 20px rgba(0,0,0,0.1); /* Hover Lift */
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); /* Hover Lift */
   transform: translateY(-2px);
 }
-.card-interactive:active { transform: translateY(0); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.card-interactive:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
 
 /* Rows may set their own inline `background` (e.g. medal-rank tinting); an inset
    box-shadow paints a hover wash on top without fighting that inline value. */
@@ -248,8 +266,12 @@ body {
   cursor: pointer;
   transition: box-shadow 150ms var(--ease-out-expo);
 }
-.row-interactive:hover { box-shadow: inset 0 0 0 9999px var(--row-hover-wash); }
-.row-interactive:focus-visible { outline-offset: -2px; }
+.row-interactive:hover {
+  box-shadow: inset 0 0 0 9999px var(--row-hover-wash);
+}
+.row-interactive:focus-visible {
+  outline-offset: -2px;
+}
 
 .icon-btn {
   border: none;
@@ -257,9 +279,14 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 150ms var(--ease-out-expo), color 150ms var(--ease-out-expo);
+  transition:
+    background-color 150ms var(--ease-out-expo),
+    color 150ms var(--ease-out-expo);
 }
-.icon-btn:hover { background: var(--hover-gray); color: var(--ink); }
+.icon-btn:hover {
+  background: var(--hover-gray);
+  color: var(--ink);
+}
 
 /* Per-instance color comes in via CSS custom properties (set inline) so the
    class body still owns the actual background/border/color declarations —
@@ -274,10 +301,18 @@ body {
   background: var(--pin-bg);
   color: var(--pin-color);
   border: 1.5px solid var(--pin-border);
-  transition: border-color 150ms var(--ease-out-expo), filter 150ms var(--ease-out-expo), transform 120ms var(--ease-out-expo);
+  transition:
+    border-color 150ms var(--ease-out-expo),
+    filter 150ms var(--ease-out-expo),
+    transform 120ms var(--ease-out-expo);
 }
-.pin-btn:hover { border-color: var(--forest-soft); filter: brightness(0.96); }
-.pin-btn:active { transform: scale(0.96); }
+.pin-btn:hover {
+  border-color: var(--forest-soft);
+  filter: brightness(0.96);
+}
+.pin-btn:active {
+  transform: scale(0.96);
+}
 
 .progress-fill {
   transition: transform 700ms var(--ease-out-expo);
@@ -288,7 +323,9 @@ body {
   transition: transform 550ms var(--ease-out-expo);
 }
 @media (prefers-reduced-motion: reduce) {
-  .flip-card-inner { transition: opacity 150ms linear; }
+  .flip-card-inner {
+    transition: opacity 150ms linear;
+  }
 }
 
 /* ---- Dark sidebar nav (Charcoal rail) ---- */
@@ -304,17 +341,28 @@ body {
   font-size: 13px;
   font-weight: 500;
   background: transparent;
-  color: rgba(255,255,255,0.6);
-  transition: background-color 150ms var(--ease-out-expo), color 150ms var(--ease-out-expo);
+  color: rgba(255, 255, 255, 0.6);
+  transition:
+    background-color 150ms var(--ease-out-expo),
+    color 150ms var(--ease-out-expo);
 }
-.nav-item-dark:hover { background: rgba(255,255,255,0.06); color: #ffffff; }
-.nav-item-dark:active { transform: scale(0.98); }
+.nav-item-dark:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+}
+.nav-item-dark:active {
+  transform: scale(0.98);
+}
 .nav-item-dark[aria-current="page"] {
   background: var(--sentry-teal);
   color: #ffffff;
 }
-.nav-item-dark[aria-current="page"] .nav-icon { color: #ffffff; }
-.nav-item-dark:not([aria-current="page"]) .nav-icon { color: rgba(255,255,255,0.4); }
+.nav-item-dark[aria-current="page"] .nav-icon {
+  color: #ffffff;
+}
+.nav-item-dark:not([aria-current="page"]) .nav-icon {
+  color: rgba(255, 255, 255, 0.4);
+}
 
 /* ---- Segmented control (sort toggle group) ---- */
 .segmented {
@@ -335,14 +383,19 @@ body {
   cursor: pointer;
   background: transparent;
   color: var(--muted);
-  transition: background-color 180ms var(--ease-out-expo), color 180ms var(--ease-out-expo), box-shadow 180ms var(--ease-out-expo);
+  transition:
+    background-color 180ms var(--ease-out-expo),
+    color 180ms var(--ease-out-expo),
+    box-shadow 180ms var(--ease-out-expo);
 }
-.segmented-btn:hover { color: var(--ink); }
+.segmented-btn:hover {
+  color: var(--ink);
+}
 .segmented-btn[data-active="true"] {
   background: var(--surface);
   color: var(--forest);
   font-weight: 700;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 /* ---- Elevated hero-weight surfaces ---- */
@@ -366,6 +419,6 @@ body {
   .stat-strip-item:not(:last-child) {
     padding-right: 48px;
     margin-right: 48px;
-    border-right: 1px solid rgba(255,255,255,0.1);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
   }
 }

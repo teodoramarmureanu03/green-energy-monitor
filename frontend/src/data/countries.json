@@ -6,9 +6,7 @@
     "lat": 47.5,
     "lng": 14.5,
     "multiZone": false,
-    "zones": [
-      "AT"
-    ]
+    "zones": ["AT"]
   },
   {
     "id": "be",
@@ -17,9 +15,7 @@
     "lat": 50.5,
     "lng": 4.5,
     "multiZone": false,
-    "zones": [
-      "BE"
-    ]
+    "zones": ["BE"]
   },
   {
     "id": "bg",
@@ -28,9 +24,7 @@
     "lat": 42.7,
     "lng": 25.5,
     "multiZone": false,
-    "zones": [
-      "BG"
-    ]
+    "zones": ["BG"]
   },
   {
     "id": "ch",
@@ -39,9 +33,7 @@
     "lat": 46.8,
     "lng": 8.2,
     "multiZone": false,
-    "zones": [
-      "CH"
-    ]
+    "zones": ["CH"]
   },
   {
     "id": "cz",
@@ -50,9 +42,7 @@
     "lat": 49.8,
     "lng": 15.5,
     "multiZone": false,
-    "zones": [
-      "CZ"
-    ]
+    "zones": ["CZ"]
   },
   {
     "id": "de",
@@ -61,9 +51,7 @@
     "lat": 51.2,
     "lng": 10.4,
     "multiZone": false,
-    "zones": [
-      "DE-LU"
-    ]
+    "zones": ["DE-LU"]
   },
   {
     "id": "dk",
@@ -72,10 +60,7 @@
     "lat": 56,
     "lng": 9.5,
     "multiZone": true,
-    "zones": [
-      "DK1",
-      "DK2"
-    ]
+    "zones": ["DK1", "DK2"]
   },
   {
     "id": "ee",
@@ -84,9 +69,7 @@
     "lat": 58.6,
     "lng": 25,
     "multiZone": false,
-    "zones": [
-      "EE"
-    ]
+    "zones": ["EE"]
   },
   {
     "id": "es",
@@ -95,9 +78,7 @@
     "lat": 40,
     "lng": -3.7,
     "multiZone": false,
-    "zones": [
-      "ES"
-    ]
+    "zones": ["ES"]
   },
   {
     "id": "fi",
@@ -106,9 +87,7 @@
     "lat": 61.9,
     "lng": 25.7,
     "multiZone": false,
-    "zones": [
-      "FI"
-    ]
+    "zones": ["FI"]
   },
   {
     "id": "fr",
@@ -117,9 +96,7 @@
     "lat": 46.6,
     "lng": 2.2,
     "multiZone": false,
-    "zones": [
-      "FR"
-    ]
+    "zones": ["FR"]
   },
   {
     "id": "gr",
@@ -128,9 +105,7 @@
     "lat": 39,
     "lng": 22,
     "multiZone": false,
-    "zones": [
-      "GR"
-    ]
+    "zones": ["GR"]
   },
   {
     "id": "hr",
@@ -139,9 +114,7 @@
     "lat": 45.1,
     "lng": 15.5,
     "multiZone": false,
-    "zones": [
-      "HR"
-    ]
+    "zones": ["HR"]
   },
   {
     "id": "hu",
@@ -150,9 +123,7 @@
     "lat": 47.2,
     "lng": 19.5,
     "multiZone": false,
-    "zones": [
-      "HU"
-    ]
+    "zones": ["HU"]
   },
   {
     "id": "ie",
@@ -161,9 +132,7 @@
     "lat": 53.4,
     "lng": -8.2,
     "multiZone": false,
-    "zones": [
-      "IE"
-    ]
+    "zones": ["IE"]
   },
   {
     "id": "it",
@@ -188,9 +157,7 @@
     "lat": 55.2,
     "lng": 23.9,
     "multiZone": false,
-    "zones": [
-      "LT"
-    ]
+    "zones": ["LT"]
   },
   {
     "id": "lv",
@@ -199,9 +166,7 @@
     "lat": 56.9,
     "lng": 24.6,
     "multiZone": false,
-    "zones": [
-      "LV"
-    ]
+    "zones": ["LV"]
   },
   {
     "id": "nl",
@@ -210,9 +175,7 @@
     "lat": 52.1,
     "lng": 5.3,
     "multiZone": false,
-    "zones": [
-      "NL"
-    ]
+    "zones": ["NL"]
   },
   {
     "id": "no",
@@ -221,13 +184,7 @@
     "lat": 60.5,
     "lng": 8.5,
     "multiZone": true,
-    "zones": [
-      "NO1",
-      "NO2",
-      "NO3",
-      "NO4",
-      "NO5"
-    ]
+    "zones": ["NO1", "NO2", "NO3", "NO4", "NO5"]
   },
   {
     "id": "pl",
@@ -236,9 +193,7 @@
     "lat": 51.9,
     "lng": 19.1,
     "multiZone": false,
-    "zones": [
-      "PL"
-    ]
+    "zones": ["PL"]
   },
   {
     "id": "pt",
@@ -247,9 +202,7 @@
     "lat": 39.4,
     "lng": -8.2,
     "multiZone": false,
-    "zones": [
-      "PT"
-    ]
+    "zones": ["PT"]
   },
   {
     "id": "ro",
@@ -258,9 +211,7 @@
     "lat": 45.9,
     "lng": 24.9,
     "multiZone": false,
-    "zones": [
-      "RO"
-    ]
+    "zones": ["RO"]
   },
   {
     "id": "se",
@@ -269,12 +220,7 @@
     "lat": 62,
     "lng": 15,
     "multiZone": true,
-    "zones": [
-      "SE1",
-      "SE2",
-      "SE3",
-      "SE4"
-    ]
+    "zones": ["SE1", "SE2", "SE3", "SE4"]
   },
   {
     "id": "si",
@@ -283,9 +229,7 @@
     "lat": 46.1,
     "lng": 14.8,
     "multiZone": false,
-    "zones": [
-      "SI"
-    ]
+    "zones": ["SI"]
   },
   {
     "id": "sk",
@@ -294,8 +238,6 @@
     "lat": 48.7,
     "lng": 19.5,
     "multiZone": false,
-    "zones": [
-      "SK"
-    ]
+    "zones": ["SK"]
   }
 ]

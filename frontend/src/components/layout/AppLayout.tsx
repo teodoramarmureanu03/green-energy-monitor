@@ -1,84 +1,57 @@
 import { useState } from "react";
+import type { CSSProperties } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 
-import { EuropeSummary } from "@/components/EuropeSummary";
-import { Toolbar } from "@/components/layout/Toolbar";
-import { Sidebar } from "@/components/layout/Sidebar";
-import {
-  getIsoFromPathname,
-  getScreenFromPathname,
-} from "@/routes/paths";
-import { colors, fontFamily } from "@/lib/tokens";
+import { colors, fontFamily, gradients } from "@/lib/tokens";
+import { getScreenFromPathname } from "@/routes/paths";
 
-const PAGE_BG = colors.mist;
+import { EuropeSummary } from "./EuropeSummary";
+import { Sidebar } from "./Sidebar";
+import { Toolbar } from "./Toolbar";
+import { getToolbarInfo } from "./layoutUtils";
 
-function toolbarInfo(
-  pathname: string
-): { title: string; subtitle?: string } {
-  const screen = getScreenFromPathname(pathname);
-  const iso = getIsoFromPathname(pathname);
+import "./AppLayout.css";
 
-  switch (screen) {
-    case "home":
-      return {
-        title: "Home",
-        subtitle: "EU renewable energy overview",
-      };
-    case "map":
-      return {
-        title: "Europe Map",
-        subtitle: "Solar & wind across the EU",
-      };
-    case "comparison":
-      return {
-        title: "Country Comparison",
-        subtitle: "Ranked by renewable capacity",
-      };
-    case "dashboard":
-      return {
-        title: "Dashboard",
-        subtitle: iso
-          ? `${iso} · solar & wind investment`
-          : undefined,
-      };
-    default:
-      return { title: "EU Renewables Monitor" };
-  }
-}
+const layoutCssVariables = {
+  "--layout-page-bg": colors.mist,
+  "--layout-font-family": fontFamily,
+  "--layout-sidebar-bg": gradients.sidebar,
+  "--layout-forest": colors.forest,
+  "--layout-forest-mid": colors.forestMid,
+  "--layout-sentry-teal": colors.sentryTeal,
+  "--layout-sidebar-text-1": colors.sidebarText1,
+  "--layout-sidebar-text-2": colors.sidebarText2,
+  "--layout-sidebar-text-3": colors.sidebarText3,
+  "--layout-sidebar-text-4": colors.sidebarText4,
+  "--layout-sidebar-live-dot": colors.sidebarLiveDot,
+  "--layout-sidebar-active-text": colors.sidebarActiveText,
+  "--layout-sidebar-hint-text": colors.sidebarHintText,
+  "--layout-toolbar-border": colors.borderAccent,
+  "--layout-toolbar-title": colors.ink,
+  "--layout-toolbar-subtitle": colors.muted,
+  "--layout-toolbar-btn-bg": colors.surface,
+  "--layout-toolbar-btn-border": colors.borderAccent,
+  "--layout-toolbar-btn-color": colors.slate,
+  "--layout-summary-bg": gradients.heroDark,
+} as CSSProperties;
 
 export function AppLayout() {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
 
-  const screen = getScreenFromPathname(
-    location.pathname
-  );
-  const { title, subtitle } = toolbarInfo(
-    location.pathname
-  );
+  const screen = getScreenFromPathname(location.pathname);
+  const { title, subtitle } = getToolbarInfo(location.pathname);
 
   return (
-    <div
-      style={{
-        display: "flex",
-        minHeight: "100vh",
-        background: PAGE_BG,
-        fontFamily,
-      }}
-    >
+    <div className="app-layout" style={layoutCssVariables}>
       <Sidebar
         collapsed={collapsed}
-        onToggleCollapse={() =>
-          setCollapsed((value) => !value)
-        }
+        onToggleCollapse={() => setCollapsed((value) => !value)}
       />
 
-      <main className="min-w-0 flex-1 overflow-x-auto px-6 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12">
-        <div style={{ maxWidth: 1320, margin: "0 auto" }}>
-          <Toolbar
-            title={title}
-            subtitle={subtitle}
-          />
+      <main className="app-layout-main">
+        <div className="app-layout-content">
+          <Toolbar title={title} subtitle={subtitle} />
 
           {screen !== "home" && <EuropeSummary />}
 
