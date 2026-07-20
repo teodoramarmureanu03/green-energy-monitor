@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { fetchCountries } from "@/lib/api"; // Asigură-te că aduci funcția din api.ts
+import { fetchCountries } from "@/lib/api";
 import type { Country } from "@/types/contract";
 
 export function useCountries() {
@@ -7,14 +7,14 @@ export function useCountries() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Apelăm backend-ul
+    // Load the country catalog from the API.
     fetchCountries()
       .then((data) => {
         setCountries(data);
         setLoading(false);
       })
       .catch((err) => {
-        console.error("Eroare la încărcarea țărilor:", err);
+        console.error("Failed to load countries:", err);
         setLoading(false);
       });
   }, []);

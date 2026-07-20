@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { ComparisonTable } from "./ComparisonTable";
 import type { RankedCountryGeneration } from "./comparisonUtils";
 
-// Simulăm funcția de formatare ca să nu depindem de fișierul extern de utilitare
+// Mock the formatting helper so the test does not depend on the external util file.
 vi.mock("./comparisonUtils", () => ({
   formatMw: (val: number) => `${Math.round(val).toLocaleString("en-GB")}`,
 }));
@@ -39,7 +39,7 @@ describe("ComparisonTable Component", () => {
   });
 
   it("renders the table rows and calculates progress bar width correctly", () => {
-    // maxMw este 8000 (Germania). România are 2000 => barWidth ar trebui să fie (2000 / 8000) * 100 = 25%
+    // maxMw is 8000 (Germany). Romania has 2000 => barWidth should be (2000 / 8000) * 100 = 25%.
     const { container } = render(
       <ComparisonTable
         loading={false}
@@ -49,19 +49,19 @@ describe("ComparisonTable Component", () => {
       />
     );
 
-    // Verificăm randarea textelor
+    // Check rendered text.
     expect(screen.getByText("Romania")).toBeInTheDocument();
     expect(screen.getByText("Germany")).toBeInTheDocument();
     expect(screen.getByText("1,500")).toBeInTheDocument(); // Wind RO
     expect(screen.getByText("3,000")).toBeInTheDocument(); // Solar DE
 
-    // Verificăm lățimea bării de progres pentru România (primul rând de date)
+    // Check the progress bar width for Romania (first data row).
     const progressFills = container.querySelectorAll(
       ".comparison-progress-fill"
     );
     expect(progressFills.length).toBe(2);
 
-    // Verificăm stilul inline pentru primul rând (RO) -> width: 25%
+    // Check the inline style for the first row (RO) -> width: 25%.
     expect((progressFills[0] as HTMLElement).style.width).toBe("25%");
   });
 
@@ -76,7 +76,7 @@ describe("ComparisonTable Component", () => {
       />
     );
 
-    // Facem click pe rândul României
+    // Click the Romania row.
     const row = screen.getByText("Romania").closest("tr");
     expect(row).toBeInTheDocument();
 
@@ -98,12 +98,12 @@ describe("ComparisonTable Component", () => {
     const row = screen.getByText("Germany").closest("tr");
     expect(row).toBeInTheDocument();
 
-    // Focalizăm elementul și apăsăm Enter
+    // Focus the element and press Enter.
     fireEvent.keyDown(row!, { key: "Enter" });
     expect(handleOpen).toHaveBeenCalledWith("DE");
 
-    // Apăsăm Space
+    // Press Space.
     fireEvent.keyDown(row!, { key: " " });
-    expect(handleOpen).toHaveBeenCalledTimes(2); // S-a mai apelat o dată
+    expect(handleOpen).toHaveBeenCalledTimes(2); // Called once more.
   });
 });

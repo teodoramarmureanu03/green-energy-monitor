@@ -7,8 +7,8 @@ public class HistoryDto
     public double RenewableMw { get; set; }
     public double RenewablePct { get; set; }
 
-    // Frontend-ul (GenerationHistoryApiPoint) citește direct windMw/solarMw,
-    // nu un blob JSON cu toate sursele.
+    // The frontend (GenerationHistoryApiPoint) reads windMw/solarMw directly,
+    // not a JSON blob with every source.
     public double WindMw { get; set; }
     public double SolarMw { get; set; }
 }
