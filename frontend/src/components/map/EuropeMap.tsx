@@ -7,108 +7,75 @@ import {
   type Longitude,
   type Latitude,
 } from "@vnedyalk0v/react19-simple-maps";
+
 import { useCountries } from "@/hooks/useCountries";
 import { fetchGeneration } from "@/lib/api";
 import { colors, shareToColor } from "@/lib/tokens";
-import type { CountryGeneration } from "@/types/contract";
+import type { Country, CountryGeneration } from "@/types/contract";
 import europeMap from "@/assets/europe.json";
-
 import countriesRaw from "@/data/countries.json";
-import type { Country } from "@/types/contract";
-import type { Feature, Geometry } from "geojson";
-const countriesData = countriesRaw as Country[];
+
+import { MapLegend } from "./MapLegend";
+import { MapTooltip } from "./MapTooltip";
+import { geoIso, type GeoFeature } from "./mapUtils";
 
 const GEO_URL = europeMap as unknown as string;
+const countriesData = countriesRaw as Country[];
 
-const ISO3_TO_ISO2: Record<string, string> = {
-  AUT: "AT",
-  BEL: "BE",
-  BGR: "BG",
-  CHE: "CH",
-  CZE: "CZ",
-  DEU: "DE",
-  DNK: "DK",
-  EST: "EE",
-  ESP: "ES",
-  FIN: "FI",
-  FRA: "FR",
-  GRC: "GR",
-  HRV: "HR",
-  HUN: "HU",
-  IRL: "IE",
-  ITA: "IT",
-  LTU: "LT",
-  LVA: "LV",
-  NLD: "NL",
-  NOR: "NO",
-  POL: "PL",
-  PRT: "PT",
-  ROU: "RO",
-  SWE: "SE",
-  SVN: "SI",
-  SVK: "SK",
-};
-
-// Forma unei țări din fișierul hărții (ce câmpuri are în "properties")
-interface GeoProperties {
-  iso_a3?: string;
-  name?: string;
-}
-
-// The geo objects are Feature objects with Geometry and our GeoProperties,
-// augmented by a library-added rsmKey field.
-type GeoFeature = Feature<Geometry, GeoProperties> & { rsmKey: string };
-
-function geoIso(geo: GeoFeature): string | null {
-  const iso3 = geo.properties?.iso_a3?.toUpperCase();
-  if (!iso3) return null;
-  return ISO3_TO_ISO2[iso3] ?? null;
-}
-
-export function EuropeMap({
-  onSelectCountry,
-}: {
+interface EuropeMapProps {
   onSelectCountry?: (iso: string) => void;
-}) {
+}
+
+export function EuropeMap({ onSelectCountry }: EuropeMapProps) {
   const { countries } = useCountries();
   const [hoverIso, setHoverIso] = useState<string | null>(null);
   const [hoverData, setHoverData] = useState<CountryGeneration | null>(null);
-
-  // mapă rapidă isoCode -> % regenerabil, pentru colorat harta
-  // SCHELET: aici colorăm pe baza datelor mock încărcate la hover.
-  // Pentru colorat TOATE țările din start, încarcă toate datele o dată (vezi nota de jos).
-  // procentele tuturor țărilor, încărcate o dată → colorăm toată harta din start
   const [pctByIso, setPctByIso] = useState<Map<string, number>>(new Map());
 
   useEffect(() => {
-    if (countries.length === 0) return;
+    if (countries.length === 0) {
+      return;
+    }
+
     let cancelled = false;
+
     Promise.all(
-      countries.map((c) =>
-        fetchGeneration(c.isoCode)
-          .then((d) => [c.isoCode, d.renewablePct] as const)
+      countries.map((country) =>
+        fetchGeneration(country.isoCode)
+          .then((data) => [country.isoCode, data.renewablePct] as const)
           .catch(() => null)
       )
     ).then((pairs) => {
-      if (cancelled) return;
-      const m = new Map<string, number>();
-      pairs.forEach((p) => p && m.set(p[0], p[1]));
-      setPctByIso(m);
+      if (cancelled) {
+        return;
+      }
+
+      const nextMap = new Map<string, number>();
+      for (const pair of pairs) {
+        if (pair) {
+          nextMap.set(pair[0], pair[1]);
+        }
+      }
+      setPctByIso(nextMap);
     });
+
     return () => {
       cancelled = true;
     };
   }, [countries]);
 
-  // setul de coduri pe care le avem în date (ca să știm ce e „clickabil")
   const known = useMemo(
-    () => new Set(countries.map((c) => c.isoCode)),
+    () => new Set(countries.map((country) => country.isoCode)),
     [countries]
   );
 
   async function handleEnter(iso: string) {
     setHoverIso(iso);
-    if (!known.has(iso)) return;
+
+    if (!known.has(iso)) {
+      return;
+    }
+
     try {
       const data = await fetchGeneration(iso);
       setHoverData(data);
@@ -118,21 +85,19 @@ export function EuropeMap({
   }
 
   return (
-    <div className="relative">
-      {/* The choropleth SVG has no native keyboard/screen-reader path (react-simple-maps
-          renders bare <path> elements) — this list is the real accessible interface;
-          the map below is hidden from assistive tech to avoid announcing it twice. */}
+    <div className="map-canvas">
+      {/* SVG map paths are not keyboard-accessible; this list is the a11y entry point. */}
       <nav aria-label="Select a country">
         <ul className="sr-only">
-          {countries.map((c) => (
-            <li key={c.isoCode}>
+          {countries.map((country) => (
+            <li key={country.isoCode}>
               <button
                 type="button"
-                onClick={() => onSelectCountry?.(c.isoCode)}
+                onClick={() => onSelectCountry?.(country.isoCode)}
               >
-                {c.name}
-                {pctByIso.has(c.isoCode)
-                  ? ` — ${pctByIso.get(c.isoCode)}% renewable`
+                {country.name}
+                {pctByIso.has(country.isoCode)
+                  ? ` — ${pctByIso.get(country.isoCode)}% renewable`
                   : ""}
               </button>
             </li>
@@ -154,6 +119,7 @@ export function EuropeMap({
           <Geographies geography={GEO_URL}>
             {(props) => {
               const geographies = props.geographies as GeoFeature[];
+
               return geographies.map((typedGeo) => {
                 const iso = geoIso(typedGeo);
                 const pct = iso ? pctByIso.get(iso) : undefined;
@@ -163,7 +129,7 @@ export function EuropeMap({
                   <Geography
                     key={typedGeo.rsmKey}
                     geography={typedGeo}
-                    onMouseEnter={() => iso && handleEnter(iso)}
+                    onMouseEnter={() => iso && void handleEnter(iso)}
                     onMouseLeave={() => {
                       setHoverIso(null);
                       setHoverData(null);
@@ -193,59 +159,22 @@ export function EuropeMap({
             }}
           </Geographies>
 
-          {countriesData.map((c) => (
-            <Marker key={c.isoCode} coordinates={[c.lng, c.lat]}>
-              <text
-                textAnchor="middle"
-                style={{
-                  fontSize: 7,
-                  fontWeight: 700,
-                  fill: "#1a1a1a",
-                  stroke: "#ffffff",
-                  strokeWidth: 0.4,
-                  paintOrder: "stroke",
-                  pointerEvents: "none",
-                  fontFamily: "Roboto, sans-serif",
-                }}
-              >
-                {c.isoCode}
+          {countriesData.map((country) => (
+            <Marker
+              key={country.isoCode}
+              coordinates={[country.lng, country.lat]}
+            >
+              <text textAnchor="middle" className="map-marker-label">
+                {country.isoCode}
               </text>
             </Marker>
           ))}
         </ComposableMap>
       </div>
 
-      {/* tooltip la hover */}
-      {hoverData && (
-        <div className="pointer-events-none absolute left-1/2 top-6 w-55 -translate-x-1/2 rounded-2xl border border-zinc-100 bg-white p-4 shadow-xl">
-          <div className="text-[14px] font-semibold text-zinc-800">
-            {hoverData.country}
-          </div>
-          <div className="mb-2.5 mt-1 text-[12px] text-zinc-500">
-            Renewable share{" "}
-            <b className="text-zinc-900">{hoverData.renewablePct}%</b>
-          </div>
-          <div className="text-[11px] font-medium text-zinc-400">
-            Click to open dashboard →
-          </div>
-        </div>
-      )}
+      {hoverData && <MapTooltip data={hoverData} />}
 
-      {/* legend */}
-      <div className="mt-6 flex items-center gap-3 text-[12px] font-medium text-zinc-500">
-        <span>Low share</span>
-        <div className="flex h-3.5 overflow-hidden rounded-full border border-zinc-100">
-          {[
-            colors.forestPale,
-            colors.forestSoft,
-            colors.forestMid,
-            colors.forest,
-          ].map((c) => (
-            <div key={c} className="h-full w-9" style={{ background: c }} />
-          ))}
-        </div>
-        <span>High share</span>
-      </div>
+      <MapLegend />
     </div>
   );
 }
