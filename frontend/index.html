@@ -8,7 +8,10 @@
     <script>
       (function () {
         var stored = localStorage.getItem("eu-renewables-theme");
-        document.documentElement.setAttribute("data-theme", stored === "dark" ? "dark" : "light");
+        document.documentElement.setAttribute(
+          "data-theme",
+          stored === "dark" ? "dark" : "light"
+        );
       })();
     </script>
   </head>

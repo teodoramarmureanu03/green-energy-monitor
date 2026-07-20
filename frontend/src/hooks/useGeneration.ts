@@ -6,8 +6,8 @@ const generationCache = new Map<string, CountryGeneration>();
 const POLL_INTERVAL_MS = 60_000;
 
 export function useGeneration(iso: string) {
-  const [data, setData] = useState<CountryGeneration | null>(
-    () => (iso ? generationCache.get(iso) ?? null : null)
+  const [data, setData] = useState<CountryGeneration | null>(() =>
+    iso ? (generationCache.get(iso) ?? null) : null
   );
   const [loading, setLoading] = useState<boolean>(
     () => !iso || !generationCache.has(iso)
@@ -54,23 +54,14 @@ export function useGeneration(iso: string) {
           return;
         }
 
-        console.error(
-          `Eroare la încărcarea datelor pentru ${iso}:`,
-          err
-        );
+        console.error(`Failed to load generation data for ${iso}:`, err);
 
         // Keep stale data visible during background refresh failures.
         if (!generationCache.has(iso)) {
-          setError(
-            "Nu am putut încărca datele pentru această țară."
-          );
+          setError("Could not load data for this country.");
         }
       } finally {
-        if (
-          !cancelled &&
-          isoRef.current === iso &&
-          showLoading
-        ) {
+        if (!cancelled && isoRef.current === iso && showLoading) {
           setLoading(false);
         }
       }
@@ -97,7 +88,7 @@ export function useAllGeneration(isos: string[]) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Dacă nu avem nicio țară în listă, ne oprim.
+    // Stop early when there are no countries to load.
     if (!isos || isos.length === 0) {
       setData([]);
       setLoading(false);
@@ -110,15 +101,15 @@ export function useAllGeneration(isos: string[]) {
       if (showLoading) setLoading(true);
 
       try {
-        // 1. Creăm un "batch" de cereri pentru toate țările
-        const promises = isos.map(iso => fetchGeneration(iso));
-        
-        // 2. Le executăm pe TOATE simultan
+        // 1. Build one request per country.
+        const promises = isos.map((iso) => fetchGeneration(iso));
+
+        // 2. Run all requests in parallel.
         const results = await Promise.allSettled(promises);
 
         if (cancelled) return;
 
-        // 3. Filtrăm doar cererile care au avut succes (dacă o țară pică, nu pică toată pagina)
+        // 3. Keep only successful responses so one failure does not blank the page.
         const successfulData = results
           .filter((res) => res.status === "fulfilled")
           .map((res: any) => res.value);
@@ -126,16 +117,17 @@ export function useAllGeneration(isos: string[]) {
         setData(successfulData);
         setError(null);
       } catch {
-        if (!cancelled) setError("Eroare la încărcarea datelor pentru țările selectate.");
+        if (!cancelled)
+          setError("Failed to load data for the selected countries.");
       } finally {
         if (!cancelled && showLoading) setLoading(false);
       }
     }
 
-    // Prima încărcare
+    // Initial load.
     void fetchAll(true);
 
-    // 4. UN SINGUR timer de 60 de secunde pentru toate țările!
+    // Single shared 60s refresh timer for all countries.
     const intervalId = window.setInterval(() => {
       void fetchAll(false);
     }, POLL_INTERVAL_MS);
@@ -144,7 +136,7 @@ export function useAllGeneration(isos: string[]) {
       cancelled = true;
       window.clearInterval(intervalId);
     };
-  }, [isos.join(",")]); // Refacem timer-ul doar dacă se schimbă lista de țări
+  }, [isos.join(",")]); // Rebuild the timer only when the country list changes.
 
   return { data, loading, error };
 }

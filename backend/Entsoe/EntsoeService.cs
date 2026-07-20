@@ -70,9 +70,12 @@ public class EntsoeService
         CancellationToken cancellationToken)
     {
         var zones = await GetZoneCodesOrThrowAsync(iso);
+        var sourceMap = await _generationRepository.GetEnergySourceMapAsync();
         var now = DateTime.UtcNow;
 
         var aggregated = await FetchAverageForIntervalAsync(
+            zones,
+            sourceMap,
             iso,
             now.AddDays(-1),
             now.AddDays(1),
@@ -98,9 +101,9 @@ public class EntsoeService
         string countryName,
         CancellationToken cancellationToken)
     {
-        var missingPeriods = await GetMissingPeriodsAsync(iso);
+        var periodsToSync = await GetPeriodsToSyncAsync(iso);
 
-        if (missingPeriods.Count == 0)
+        if (periodsToSync.Count == 0)
         {
             await _historyRepository.TrimChartPointsAsync(
                 iso,
@@ -111,15 +114,20 @@ public class EntsoeService
             return;
         }
 
+        // Load reference data once. Parallel chart fetches must not share DbContext queries.
+        var zones = await GetZoneCodesOrThrowAsync(iso);
+        var sourceMap = await _generationRepository.GetEnergySourceMapAsync();
         var apiGate = new SemaphoreSlim(MaxParallelHistoryRequests);
 
-        var fetchTasks = missingPeriods.Select(async period =>
+        var fetchTasks = periodsToSync.Select(async period =>
         {
             await apiGate.WaitAsync(cancellationToken);
 
             try
             {
                 var aggregated = await FetchAverageForIntervalAsync(
+                    zones,
+                    sourceMap,
                     iso,
                     period.Start,
                     period.End,
@@ -130,8 +138,8 @@ public class EntsoeService
                     IsoCode = iso,
                     CountryName = countryName,
                     PeriodType = period.PeriodType,
-                    PeriodStart = period.Start,
-                    PeriodEnd = period.End,
+                    PeriodStart = ToUtcDate(period.Start),
+                    PeriodEnd = ToUtcDate(period.End),
                     Total = aggregated.Total,
                     RenewableMw = aggregated.RenewableMw,
                     RenewablePct = aggregated.RenewablePct,
@@ -140,13 +148,32 @@ public class EntsoeService
                     UpdatedAt = DateTime.UtcNow,
                 };
             }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "Failed to fetch {PeriodType} chart point for {Iso} starting {Start:yyyy-MM-dd}",
+                    period.PeriodType,
+                    iso,
+                    period.Start);
+                return null;
+            }
             finally
             {
                 apiGate.Release();
             }
         });
 
-        var newPoints = await Task.WhenAll(fetchTasks);
+        var newPoints = (await Task.WhenAll(fetchTasks))
+            .Where(point => point is not null)
+            .Cast<GenerationChartPoint>()
+            .ToArray();
+
+        if (newPoints.Length == 0)
+        {
+            _logger.LogWarning("No chart points were fetched for {Iso}.", iso);
+            return;
+        }
 
         await _historyRepository.AddChartPointsAsync(newPoints, cancellationToken);
 
@@ -163,13 +190,30 @@ public class EntsoeService
             cancellationToken);
     }
 
-    private async Task<List<ChartPeriodDefinition>> GetMissingPeriodsAsync(string iso)
+    private async Task<List<ChartPeriodDefinition>> GetPeriodsToSyncAsync(string iso)
     {
         var required = BuildRequiredPeriods();
         var existing = await _historyRepository.GetExistingPeriodKeysAsync(iso);
 
+        var today = DateTime.UtcNow.Date;
+        var currentWeekStart = GetWeekStart(today);
+        var currentMonthStart = ToUtcDate(new DateTime(
+            today.Year,
+            today.Month,
+            1,
+            0,
+            0,
+            0,
+            DateTimeKind.Utc));
+
+        // Day buckets always refresh (rolling 7-day window).
+        // Week/month buckets: refresh the current (in-progress) bucket so month/year charts update daily.
         return required
-            .Where(period => !existing.Contains((period.PeriodType, period.Start)))
+            .Where(period =>
+                period.PeriodType == "Day" ||
+                (period.PeriodType == "Week" && period.Start.Date == currentWeekStart.Date) ||
+                (period.PeriodType == "Month" && period.Start.Date == currentMonthStart.Date) ||
+                !existing.Contains((period.PeriodType, period.Start.Date)))
             .ToList();
     }
 
@@ -178,32 +222,35 @@ public class EntsoeService
         var periods = new List<ChartPeriodDefinition>();
         var today = DateTime.UtcNow.Date;
 
-        for (var offset = DailyChartBuckets; offset >= 1; offset--)
+        // Today and the previous six days.
+        for (var offset = DailyChartBuckets - 1; offset >= 0; offset--)
         {
-            var start = today.AddDays(-offset);
+            var start = ToUtcDate(today.AddDays(-offset));
             periods.Add(new ChartPeriodDefinition("Day", start, start.AddDays(1)));
         }
 
         var weekStart = GetWeekStart(today);
 
-        for (var offset = WeeklyChartBuckets; offset >= 1; offset--)
+        // Current week (starting Monday) plus the previous weeks to fill the chart window.
+        for (var offset = WeeklyChartBuckets - 1; offset >= 0; offset--)
         {
-            var start = weekStart.AddDays(-7 * offset);
+            var start = ToUtcDate(weekStart.AddDays(-7 * offset));
             periods.Add(new ChartPeriodDefinition("Week", start, start.AddDays(7)));
         }
 
-        var monthStart = new DateTime(
+        var monthStart = ToUtcDate(new DateTime(
             today.Year,
             today.Month,
             1,
             0,
             0,
             0,
-            DateTimeKind.Utc);
+            DateTimeKind.Utc));
 
-        for (var offset = MonthlyChartBuckets; offset >= 1; offset--)
+        // Current month plus previous months to fill the chart window.
+        for (var offset = MonthlyChartBuckets - 1; offset >= 0; offset--)
         {
-            var start = monthStart.AddMonths(-offset);
+            var start = ToUtcDate(monthStart.AddMonths(-offset));
             periods.Add(new ChartPeriodDefinition("Month", start, start.AddMonths(1)));
         }
 
@@ -211,14 +258,13 @@ public class EntsoeService
     }
 
     private async Task<AggregatedGeneration> FetchAverageForIntervalAsync(
+        IReadOnlyList<string> zones,
+        Dictionary<string, (string Name, bool Renewable)> sourceMap,
         string iso,
         DateTime start,
         DateTime end,
         CancellationToken cancellationToken)
     {
-        var zones = await GetZoneCodesOrThrowAsync(iso);
-        var sourceMap = await _generationRepository.GetEnergySourceMapAsync();
-
         var valuesByTimestamp = new Dictionary<DateTime, Dictionary<string, double>>();
 
         var xmlDocuments = await Task.WhenAll(
@@ -436,8 +482,11 @@ public class EntsoeService
     private static DateTime GetWeekStart(DateTime date)
     {
         var daysFromMonday = (7 + (date.DayOfWeek - DayOfWeek.Monday)) % 7;
-        return date.Date.AddDays(-daysFromMonday);
+        return ToUtcDate(date.Date.AddDays(-daysFromMonday));
     }
+
+    private static DateTime ToUtcDate(DateTime date) =>
+        DateTime.SpecifyKind(date.Date, DateTimeKind.Utc);
 
     private sealed class AggregatedGeneration
     {
