@@ -1,28 +1,11 @@
 import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import {
-  GitCompareArrows,
-  Map,
-  Leaf,
-  Home,
-  PanelLeftClose,
-  PanelLeftOpen,
-} from "lucide-react";
+import { Leaf, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { colors, gradients } from "@/lib/tokens";
-import { paths } from "@/routes/paths";
 
-const ITEMS = [
-  { id: "home", label: "Home", icon: Home, to: paths.home },
-  { id: "map", label: "Europe Map", icon: Map, to: paths.map },
-  {
-    id: "comparison",
-    label: "Country Comparison",
-    icon: GitCompareArrows,
-    to: paths.comparison,
-  },
-] as const;
+import { SIDEBAR_ITEMS } from "./layoutData";
+import { isSidebarItemActive } from "./layoutUtils";
 
 function useNow() {
   const [now, setNow] = useState(new Date());
@@ -35,28 +18,12 @@ function useNow() {
   return now;
 }
 
-function isItemActive(
-  itemId: (typeof ITEMS)[number]["id"],
-  pathname: string
-): boolean {
-  if (itemId === "home") {
-    return pathname === paths.home;
-  }
-
-  if (itemId === "map") {
-    return pathname === paths.map || pathname.startsWith("/dashboard/");
-  }
-
-  return pathname === paths.comparison;
-}
-
-export function Sidebar({
-  collapsed,
-  onToggleCollapse,
-}: {
+interface SidebarProps {
   collapsed: boolean;
   onToggleCollapse: () => void;
-}) {
+}
+
+export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
   const location = useLocation();
   const now = useNow();
 
@@ -73,26 +40,21 @@ export function Sidebar({
     year: "numeric",
   });
 
-  const widthClass = collapsed ? "w-[76px]" : "w-[76px] lg:w-[280px]";
   const showText = !collapsed;
 
   return (
     <nav
       className={cn(
-        "sticky top-0 flex h-screen shrink-0 flex-col overflow-y-auto overflow-x-hidden px-3 py-6 transition-all duration-300",
-        widthClass,
-        !collapsed && "lg:px-5"
+        "layout-sidebar",
+        collapsed ? "layout-sidebar-collapsed" : "layout-sidebar-expanded"
       )}
-      style={{
-        background: gradients.sidebar,
-        transition: "background 200ms var(--ease-out-expo)",
-      }}
     >
       <button
+        type="button"
         onClick={onToggleCollapse}
         title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        className="mb-4 flex h-9 w-9 items-center justify-center self-center rounded-lg text-white/70 transition-colors hover:bg-white/10 hover:text-white lg:self-end"
+        className="layout-sidebar-toggle"
       >
         {collapsed ? (
           <PanelLeftOpen className="h-5 w-5" />
@@ -101,87 +63,41 @@ export function Sidebar({
         )}
       </button>
 
-      <div className="mb-8 flex items-center justify-center gap-3 lg:justify-start">
-        <div
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white"
-          style={{
-            background: `linear-gradient(135deg, ${colors.forestMid}, ${colors.forest})`,
-            boxShadow: "0 4px 14px rgba(28,107,42,0.45)",
-          }}
-        >
+      <div className="layout-sidebar-brand">
+        <div className="layout-sidebar-logo">
           <Leaf className="h-5 w-5" />
         </div>
 
         {showText && (
-          <div className="hidden leading-tight lg:block">
-            <div className="text-[16px] font-bold tracking-tight text-white">
-              EU Renewables
-            </div>
-
-            <div
-              className="text-[11px] font-medium uppercase tracking-[0.08em]"
-              style={{ color: colors.sidebarText1 }}
-            >
-              Monitor
-            </div>
+          <div className="layout-sidebar-brand-text">
+            <div className="layout-sidebar-brand-title">EU Renewables</div>
+            <div className="layout-sidebar-brand-subtitle">Monitor</div>
           </div>
         )}
       </div>
 
       {showText && (
-        <div
-          className="mb-8 hidden rounded-2xl border px-4 py-4 lg:block"
-          style={{
-            background: "rgba(255,255,255,0.05)",
-            borderColor: "rgba(255,255,255,0.1)",
-          }}
-        >
-          <div className="mb-3 flex items-center gap-2">
-            <span
-              className="inline-block h-1.75 w-1.75 rounded-full"
-              style={{
-                background: colors.sidebarLiveDot,
-                boxShadow: "0 0 0 3px rgba(34,197,94,0.2)",
-              }}
-            />
-
-            <span
-              className="text-[11px]"
-              style={{ color: colors.sidebarText2 }}
-            >
+        <div className="layout-sidebar-live">
+          <div className="layout-sidebar-live-header">
+            <span className="layout-sidebar-live-dot" />
+            <span className="layout-sidebar-live-caption">
               Live data · ENTSO-E
             </span>
           </div>
 
-          <div
-            className="font-mono text-[26px] font-semibold leading-none tracking-tight tabular-nums"
-            style={{ color: colors.sentryTeal }}
-          >
-            {timeStr}
-          </div>
-
-          <div
-            className="mt-2 text-[11px] capitalize"
-            style={{ color: colors.sidebarText1 }}
-          >
-            {dateStr}
-          </div>
+          <div className="layout-sidebar-time">{timeStr}</div>
+          <div className="layout-sidebar-date">{dateStr}</div>
         </div>
       )}
 
       {showText && (
-        <div
-          className="hidden px-2 pb-3 text-[11px] font-semibold uppercase tracking-widest lg:block"
-          style={{ color: colors.sidebarText3 }}
-        >
-          Navigation
-        </div>
+        <div className="layout-sidebar-nav-label">Navigation</div>
       )}
 
-      <div className="flex flex-col gap-1">
-        {ITEMS.map((item) => {
+      <div className="layout-sidebar-nav">
+        {SIDEBAR_ITEMS.map((item) => {
           const Icon = item.icon;
-          const isActive = isItemActive(item.id, location.pathname);
+          const isActive = isSidebarItemActive(item.id, location.pathname);
 
           return (
             <NavLink
@@ -191,24 +107,14 @@ export function Sidebar({
               title={item.label}
               aria-current={isActive ? "page" : undefined}
               className={cn(
-                "flex items-center gap-3 rounded-[9px] px-3 py-3 text-[14px] transition-colors",
-                collapsed
-                  ? "justify-center"
-                  : "justify-center lg:justify-start",
-                isActive ? "font-medium" : "hover:bg-white/5"
+                "layout-sidebar-link",
+                collapsed && "layout-sidebar-link-collapsed",
+                isActive && "layout-sidebar-link-active"
               )}
-              style={
-                isActive
-                  ? {
-                      background: colors.sentryTeal,
-                      color: colors.sidebarActiveText,
-                    }
-                  : { color: colors.sidebarText4 }
-              }
             >
               <Icon className="h-4.5 w-4.5 shrink-0" />
               {showText && (
-                <span className="hidden lg:inline">{item.label}</span>
+                <span className="layout-sidebar-link-label">{item.label}</span>
               )}
             </NavLink>
           );
@@ -216,14 +122,7 @@ export function Sidebar({
       </div>
 
       {showText && (
-        <div
-          className="mx-1 mt-4 hidden rounded-xl border px-4 py-3 text-[11px] leading-relaxed lg:block"
-          style={{
-            background: "rgba(3,189,194,0.1)",
-            borderColor: "rgba(3,189,194,0.25)",
-            color: colors.sidebarHintText,
-          }}
-        >
+        <div className="layout-sidebar-hint">
           💡 Click any country on the map to open its investment dashboard.
         </div>
       )}
