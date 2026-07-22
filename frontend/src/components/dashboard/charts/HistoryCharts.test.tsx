@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { RenewableHistoryChart, TotalEnergyHistoryChart } from './HistoryCharts';
-import type { GenerationHistoryPoint, HistoryPeriod } from '@/types/contract';
+import type { GenerationHistoryPoint, HistoryPeriod } from '../../../types/contract';
 
 // Mock pentru ResponsiveContainer pentru a preveni erorile de randare din JSDOM
 vi.mock('recharts', async () => {
