@@ -41,16 +41,19 @@ public class EntsoeService
         _db = db;
         _logger = logger;
 
-        var rawKey = config["EntsoeApiKey"]
-            ?? throw new InvalidOperationException("EntsoeApiKey is missing from configuration.");
+        var rawKey = Environment.GetEnvironmentVariable("ENTSOE_API_KEY")
+            ?? config["EntsoeApiKey"]
+            ?? throw new InvalidOperationException(
+                "EntsoeApiKey is missing from configuration.");
 
-        _apiKey = Environment.ExpandEnvironmentVariables(rawKey);
+        _apiKey = Environment.ExpandEnvironmentVariables(rawKey).Trim();
 
         if (string.IsNullOrWhiteSpace(_apiKey) ||
-            _apiKey.Contains("ENTSOE_API_KEY", StringComparison.Ordinal))
+            _apiKey.Contains("ENTSOE_API_KEY", StringComparison.Ordinal) ||
+            _apiKey.Contains("your_entsoe_api_key", StringComparison.OrdinalIgnoreCase))
         {
             throw new InvalidOperationException(
-                "ENTSO-E API key is not configured. Set ENTSOE_API_KEY or EntsoeApiKey in appsettings.");
+                "ENTSO-E API key is not configured. Add ENTSOE_API_KEY to a .env file next to docker-compose.yml, then run: docker compose up --build");
         }
     }
 

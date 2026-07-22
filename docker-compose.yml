@@ -1,25 +1,55 @@
-version: '3.8'
-
 services:
+  db:
+    image: postgres:16-alpine
+    container_name: energy_db
+    environment:
+      POSTGRES_DB: energy_monitor
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - energy_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d energy_monitor"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   backend:
-    build: 
+    build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: energy_backend
     ports:
       - "5000:8080"
     env_file:
-      - ./backend/.env
-    # Următoarele două rânduri îi permit containerului să acceseze baza ta de date de pe Windows
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - path: .env
+        required: false
+      - path: ./backend/.env
+        required: false
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=energy_monitor;Username=postgres;Password=postgres
+      # Loaded from repo-root .env (copy .env.example). Required for ENTSO-E sync.
+      ENTSOE_API_KEY: ${ENTSOE_API_KEY:?Create .env from .env.example and set ENTSOE_API_KEY}
+      EntsoeApiKey: ${ENTSOE_API_KEY}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
 
   frontend:
-    build: 
+    build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:5000
     container_name: energy_frontend
     ports:
       - "3000:80"
     depends_on:
       - backend
+    restart: unless-stopped
+
+volumes:
+  energy_pgdata:

@@ -9,14 +9,10 @@ namespace backend.Controllers;
 public class GenerationController : ControllerBase
 {
     private readonly GenerationService _generationService;
-    private readonly EntsoeService _entsoeService;
 
-    public GenerationController(
-        GenerationService generationService,
-        EntsoeService entsoeService)
+    public GenerationController(GenerationService generationService)
     {
         _generationService = generationService;
-        _entsoeService = entsoeService;
     }
 
     [HttpGet("{iso}")]
@@ -51,7 +47,10 @@ public class GenerationController : ControllerBase
 
         try
         {
-            await _entsoeService.RefreshCountryDataAsync(
+            // Resolve only for backfill so normal reads do not require the ENTSO-E key.
+            var entsoeService = HttpContext.RequestServices.GetRequiredService<EntsoeService>();
+
+            await entsoeService.RefreshCountryDataAsync(
                 iso,
                 CountryCatalog.GetDisplayName(iso),
                 cancellationToken);
