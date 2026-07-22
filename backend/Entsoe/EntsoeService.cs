@@ -3,7 +3,6 @@ using System.Text.Json;
 using System.Xml.Linq;
 using backend.Models;
 using backend.Repositories;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -23,7 +22,7 @@ public class EntsoeService
     private readonly HttpClient _httpClient;
     private readonly IGenerationRepository _generationRepository;
     private readonly IHistoryRepository _historyRepository;
-    private readonly EnergyDbContext _db;
+    private readonly IPreferencesRepository _preferencesRepository;
     private readonly ILogger<EntsoeService> _logger;
     private readonly string _apiKey;
 
@@ -32,13 +31,13 @@ public class EntsoeService
         IConfiguration config,
         IGenerationRepository generationRepository,
         IHistoryRepository historyRepository,
-        EnergyDbContext db,
+        IPreferencesRepository preferencesRepository,
         ILogger<EntsoeService> logger)
     {
         _httpClient = httpClient;
         _generationRepository = generationRepository;
         _historyRepository = historyRepository;
-        _db = db;
+        _preferencesRepository = preferencesRepository;
         _logger = logger;
 
         var rawKey = Environment.GetEnvironmentVariable("ENTSOE_API_KEY")
@@ -283,11 +282,7 @@ public class EntsoeService
     private async Task<TimeZoneInfo> GetPreferredTimeZoneAsync(
         CancellationToken cancellationToken)
     {
-        var preferred = await _db.ViewerTimezonePreferences
-            .AsNoTracking()
-            .OrderByDescending(preference => preference.UpdatedAt)
-            .Select(preference => preference.TimeZone)
-            .FirstOrDefaultAsync(cancellationToken);
+        var preferred = await _preferencesRepository.GetLatestTimeZoneIdAsync(cancellationToken);
 
         if (!string.IsNullOrWhiteSpace(preferred) &&
             HistoryDtoMapper.TryGetTimeZone(preferred, out var zone))

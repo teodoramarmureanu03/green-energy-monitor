@@ -8,7 +8,7 @@ namespace backend.Repositories;
 
 public interface IHistoryRepository
 {
-    Task<List<HistoryDto>> GetChartPointsAsync(
+    Task<List<HistoryResponse>> GetChartPointsAsync(
         string iso,
         string periodType,
         int limit,

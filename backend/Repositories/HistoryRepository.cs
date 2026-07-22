@@ -17,7 +17,7 @@ public class HistoryRepository : IHistoryRepository
         _db = db;
     }
 
-    public async Task<List<HistoryDto>> GetChartPointsAsync(
+    public async Task<List<HistoryResponse>> GetChartPointsAsync(
         string iso,
         string periodType,
         int limit,
@@ -37,7 +37,7 @@ public class HistoryRepository : IHistoryRepository
 
         return points
             .GroupBy(point => HistoryDtoMapper.FormatPeriodDate(point.PeriodStart, timeZone))
-            .Select(group => HistoryDtoMapper.BuildHistoryDto(group.First(), timeZone))
+            .Select(group => HistoryDtoMapper.BuildHistoryResponse(group.First(), timeZone))
             .OrderBy(dto => dto.Date)
             .Take(limit)
             .ToList();
