@@ -4,7 +4,10 @@ using backend.Services;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
-DotNetEnv.Env.Load();
+if (File.Exists(".env"))
+{
+    DotNetEnv.Env.Load();
+}
 
 var builder = WebApplication.CreateBuilder(args);
 

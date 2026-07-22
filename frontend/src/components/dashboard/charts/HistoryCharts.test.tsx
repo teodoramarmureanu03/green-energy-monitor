@@ -16,8 +16,24 @@ vi.mock('recharts', async () => {
 
 describe('Componentele din HistoryCharts', () => {
   const mockData: GenerationHistoryPoint[] = [
-    { label: 'Jan', windMw: 1200, solarMw: 800, total: 2000, tooltipLabel: 'January' },
-    { label: 'Feb', windMw: 1500, solarMw: 900, total: 2400, tooltipLabel: 'February' },
+    {
+      date: "2026-01-01",
+      label: "Jan",
+      windMw: 1200,
+      solarMw: 800,
+      total: 2000,
+      renewableMw: 2000,
+      tooltipLabel: "January",
+    },
+    {
+      date: "2026-02-01",
+      label: "Feb",
+      windMw: 1500,
+      solarMw: 900,
+      total: 2400,
+      renewableMw: 2400,
+      tooltipLabel: "February",
+    },
   ];
   const mockPeriod: HistoryPeriod = 'year';
 
