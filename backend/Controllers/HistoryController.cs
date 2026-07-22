@@ -1,4 +1,5 @@
 using backend;
+using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -28,7 +29,13 @@ public class HistoryController : ControllerBase
             return NotFound(new { Message = $"Unknown country: {iso}." });
         }
 
-        var historyData = await _historyService.GetHistoryAsync(iso, period, timeZone);
+        var historyData = await _historyService.GetHistoryAsync(new HistoryRequest
+        {
+            Iso = iso,
+            Period = period,
+            TimeZone = timeZone,
+        });
+
         return Ok(historyData);
     }
 }

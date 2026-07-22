@@ -15,12 +15,9 @@ public class HistoryService
         _historyRepository = historyRepository;
     }
 
-    public async Task<List<HistoryDto>> GetHistoryAsync(
-        string iso,
-        string period,
-        string? timeZone = null)
+    public async Task<List<HistoryResponse>> GetHistoryAsync(HistoryRequest request)
     {
-        var periodType = period.ToLower() switch
+        var periodType = request.Period.ToLower() switch
         {
             "month" => "Week",
             "year" => "Month",
@@ -36,9 +33,9 @@ public class HistoryService
         };
 
         return await _historyRepository.GetChartPointsAsync(
-            iso,
+            request.Iso,
             periodType,
             limit,
-            timeZone);
+            request.TimeZone);
     }
 }

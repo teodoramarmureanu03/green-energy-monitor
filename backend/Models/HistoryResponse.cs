@@ -1,6 +1,6 @@
 namespace backend.Models;
 
-public class HistoryDto
+public class HistoryResponse
 {
     public string Date { get; set; } = string.Empty;
     public double Total { get; set; }
