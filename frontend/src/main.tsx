@@ -8,12 +8,15 @@ import "@fontsource/roboto/700.css";
 import "./index.css";
 import App from "./App.tsx";
 import { ThemeProvider } from "./lib/theme.tsx";
+import { TimezoneProvider } from "./lib/timezone.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
       <ThemeProvider>
-        <App />
+        <TimezoneProvider>
+          <App />
+        </TimezoneProvider>
       </ThemeProvider>
     </BrowserRouter>
   </StrictMode>

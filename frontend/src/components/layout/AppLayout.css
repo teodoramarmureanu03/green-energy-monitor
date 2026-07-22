@@ -78,6 +78,37 @@
   cursor: pointer;
 }
 
+.layout-toolbar-timezone {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.layout-toolbar-timezone-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--layout-toolbar-subtitle, var(--layout-sidebar-text-2));
+  white-space: nowrap;
+}
+
+.layout-toolbar-timezone-select {
+  height: 36px;
+  max-width: 180px;
+  border-radius: 9px;
+  border: 1px solid var(--layout-toolbar-btn-border);
+  background: var(--layout-toolbar-btn-bg);
+  color: var(--layout-toolbar-title);
+  padding: 0 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.layout-sidebar-timezone {
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--layout-sidebar-text-2);
+}
+
 /* Sidebar */
 
 .layout-sidebar {

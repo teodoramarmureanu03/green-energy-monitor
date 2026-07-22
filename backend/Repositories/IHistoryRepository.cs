@@ -11,12 +11,16 @@ public interface IHistoryRepository
     Task<List<HistoryDto>> GetChartPointsAsync(
         string iso,
         string periodType,
-        int limit);
+        int limit,
+        string? timeZone = null);
 
-    Task<HashSet<(string PeriodType, DateTime PeriodStart)>> GetExistingPeriodKeysAsync(string iso);
+    Task<HashSet<(string PeriodType, DateTime PeriodStart)>> GetExistingPeriodKeysAsync(
+        string iso,
+        string? timeZone = null);
 
     Task AddChartPointsAsync(
         IEnumerable<GenerationChartPoint> points,
+        string? timeZone = null,
         CancellationToken cancellationToken = default);
 
     Task TrimChartPointsAsync(
@@ -24,5 +28,6 @@ public interface IHistoryRepository
         int dailyKeep,
         int weeklyKeep,
         int monthlyKeep,
+        string? timeZone = null,
         CancellationToken cancellationToken = default);
 }

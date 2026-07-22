@@ -16,7 +16,10 @@ public class HistoryController : ControllerBase
     }
 
     [HttpGet("{iso}")]
-    public async Task<IActionResult> GetHistory(string iso, [FromQuery] string period = "week")
+    public async Task<IActionResult> GetHistory(
+        string iso,
+        [FromQuery] string period = "week",
+        [FromQuery] string? timeZone = null)
     {
         iso = iso.ToUpperInvariant();
 
@@ -25,7 +28,7 @@ public class HistoryController : ControllerBase
             return NotFound(new { Message = $"Unknown country: {iso}." });
         }
 
-        var historyData = await _historyService.GetHistoryAsync(iso, period);
+        var historyData = await _historyService.GetHistoryAsync(iso, period, timeZone);
         return Ok(historyData);
     }
 }

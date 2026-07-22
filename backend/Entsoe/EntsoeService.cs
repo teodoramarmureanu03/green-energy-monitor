@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Xml.Linq;
 using backend.Models;
 using backend.Repositories;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -22,6 +23,7 @@ public class EntsoeService
     private readonly HttpClient _httpClient;
     private readonly IGenerationRepository _generationRepository;
     private readonly IHistoryRepository _historyRepository;
+    private readonly EnergyDbContext _db;
     private readonly ILogger<EntsoeService> _logger;
     private readonly string _apiKey;
 
@@ -30,11 +32,13 @@ public class EntsoeService
         IConfiguration config,
         IGenerationRepository generationRepository,
         IHistoryRepository historyRepository,
+        EnergyDbContext db,
         ILogger<EntsoeService> logger)
     {
         _httpClient = httpClient;
         _generationRepository = generationRepository;
         _historyRepository = historyRepository;
+        _db = db;
         _logger = logger;
 
         var rawKey = config["EntsoeApiKey"]
@@ -101,7 +105,10 @@ public class EntsoeService
         string countryName,
         CancellationToken cancellationToken)
     {
-        var periodsToSync = await GetPeriodsToSyncAsync(iso);
+        var timeZone = await GetPreferredTimeZoneAsync(cancellationToken);
+        var periodsToSync = await GetPeriodsToSyncAsync(iso, timeZone);
+
+        var timeZoneId = timeZone.Id;
 
         if (periodsToSync.Count == 0)
         {
@@ -110,6 +117,7 @@ public class EntsoeService
                 DailyChartBuckets,
                 WeeklyChartBuckets,
                 MonthlyChartBuckets,
+                timeZoneId,
                 cancellationToken);
             return;
         }
@@ -125,12 +133,13 @@ public class EntsoeService
 
             try
             {
+                // Fetch uses real local-day UTC bounds; PeriodStart stays a calendar date key.
                 var aggregated = await FetchAverageForIntervalAsync(
                     zones,
                     sourceMap,
                     iso,
-                    period.Start,
-                    period.End,
+                    period.FetchStart,
+                    period.FetchEnd,
                     cancellationToken);
 
                 return new GenerationChartPoint
@@ -138,8 +147,8 @@ public class EntsoeService
                     IsoCode = iso,
                     CountryName = countryName,
                     PeriodType = period.PeriodType,
-                    PeriodStart = ToUtcDate(period.Start),
-                    PeriodEnd = ToUtcDate(period.End),
+                    PeriodStart = DateTime.SpecifyKind(period.Start, DateTimeKind.Utc),
+                    PeriodEnd = DateTime.SpecifyKind(period.End, DateTimeKind.Utc),
                     Total = aggregated.Total,
                     RenewableMw = aggregated.RenewableMw,
                     RenewablePct = aggregated.RenewablePct,
@@ -172,10 +181,17 @@ public class EntsoeService
         if (newPoints.Length == 0)
         {
             _logger.LogWarning("No chart points were fetched for {Iso}.", iso);
+            await _historyRepository.TrimChartPointsAsync(
+                iso,
+                DailyChartBuckets,
+                WeeklyChartBuckets,
+                MonthlyChartBuckets,
+                timeZoneId,
+                cancellationToken);
             return;
         }
 
-        await _historyRepository.AddChartPointsAsync(newPoints, cancellationToken);
+        await _historyRepository.AddChartPointsAsync(newPoints, timeZoneId, cancellationToken);
 
         _logger.LogInformation(
             "Stored {Count} chart points for {Iso}",
@@ -187,74 +203,98 @@ public class EntsoeService
             DailyChartBuckets,
             WeeklyChartBuckets,
             MonthlyChartBuckets,
+            timeZoneId,
             cancellationToken);
     }
 
-    private async Task<List<ChartPeriodDefinition>> GetPeriodsToSyncAsync(string iso)
+    private async Task<List<ChartPeriodDefinition>> GetPeriodsToSyncAsync(
+        string iso,
+        TimeZoneInfo timeZone)
     {
-        var required = BuildRequiredPeriods();
-        var existing = await _historyRepository.GetExistingPeriodKeysAsync(iso);
+        var required = BuildRequiredPeriods(timeZone);
+        var existing = await _historyRepository.GetExistingPeriodKeysAsync(iso, timeZone.Id);
 
-        var today = DateTime.UtcNow.Date;
-        var currentWeekStart = GetWeekStart(today);
-        var currentMonthStart = ToUtcDate(new DateTime(
-            today.Year,
-            today.Month,
-            1,
-            0,
-            0,
-            0,
-            DateTimeKind.Utc));
+        var todayLocal = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZone).Date;
+        var currentWeekStart = ToUtcDate(GetWeekStartLocal(todayLocal));
+        var currentMonthStart = ToUtcDate(new DateTime(todayLocal.Year, todayLocal.Month, 1));
 
         // Day buckets always refresh (rolling 7-day window).
         // Week/month buckets: refresh the current (in-progress) bucket so month/year charts update daily.
         return required
             .Where(period =>
                 period.PeriodType == "Day" ||
-                (period.PeriodType == "Week" && period.Start.Date == currentWeekStart.Date) ||
-                (period.PeriodType == "Month" && period.Start.Date == currentMonthStart.Date) ||
+                (period.PeriodType == "Week" && period.Start == currentWeekStart) ||
+                (period.PeriodType == "Month" && period.Start == currentMonthStart) ||
                 !existing.Contains((period.PeriodType, period.Start.Date)))
             .ToList();
     }
 
-    private static List<ChartPeriodDefinition> BuildRequiredPeriods()
+    private static List<ChartPeriodDefinition> BuildRequiredPeriods(TimeZoneInfo timeZone)
     {
         var periods = new List<ChartPeriodDefinition>();
-        var today = DateTime.UtcNow.Date;
+        var todayLocal = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZone).Date;
 
-        // Today and the previous six days.
+        // Today and the previous six days in the preferred viewer timezone.
+        // PeriodStart/End are calendar-date keys (UTC midnight of the local date) so chart
+        // labels stay on the intended day. FetchStart/End are the real ENTSO-E UTC window.
         for (var offset = DailyChartBuckets - 1; offset >= 0; offset--)
         {
-            var start = ToUtcDate(today.AddDays(-offset));
-            periods.Add(new ChartPeriodDefinition("Day", start, start.AddDays(1)));
+            var startLocal = todayLocal.AddDays(-offset);
+            periods.Add(new ChartPeriodDefinition(
+                "Day",
+                ToUtcDate(startLocal),
+                ToUtcDate(startLocal.AddDays(1)),
+                LocalDateToUtc(startLocal, timeZone),
+                LocalDateToUtc(startLocal.AddDays(1), timeZone)));
         }
 
-        var weekStart = GetWeekStart(today);
+        var weekStartLocal = GetWeekStartLocal(todayLocal);
 
-        // Current week (starting Monday) plus the previous weeks to fill the chart window.
         for (var offset = WeeklyChartBuckets - 1; offset >= 0; offset--)
         {
-            var start = ToUtcDate(weekStart.AddDays(-7 * offset));
-            periods.Add(new ChartPeriodDefinition("Week", start, start.AddDays(7)));
+            var startLocal = weekStartLocal.AddDays(-7 * offset);
+            periods.Add(new ChartPeriodDefinition(
+                "Week",
+                ToUtcDate(startLocal),
+                ToUtcDate(startLocal.AddDays(7)),
+                LocalDateToUtc(startLocal, timeZone),
+                LocalDateToUtc(startLocal.AddDays(7), timeZone)));
         }
 
-        var monthStart = ToUtcDate(new DateTime(
-            today.Year,
-            today.Month,
-            1,
-            0,
-            0,
-            0,
-            DateTimeKind.Utc));
+        var monthStartLocal = new DateTime(todayLocal.Year, todayLocal.Month, 1);
 
-        // Current month plus previous months to fill the chart window.
         for (var offset = MonthlyChartBuckets - 1; offset >= 0; offset--)
         {
-            var start = ToUtcDate(monthStart.AddMonths(-offset));
-            periods.Add(new ChartPeriodDefinition("Month", start, start.AddMonths(1)));
+            var startLocal = monthStartLocal.AddMonths(-offset);
+            periods.Add(new ChartPeriodDefinition(
+                "Month",
+                ToUtcDate(startLocal),
+                ToUtcDate(startLocal.AddMonths(1)),
+                LocalDateToUtc(startLocal, timeZone),
+                LocalDateToUtc(startLocal.AddMonths(1), timeZone)));
         }
 
         return periods;
+    }
+
+    private async Task<TimeZoneInfo> GetPreferredTimeZoneAsync(
+        CancellationToken cancellationToken)
+    {
+        var preferred = await _db.ViewerTimezonePreferences
+            .AsNoTracking()
+            .OrderByDescending(preference => preference.UpdatedAt)
+            .Select(preference => preference.TimeZone)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (!string.IsNullOrWhiteSpace(preferred) &&
+            HistoryDtoMapper.TryGetTimeZone(preferred, out var zone))
+        {
+            return zone;
+        }
+
+        return HistoryDtoMapper.TryGetTimeZone("Europe/Bucharest", out var fallback)
+            ? fallback
+            : TimeZoneInfo.Utc;
     }
 
     private async Task<AggregatedGeneration> FetchAverageForIntervalAsync(
@@ -479,10 +519,16 @@ public class EntsoeService
         return result;
     }
 
-    private static DateTime GetWeekStart(DateTime date)
+    private static DateTime GetWeekStartLocal(DateTime localDate)
     {
-        var daysFromMonday = (7 + (date.DayOfWeek - DayOfWeek.Monday)) % 7;
-        return ToUtcDate(date.Date.AddDays(-daysFromMonday));
+        var daysFromMonday = (7 + (localDate.DayOfWeek - DayOfWeek.Monday)) % 7;
+        return localDate.Date.AddDays(-daysFromMonday);
+    }
+
+    private static DateTime LocalDateToUtc(DateTime localDate, TimeZoneInfo timeZone)
+    {
+        var unspecified = DateTime.SpecifyKind(localDate.Date, DateTimeKind.Unspecified);
+        return TimeZoneInfo.ConvertTimeToUtc(unspecified, timeZone);
     }
 
     private static DateTime ToUtcDate(DateTime date) =>
@@ -501,5 +547,7 @@ public class EntsoeService
     private sealed record ChartPeriodDefinition(
         string PeriodType,
         DateTime Start,
-        DateTime End);
+        DateTime End,
+        DateTime FetchStart,
+        DateTime FetchEnd);
 }

@@ -18,6 +18,8 @@ public class EnergyDbContext : DbContext
     public DbSet<GenerationChartPoint> GenerationChartPoints => Set<GenerationChartPoint>();
     public DbSet<EnergySource> EnergySources => Set<EnergySource>();
     public DbSet<CountryZone> CountryZones => Set<CountryZone>();
+    public DbSet<ViewerTimezonePreference> ViewerTimezonePreferences =>
+        Set<ViewerTimezonePreference>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -71,6 +73,21 @@ public class EnergyDbContext : DbContext
             entity.HasKey(zone => zone.Id);
             entity.Property(zone => zone.IsoCode).HasMaxLength(10);
             entity.Property(zone => zone.ZoneCode).HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<ViewerTimezonePreference>(entity =>
+        {
+            entity.HasKey(preference => preference.Id);
+            entity.Property(preference => preference.ClientId)
+                .HasMaxLength(100)
+                .IsRequired();
+            entity.Property(preference => preference.CountryIso)
+                .HasMaxLength(10)
+                .IsRequired();
+            entity.Property(preference => preference.TimeZone)
+                .HasMaxLength(100)
+                .IsRequired();
+            entity.HasIndex(preference => preference.ClientId).IsUnique();
         });
     }
 }
