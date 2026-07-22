@@ -66,7 +66,32 @@ public class EntsoeService
     {
         iso = iso.ToUpperInvariant();
 
+        await RefreshLiveSnapshotAsync(iso, countryName, cancellationToken);
+        await RefreshChartHistoryAsync(iso, countryName, cancellationToken);
+    }
+
+    /// <summary>
+    /// Fetches and stores only the latest generation snapshot.
+    /// Prefer this during startup so every country appears in the UI quickly.
+    /// </summary>
+    public async Task RefreshLiveSnapshotAsync(
+        string iso,
+        string countryName,
+        CancellationToken cancellationToken = default)
+    {
+        iso = iso.ToUpperInvariant();
         await SaveLiveSnapshotAsync(iso, countryName, cancellationToken);
+    }
+
+    /// <summary>
+    /// Backfills missing week/month/year chart buckets for a country.
+    /// </summary>
+    public async Task RefreshChartHistoryAsync(
+        string iso,
+        string countryName,
+        CancellationToken cancellationToken = default)
+    {
+        iso = iso.ToUpperInvariant();
         await EnsureChartHistoryAsync(iso, countryName, cancellationToken);
     }
 

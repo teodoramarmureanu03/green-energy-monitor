@@ -149,5 +149,23 @@ describe("dashboardUtils", () => {
       // Check that a chart label was generated (e.g. "Wed, 15 Jul").
       expect(result[0].label).toContain("Jul");
     });
+
+    it("should label month points as week ranges", () => {
+      const apiPoints: GenerationHistoryApiPoint[] = [
+        {
+          date: "2026-06-23",
+          total: 100,
+          renewableMw: 50,
+          windMw: 30,
+          solarMw: 20,
+          renewablePct: 0,
+        },
+      ];
+
+      const result = parseHistoryPoints(apiPoints, "month");
+
+      expect(result[0].label).toMatch(/23.*Jun.*29.*Jun/i);
+      expect(result[0].tooltipLabel).toMatch(/Week of/i);
+    });
   });
 });
