@@ -6,7 +6,7 @@ import type {
 } from "@/types/contract";
 import countriesCatalog from "@/data/countries.json";
 
-const API_BASE = "http://localhost:5243";
+const API_BASE = "http://localhost:5000";
 
 // Country names and map coordinates stay in a local catalog.
 // Live generation numbers always come from the backend API.

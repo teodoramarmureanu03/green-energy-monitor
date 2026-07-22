@@ -33,15 +33,24 @@ builder.Services.AddScoped<HistoryService>();
 builder.Services.AddHttpClient<EntsoeService>();
 builder.Services.AddHostedService<EntsoeDataSyncService>();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("PermiteTot", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 var app = builder.Build();
+app.UseCors("PermiteTot");
 
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-app.UseCors("AllowReact");
 
 using (var scope = app.Services.CreateScope())
 {
