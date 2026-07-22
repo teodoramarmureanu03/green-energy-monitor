@@ -132,10 +132,8 @@ function formatChartLabel(
   }
 
   if (period === "month") {
-    return formatCalendarDate(date, {
-      day: "2-digit",
-      month: "short",
-    });
+    // Each point is a weekly average — show the week span on the axis.
+    return formatWeekRangeLabel(date, { includeYear: false });
   }
 
   return formatCalendarDate(date, {
@@ -158,24 +156,33 @@ function formatTooltipLabel(
   }
 
   if (period === "month") {
-    const weekEnd = new Date(date);
-    weekEnd.setUTCDate(weekEnd.getUTCDate() + 6);
-
-    return `${formatCalendarDate(date, {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    })} – ${formatCalendarDate(weekEnd, {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    })}`;
+    return `Week of ${formatWeekRangeLabel(date, { includeYear: true })}`;
   }
 
   return formatCalendarDate(date, {
     month: "long",
     year: "numeric",
   });
+}
+
+function formatWeekRangeLabel(
+  weekStart: Date,
+  options: { includeYear: boolean }
+): string {
+  const weekEnd = new Date(weekStart);
+  weekEnd.setUTCDate(weekEnd.getUTCDate() + 6);
+
+  const startOpts: Intl.DateTimeFormatOptions = {
+    day: "numeric",
+    month: "short",
+  };
+  const endOpts: Intl.DateTimeFormatOptions = {
+    day: "numeric",
+    month: "short",
+    ...(options.includeYear ? { year: "numeric" } : {}),
+  };
+
+  return `${formatCalendarDate(weekStart, startOpts)} – ${formatCalendarDate(weekEnd, endOpts)}`;
 }
 
 function formatCalendarDate(
