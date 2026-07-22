@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: energy_backend
+    ports:
+      - "5000:8080"
+    env_file:
+      - ./backend/.env
+    # Următoarele două rânduri îi permit containerului să acceseze baza ta de date de pe Windows
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: energy_frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
