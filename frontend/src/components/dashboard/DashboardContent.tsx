@@ -4,6 +4,7 @@ import type { CSSProperties } from "react";
 import type { CountryGeneration, HistoryPeriod } from "@/types/contract";
 import { colors } from "@/lib/tokens";
 import { useGenerationHistory } from "@/hooks/useGenerationHistory";
+import { useTimezone } from "@/hooks/useTimezone";
 
 import { Card, HeroKpiCard, KpiCard } from "./DashboardCards";
 import { CapacityBarChart } from "./charts/CapacityBarChart";
@@ -33,6 +34,7 @@ export function DashboardContent({
   selectedIso,
 }: DashboardContentProps) {
   const [historyPeriod, setHistoryPeriod] = useState<HistoryPeriod>("week");
+  const { timeZone } = useTimezone();
 
   const {
     historyByPeriod,
@@ -47,10 +49,11 @@ export function DashboardContent({
     data.total > 0 ? ((totalRenewable / data.total) * 100).toFixed(1) : "—";
 
   const { windPct, solarPct } = getSourcePercentages(windMw, solarMw);
-  const updatedAt = formatDateTime(data.timestamp);
+  const updatedAt = formatDateTime(data.timestamp, timeZone);
   const historyData = parseHistoryPoints(
     historyByPeriod[historyPeriod],
-    historyPeriod
+    historyPeriod,
+    timeZone
   );
 
   const pieData = [

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { fetchGenerationHistory } from "@/lib/api";
+import { useTimezone } from "@/hooks/useTimezone";
 
 import type {
   GenerationHistoryApiPoint,
@@ -25,11 +26,12 @@ const PERIODS: HistoryPeriod[] = ["week", "month", "year"];
 const POLL_INTERVAL_MS = 60_000;
 
 async function loadHistoryForIso(
-  isoCode: string
+  isoCode: string,
+  timeZone: string
 ): Promise<HistoryByPeriod> {
   const results = await Promise.all(
     PERIODS.map(async (period) => {
-      const points = await fetchGenerationHistory(isoCode, period);
+      const points = await fetchGenerationHistory(isoCode, period, timeZone);
       return [period, points] as const;
     })
   );
@@ -43,6 +45,7 @@ async function loadHistoryForIso(
 }
 
 export function useGenerationHistory(isoCode: string): GenerationHistoryState {
+  const { timeZone } = useTimezone();
   const [historyByPeriod, setHistoryByPeriod] =
     useState<HistoryByPeriod>(EMPTY_HISTORY);
   const [loading, setLoading] = useState(false);
@@ -63,7 +66,7 @@ export function useGenerationHistory(isoCode: string): GenerationHistoryState {
       }
 
       try {
-        const nextHistory = await loadHistoryForIso(isoCode);
+        const nextHistory = await loadHistoryForIso(isoCode, timeZone);
 
         if (cancelled) {
           return;
@@ -110,7 +113,7 @@ export function useGenerationHistory(isoCode: string): GenerationHistoryState {
       cancelled = true;
       window.clearInterval(intervalId);
     };
-  }, [isoCode]);
+  }, [isoCode, timeZone]);
 
   return {
     historyByPeriod,

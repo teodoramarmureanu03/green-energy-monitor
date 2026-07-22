@@ -52,13 +52,17 @@ export function formatCompactMw(value: number | null | undefined): string {
   return String(Math.round(value));
 }
 
-export function formatDateTime(timestamp: string): string {
+export function formatDateTime(
+  timestamp: string,
+  timeZone?: string
+): string {
   return new Date(timestamp).toLocaleString("en-GB", {
     day: "numeric",
     month: "short",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    ...(timeZone ? { timeZone } : {}),
   });
 }
 
@@ -82,7 +86,8 @@ export function getSourcePercentages(windMw: number, solarMw: number) {
 
 export function parseHistoryPoints(
   points: GenerationHistoryApiPoint[],
-  period: HistoryPeriod
+  period: HistoryPeriod,
+  timeZone = "UTC"
 ): GenerationHistoryPoint[] {
   // One row per chart bucket; labels depend on whether we show days, weeks, or months.
   return points
@@ -92,9 +97,9 @@ export function parseHistoryPoints(
       return {
         date: point.date,
 
-        label: formatChartLabel(date, period),
+        label: formatChartLabel(date, period, timeZone),
 
-        tooltipLabel: formatTooltipLabel(date, period),
+        tooltipLabel: formatTooltipLabel(date, period, timeZone),
 
         total: point.total,
         renewableMw: point.renewableMw,
@@ -111,9 +116,15 @@ function parseDateKey(value: string): Date {
   return new Date(Date.UTC(year, month - 1, day));
 }
 
-function formatChartLabel(date: Date, period: HistoryPeriod): string {
+function formatChartLabel(
+  date: Date,
+  period: HistoryPeriod,
+  _timeZone: string
+): string {
+  // Date keys from the API are calendar dates (UTC midnight). Format in UTC so
+  // viewer timezones never shift the chart day backward/forward.
   if (period === "week") {
-    return formatUtcDate(date, {
+    return formatCalendarDate(date, {
       weekday: "short",
       day: "2-digit",
       month: "short",
@@ -121,20 +132,24 @@ function formatChartLabel(date: Date, period: HistoryPeriod): string {
   }
 
   if (period === "month") {
-    return formatUtcDate(date, {
+    return formatCalendarDate(date, {
       day: "2-digit",
       month: "short",
     });
   }
 
-  return formatUtcDate(date, {
+  return formatCalendarDate(date, {
     month: "short",
   });
 }
 
-function formatTooltipLabel(date: Date, period: HistoryPeriod): string {
+function formatTooltipLabel(
+  date: Date,
+  period: HistoryPeriod,
+  _timeZone: string
+): string {
   if (period === "week") {
-    return formatUtcDate(date, {
+    return formatCalendarDate(date, {
       weekday: "long",
       day: "2-digit",
       month: "long",
@@ -146,24 +161,24 @@ function formatTooltipLabel(date: Date, period: HistoryPeriod): string {
     const weekEnd = new Date(date);
     weekEnd.setUTCDate(weekEnd.getUTCDate() + 6);
 
-    return `${formatUtcDate(date, {
+    return `${formatCalendarDate(date, {
       day: "2-digit",
       month: "short",
       year: "numeric",
-    })} – ${formatUtcDate(weekEnd, {
+    })} – ${formatCalendarDate(weekEnd, {
       day: "2-digit",
       month: "short",
       year: "numeric",
     })}`;
   }
 
-  return formatUtcDate(date, {
+  return formatCalendarDate(date, {
     month: "long",
     year: "numeric",
   });
 }
 
-function formatUtcDate(
+function formatCalendarDate(
   date: Date,
   options: Intl.DateTimeFormatOptions
 ): string {

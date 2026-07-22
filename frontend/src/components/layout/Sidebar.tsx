@@ -3,6 +3,8 @@ import { NavLink, useLocation } from "react-router-dom";
 import { Leaf, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { formatInTimeZone } from "@/lib/timezones";
+import { useTimezone } from "@/hooks/useTimezone";
 
 import { SIDEBAR_ITEMS } from "./layoutData";
 import { isSidebarItemActive } from "./layoutUtils";
@@ -26,14 +28,15 @@ interface SidebarProps {
 export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
   const location = useLocation();
   const now = useNow();
+  const { timeZone, option } = useTimezone();
 
-  const timeStr = now.toLocaleTimeString("en-EN", {
+  const timeStr = formatInTimeZone(now, timeZone, {
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
   });
 
-  const dateStr = now.toLocaleDateString("en-EN", {
+  const dateStr = formatInTimeZone(now, timeZone, {
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -87,6 +90,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
 
           <div className="layout-sidebar-time">{timeStr}</div>
           <div className="layout-sidebar-date">{dateStr}</div>
+          <div className="layout-sidebar-timezone">{option.name} time</div>
         </div>
       )}
 

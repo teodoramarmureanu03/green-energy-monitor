@@ -3,6 +3,19 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 
+vi.mock("@/hooks/useTimezone", () => ({
+  useTimezone: () => ({
+    countryIso: "RO",
+    timeZone: "Europe/Bucharest",
+    option: {
+      isoCode: "RO",
+      name: "Romania",
+      timeZone: "Europe/Bucharest",
+    },
+    setCountryIso: vi.fn(),
+  }),
+}));
+
 describe("Sidebar Component", () => {
   it("renders all navigation links when expanded", () => {
     // 1. We render the component wrapped in a Router
