@@ -26,15 +26,7 @@ export function RenewableHistoryChart({ data, period }: HistoryChartsProps) {
   return (
     <Card title="Solar and wind production history">
       <ResponsiveContainer width="100%" height={390}>
-        <LineChart
-          data={data}
-          margin={{
-            top: 20,
-            right: 32,
-            bottom: 20,
-            left: 8,
-          }}
-        >
+        <LineChart data={data} margin={getChartMargin(period)}>
           <CartesianGrid
             strokeDasharray="3 3"
             stroke={colors.trackBg}
@@ -47,10 +39,17 @@ export function RenewableHistoryChart({ data, period }: HistoryChartsProps) {
             tickLine={false}
             interval={0}
             minTickGap={12}
-            tick={{
-              fontSize: 12,
-              fill: colors.muted,
-            }}
+            padding={getXAxisPadding(period)}
+            tick={
+              period === "month" ? (
+                <HistoryAxisTick />
+              ) : (
+                {
+                  fontSize: 12,
+                  fill: colors.muted,
+                }
+              )
+            }
           />
 
           <YAxis
@@ -128,15 +127,7 @@ export function TotalEnergyHistoryChart({ data, period }: HistoryChartsProps) {
   return (
     <Card title="Total energy production history">
       <ResponsiveContainer width="100%" height={390}>
-        <AreaChart
-          data={data}
-          margin={{
-            top: 20,
-            right: 32,
-            bottom: 20,
-            left: 8,
-          }}
-        >
+        <AreaChart data={data} margin={getChartMargin(period)}>
           <defs>
             <linearGradient
               id="dashboardTotalEnergyGradient"
@@ -163,10 +154,17 @@ export function TotalEnergyHistoryChart({ data, period }: HistoryChartsProps) {
             tickLine={false}
             interval={0}
             minTickGap={12}
-            tick={{
-              fontSize: 12,
-              fill: colors.muted,
-            }}
+            padding={getXAxisPadding(period)}
+            tick={
+              period === "month" ? (
+                <HistoryAxisTick />
+              ) : (
+                {
+                  fontSize: 12,
+                  fill: colors.muted,
+                }
+              )
+            }
           />
 
           <YAxis
@@ -262,4 +260,67 @@ function getDotRadius(period: HistoryPeriod): number {
   }
 
   return 3.5;
+}
+
+function getChartMargin(period: HistoryPeriod) {
+  if (period === "month") {
+    return {
+      top: 20,
+      right: 20,
+      bottom: 28,
+      left: 8,
+    };
+  }
+
+  return {
+    top: 20,
+    right: 32,
+    bottom: 20,
+    left: 8,
+  };
+}
+
+function getXAxisPadding(period: HistoryPeriod) {
+  if (period === "month") {
+    return {
+      left: 28,
+      right: 28,
+    };
+  }
+
+  return {
+    left: 0,
+    right: 0,
+  };
+}
+
+/** Keep long week-range labels fully visible on the month chart edges. */
+function HistoryAxisTick({
+  x = 0,
+  y = 0,
+  payload,
+  index = 0,
+  visibleTicksCount = 0,
+}: {
+  x?: number;
+  y?: number;
+  payload?: { value?: string };
+  index?: number;
+  visibleTicksCount?: number;
+}) {
+  const isFirst = index === 0;
+  const isLast = visibleTicksCount > 0 && index === visibleTicksCount - 1;
+  const textAnchor = isLast ? "end" : isFirst ? "start" : "middle";
+
+  return (
+    <text
+      x={x}
+      y={y + 14}
+      textAnchor={textAnchor}
+      fill={colors.muted}
+      fontSize={12}
+    >
+      {payload?.value}
+    </text>
+  );
 }
