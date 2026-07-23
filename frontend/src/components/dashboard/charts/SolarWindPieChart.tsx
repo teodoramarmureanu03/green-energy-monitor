@@ -36,7 +36,7 @@ export function SolarWindPieChart({ data }: SolarWindPieChartProps) {
               <Cell
                 key={`cell-${index}`}
                 fill={index === 0 ? colors.indigoDeep : colors.sentryTeal}
-                stroke="#ffffff"
+                stroke={colors.surface}
                 strokeWidth={2}
               />
             ))}

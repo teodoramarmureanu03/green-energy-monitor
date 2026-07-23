@@ -37,8 +37,10 @@ builder.Services.AddDbContext<EnergyDbContext>(options =>
 
 builder.Services.AddScoped<IGenerationRepository, GenerationRepository>();
 builder.Services.AddScoped<IHistoryRepository, HistoryRepository>();
+builder.Services.AddScoped<IPreferencesRepository, PreferencesRepository>();
 builder.Services.AddScoped<GenerationService>();
 builder.Services.AddScoped<HistoryService>();
+builder.Services.AddScoped<PreferencesService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddHttpClient<EntsoeService>();
 builder.Services.AddHostedService<EntsoeDataSyncService>();

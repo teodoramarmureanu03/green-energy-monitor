@@ -4,7 +4,7 @@ namespace backend.Models;
 
 public static class HistoryDtoMapper
 {
-    public static HistoryDto BuildHistoryDto(
+    public static HistoryResponse BuildHistoryResponse(
         GenerationChartPoint point,
         string? timeZone = null) =>
         new()

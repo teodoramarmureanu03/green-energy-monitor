@@ -108,73 +108,98 @@
   --error-border: #fecaca;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-card-hover: 0 6px 20px rgba(0, 0, 0, 0.1);
   --shadow-elevated:
     0 1px 2px rgba(0, 0, 0, 0.04), 0 20px 48px rgba(0, 0, 0, 0.14);
+  --shadow-map: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --shadow-tooltip: 0 12px 32px rgba(0, 0, 0, 0.12);
+  --shadow-rail-edge: 6px 0 32px rgba(0, 0, 0, 0.08);
+
+  color-scheme: light;
 }
 
 :root[data-theme="dark"] {
-  --sidebar-from: #101219;
-  --sidebar-to: #1a1d24;
+  /*
+    Professional night theme — restrained navy/slate, muted brand greens.
+    Calm ops dashboard, not neon "AI dark mode".
+  */
+  --sidebar-from: #141a2e;
+  --sidebar-to: #1a2236;
 
-  --forest: #22c55e;
-  --forest-mid: #16a34a;
-  --forest-soft: #5fbd68;
-  --forest-pale: #1f3d29;
-  --sage-tint: #1a3322;
-  --no-data: #383c46;
+  /* Soften the invariant accent slightly for dark surfaces. */
+  --sentry-teal: #2aa8ad;
 
-  --surface: #1b1e26;
-  --ink: #f1f2f6;
-  --slate: #c7cad3;
-  --muted: #9195a8;
-  --mist: #1a241b;
-  --border-sage: #2c2f3a;
-  --track-bg: #2a2d36;
-  --chip-bg: #262932;
-  --hover-gray: #2f333d;
-  --skeleton-a: #20232b;
-  --skeleton-b: #2a2d36;
-  --bar-hover-wash: rgba(255, 255, 255, 0.05);
-  --row-hover-wash: rgba(34, 197, 94, 0.08);
-  --border-accent: #3a4a3d;
-  --table-header-bg: #1c2b20;
-  --row-hover-bg: #16281c;
-  --flag-border: rgba(255, 255, 255, 0.15);
-  --btn-solid-text: #052e13;
+  --forest: #4f9d63;
+  --forest-mid: #3d8250;
+  --forest-soft: #6aab7a;
+  --forest-pale: #1e3226;
+  --sage-tint: #1a2620;
+  --no-data: #252a33;
 
-  --wind-blue: #5b8def;
-  --solar-amber: #fbbf47;
-  --hydro-cyan: #22d3ee;
-  --geothermal-red: #f87171;
-  --biomass-green: #34d399;
-  --tidal-sky: #38bdf8;
-  --investment-violet: #a78bfa;
-  --kpi-share: #b39ddb;
-  --icon-bg-wind: #1c2340;
-  --icon-bg-solar: #123a3d;
-  --icon-bg-share: #2a2140;
+  --surface: #181c24;
+  --ink: #e8eaef;
+  --slate: #a8adb8;
+  --muted: #7d8494;
+  --mist: #0e1218;
+  --border-sage: #2a303c;
+  --track-bg: #222830;
+  --chip-bg: #1e232c;
+  --hover-gray: #282e38;
+  --skeleton-a: #161a22;
+  --skeleton-b: #222830;
+  --bar-hover-wash: rgba(255, 255, 255, 0.035);
+  --row-hover-wash: rgba(79, 157, 99, 0.08);
+  --border-accent: #2e3644;
+  --table-header-bg: #16201a;
+  --row-hover-bg: #151c18;
+  --flag-border: rgba(255, 255, 255, 0.1);
+  --btn-solid-text: #06140b;
 
-  --rank-gold-text: #fbbf47;
-  --rank-gold-bg: #3a2f14;
-  --rank-gold-border: rgba(251, 191, 71, 0.35);
-  --rank-silver-text: #94a3b8;
-  --rank-silver-bg: #262b33;
-  --rank-silver-border: rgba(148, 163, 184, 0.35);
-  --rank-bronze-text: #fb923c;
-  --rank-bronze-bg: #3a2415;
-  --rank-bronze-border: rgba(251, 146, 60, 0.35);
-  --rank-amber-bg: #3a2f14;
+  --wind-blue: #5b87d9;
+  --solar-amber: #d4a017;
+  --hydro-cyan: #3aabb8;
+  --geothermal-red: #d47373;
+  --biomass-green: #5aaa6e;
+  --tidal-sky: #4aa3c4;
+  --investment-violet: #9080c8;
+  --kpi-share: #9a88c0;
+  --icon-bg-wind: #1a2034;
+  --icon-bg-solar: #15282c;
+  --icon-bg-share: #221e32;
 
-  --map-stroke: #1b1e26;
-  --map-hover-fill: #4b4f5c;
-  --map-hover-active-fill: #6b7280;
-  --map-hover-stroke: #2c2f3a;
-  --map-label-fill: #f1f2f6;
-  --map-label-stroke: #0d0e12;
+  --rank-gold-text: #d4a84b;
+  --rank-gold-bg: #2e2818;
+  --rank-gold-border: rgba(212, 168, 75, 0.28);
+  --rank-silver-text: #9aa3b0;
+  --rank-silver-bg: #22262e;
+  --rank-silver-border: rgba(154, 163, 176, 0.28);
+  --rank-bronze-text: #c4845a;
+  --rank-bronze-bg: #2c221a;
+  --rank-bronze-border: rgba(196, 132, 90, 0.28);
+  --rank-amber-bg: #2e2818;
 
-  --error-red: #f87171;
-  --error-bg: #3a1216;
-  --error-border: #7f1d1d;
+  --map-stroke: #0e1218;
+  --map-hover-fill: #353b48;
+  --map-hover-active-fill: #4a5160;
+  --map-hover-stroke: #2a303c;
+  --map-label-fill: #e8eaef;
+  --map-label-stroke: #0e1218;
+
+  --error-red: #d47373;
+  --error-bg: #2c1618;
+  --error-border: #6b3034;
+
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.28), 0 4px 14px rgba(0, 0, 0, 0.18);
+  --shadow-card-hover:
+    0 2px 6px rgba(0, 0, 0, 0.32), 0 10px 24px rgba(0, 0, 0, 0.28);
+  --shadow-elevated:
+    0 1px 2px rgba(0, 0, 0, 0.3), 0 16px 40px rgba(0, 0, 0, 0.35);
+  --shadow-map: 0 2px 12px rgba(0, 0, 0, 0.28);
+  --shadow-tooltip: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-rail-edge: 4px 0 20px rgba(0, 0, 0, 0.25);
+
+  color-scheme: dark;
 }
 
 body {
@@ -233,7 +258,7 @@ body {
   background: var(--surface);
   color: var(--ink);
   cursor: pointer;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-card);
   transition:
     border-color 180ms var(--ease-out-expo),
     box-shadow 180ms var(--ease-out-expo);
@@ -244,7 +269,7 @@ body {
 
 .card-interactive {
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); /* Ambient Card at rest — owned entirely by this class so :hover/:active can override it */
+  box-shadow: var(--shadow-card);
   transition:
     box-shadow 200ms var(--ease-out-expo),
     transform 200ms var(--ease-out-expo);
@@ -252,12 +277,12 @@ body {
   font: inherit;
 }
 .card-interactive:hover {
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); /* Hover Lift */
+  box-shadow: var(--shadow-card-hover);
   transform: translateY(-2px);
 }
 .card-interactive:active {
   transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-card);
 }
 
 /* Rows may set their own inline `background` (e.g. medal-rank tinting); an inset

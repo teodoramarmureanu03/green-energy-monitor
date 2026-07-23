@@ -139,14 +139,16 @@ export function EuropeMap({ onSelectCountry }: EuropeMapProps) {
                     }
                     style={{
                       default: {
-                        fill: pct != null ? shareToColor(pct) : "#e4e4e7",
-                        stroke: "#fafafa",
+                        fill: pct != null ? shareToColor(pct) : colors.noData,
+                        stroke: colors.mapStroke,
                         strokeWidth: 0.5,
                         outline: "none",
                       },
                       hover: {
-                        fill: isHover ? "#71717a" : "#d4d4d8",
-                        stroke: "#fff",
+                        fill: isHover
+                          ? colors.mapHoverActiveFill
+                          : colors.mapHoverFill,
+                        stroke: colors.mapHoverStroke,
                         strokeWidth: 0.75,
                         outline: "none",
                         cursor: iso && known.has(iso) ? "pointer" : "default",

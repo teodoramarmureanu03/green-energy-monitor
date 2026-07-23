@@ -103,15 +103,15 @@ export const gradients = {
 export const skeletonGradient = `linear-gradient(90deg, var(--skeleton-a) 25%, var(--skeleton-b) 50%, var(--skeleton-a) 75%)`;
 
 export const shadows = {
-  ambientCard: "0 2px 8px rgba(0,0,0,0.06)",
-  ambientHero: "0 4px 20px rgba(0,0,0,0.12)",
-  inputSubtle: "0 1px 4px rgba(0,0,0,0.06)",
-  tooltipDark: "0 4px 16px rgba(0,0,0,0.3)",
-  hoverLift: "0 6px 20px rgba(0,0,0,0.1)",
+  ambientCard: "var(--shadow-card)",
+  ambientHero: "var(--shadow-map)",
+  inputSubtle: "var(--shadow-card)",
+  tooltipDark: "var(--shadow-tooltip)",
+  hoverLift: "var(--shadow-card-hover)",
   /** Layered shadow (tight contact + soft diffuse) for premium, elevated hero surfaces. */
-  elevated: "0 1px 2px rgba(0,0,0,0.04), 0 20px 48px rgba(0,0,0,0.14)",
+  elevated: "var(--shadow-elevated)",
   /** Cast from the dark sidebar rail onto the light content area. */
-  railEdge: "6px 0 32px rgba(0,0,0,0.08)",
+  railEdge: "var(--shadow-rail-edge)",
 } as const;
 
 /** Generous section rhythm — see layout.md: tight within groups, wide between them. */

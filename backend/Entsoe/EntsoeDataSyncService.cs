@@ -8,6 +8,7 @@ namespace backend;
 /// <summary>
 /// Background worker that keeps live snapshots and chart history up to date.
 /// Each country sync runs in its own DI scope so repositories receive a fresh DbContext.
+/// Live snapshots run first so the UI can show every country quickly; chart history follows.
 /// </summary>
 public class EntsoeDataSyncService : BackgroundService
 {
@@ -56,35 +57,20 @@ public class EntsoeDataSyncService : BackgroundService
                     : "Starting scheduled ENTSO-E sync.");
 
             var startedAt = DateTime.UtcNow;
-            var countryGate = new SemaphoreSlim(MaxParallelCountries);
 
-            var tasks = CountryCatalog.All.Select(async country =>
-            {
-                await countryGate.WaitAsync(stoppingToken);
+            // Phase 1: live snapshots only — map/comparison become usable quickly.
+            await SyncAllCountriesAsync(
+                "live snapshot",
+                (entsoe, iso, name, token) =>
+                    entsoe.RefreshLiveSnapshotAsync(iso, name, token),
+                stoppingToken);
 
-                try
-                {
-                    using var scope = _scopeFactory.CreateScope();
-                    var entsoeService = scope.ServiceProvider.GetRequiredService<EntsoeService>();
-
-                    await entsoeService.RefreshCountryDataAsync(
-                        country.Key,
-                        country.Value,
-                        stoppingToken);
-
-                    _logger.LogInformation("Sync completed for {Iso}.", country.Key);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Sync failed for {Iso}.", country.Key);
-                }
-                finally
-                {
-                    countryGate.Release();
-                }
-            });
-
-            await Task.WhenAll(tasks);
+            // Phase 2: chart history (heavier; does not block live data availability).
+            await SyncAllCountriesAsync(
+                "chart history",
+                (entsoe, iso, name, token) =>
+                    entsoe.RefreshChartHistoryAsync(iso, name, token),
+                stoppingToken);
 
             _logger.LogInformation(
                 "ENTSO-E sync finished in {Elapsed:mm\\:ss}.",
@@ -94,5 +80,53 @@ public class EntsoeDataSyncService : BackgroundService
         {
             _syncLock.Release();
         }
+    }
+
+    private async Task SyncAllCountriesAsync(
+        string phaseName,
+        Func<EntsoeService, string, string, CancellationToken, Task> syncAction,
+        CancellationToken stoppingToken)
+    {
+        _logger.LogInformation("Starting {Phase} phase.", phaseName);
+
+        var countryGate = new SemaphoreSlim(MaxParallelCountries);
+
+        var tasks = CountryCatalog.All.Select(async country =>
+        {
+            await countryGate.WaitAsync(stoppingToken);
+
+            try
+            {
+                using var scope = _scopeFactory.CreateScope();
+                var entsoeService = scope.ServiceProvider.GetRequiredService<EntsoeService>();
+
+                await syncAction(
+                    entsoeService,
+                    country.Key,
+                    country.Value,
+                    stoppingToken);
+
+                _logger.LogInformation(
+                    "{Phase} completed for {Iso}.",
+                    phaseName,
+                    country.Key);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "{Phase} failed for {Iso}.",
+                    phaseName,
+                    country.Key);
+            }
+            finally
+            {
+                countryGate.Release();
+            }
+        });
+
+        await Task.WhenAll(tasks);
+
+        _logger.LogInformation("Finished {Phase} phase.", phaseName);
     }
 }

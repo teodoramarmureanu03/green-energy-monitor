@@ -1,33 +1,18 @@
 using backend.Models;
+using backend.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace backend.Controllers;
-
-public class ViewerTimezoneRequest
-{
-    public string ClientId { get; set; } = "";
-    public string CountryIso { get; set; } = "";
-    public string TimeZone { get; set; } = "";
-}
-
-public class ViewerTimezoneResponse
-{
-    public string ClientId { get; set; } = "";
-    public string CountryIso { get; set; } = "";
-    public string TimeZone { get; set; } = "";
-    public DateTime UpdatedAt { get; set; }
-}
 
 [ApiController]
 [Route("api/preferences")]
 public class PreferencesController : ControllerBase
 {
-    private readonly EnergyDbContext _db;
+    private readonly PreferencesService _preferencesService;
 
-    public PreferencesController(EnergyDbContext db)
+    public PreferencesController(PreferencesService preferencesService)
     {
-        _db = db;
+        _preferencesService = preferencesService;
     }
 
     [HttpGet("timezone")]
@@ -38,76 +23,20 @@ public class PreferencesController : ControllerBase
             return BadRequest(new { Message = "clientId is required." });
         }
 
-        var preference = await _db.ViewerTimezonePreferences
-            .AsNoTracking()
-            .FirstOrDefaultAsync(item => item.ClientId == clientId);
-
-        if (preference is null)
-        {
-            return NotFound();
-        }
-
-        return Ok(ToResponse(preference));
+        var preference = await _preferencesService.GetTimezoneAsync(clientId);
+        return preference is null ? NotFound() : Ok(preference);
     }
 
     [HttpPut("timezone")]
     public async Task<IActionResult> SaveTimezone([FromBody] ViewerTimezoneRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.ClientId) ||
-            string.IsNullOrWhiteSpace(request.CountryIso) ||
-            string.IsNullOrWhiteSpace(request.TimeZone))
+        var (response, error) = await _preferencesService.SaveTimezoneAsync(request);
+
+        if (error is not null)
         {
-            return BadRequest(new
-            {
-                Message = "clientId, countryIso, and timeZone are required.",
-            });
+            return BadRequest(new { Message = error });
         }
 
-        try
-        {
-            _ = TimeZoneInfo.FindSystemTimeZoneById(request.TimeZone);
-        }
-        catch (TimeZoneNotFoundException)
-        {
-            // Linux containers use IANA ids; Windows may need conversion.
-            // Accept common IANA ids even when FindSystemTimeZoneById fails on Windows.
-            if (!request.TimeZone.Contains('/'))
-            {
-                return BadRequest(new { Message = $"Unknown time zone: {request.TimeZone}." });
-            }
-        }
-
-        var iso = request.CountryIso.Trim().ToUpperInvariant();
-        var clientId = request.ClientId.Trim();
-        var timeZone = request.TimeZone.Trim();
-
-        var preference = await _db.ViewerTimezonePreferences
-            .FirstOrDefaultAsync(item => item.ClientId == clientId);
-
-        if (preference is null)
-        {
-            preference = new ViewerTimezonePreference
-            {
-                ClientId = clientId,
-            };
-            _db.ViewerTimezonePreferences.Add(preference);
-        }
-
-        preference.CountryIso = iso;
-        preference.TimeZone = timeZone;
-        preference.UpdatedAt = DateTime.UtcNow;
-
-        await _db.SaveChangesAsync();
-
-        return Ok(ToResponse(preference));
+        return Ok(response);
     }
-
-    private static ViewerTimezoneResponse ToResponse(ViewerTimezonePreference preference) =>
-        new()
-        {
-            ClientId = preference.ClientId,
-            CountryIso = preference.CountryIso,
-            TimeZone = preference.TimeZone,
-            UpdatedAt = preference.UpdatedAt,
-        };
 }
