@@ -52,8 +52,7 @@ export function DashboardContent({
   const updatedAt = formatDateTime(data.timestamp, timeZone);
   const historyData = parseHistoryPoints(
     historyByPeriod[historyPeriod],
-    historyPeriod,
-    timeZone
+    historyPeriod
   );
 
   const pieData = [

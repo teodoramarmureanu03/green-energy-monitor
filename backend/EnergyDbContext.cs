@@ -20,6 +20,7 @@ public class EnergyDbContext : DbContext
     public DbSet<CountryZone> CountryZones => Set<CountryZone>();
     public DbSet<ViewerTimezonePreference> ViewerTimezonePreferences =>
         Set<ViewerTimezonePreference>();
+    public DbSet<AppUser> Users => Set<AppUser>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -88,6 +89,25 @@ public class EnergyDbContext : DbContext
                 .HasMaxLength(100)
                 .IsRequired();
             entity.HasIndex(preference => preference.ClientId).IsUnique();
+        });
+
+        modelBuilder.Entity<AppUser>(entity =>
+        {
+            entity.ToTable("Users");
+            entity.HasKey(user => user.Id);
+            entity.Property(user => user.Email)
+                .HasMaxLength(256)
+                .IsRequired();
+            entity.Property(user => user.DisplayName)
+                .HasMaxLength(100)
+                .IsRequired();
+            entity.Property(user => user.Gender)
+                .HasMaxLength(20)
+                .IsRequired();
+            entity.Property(user => user.PasswordHash)
+                .HasMaxLength(200)
+                .IsRequired();
+            entity.HasIndex(user => user.Email).IsUnique();
         });
     }
 }

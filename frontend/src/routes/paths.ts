@@ -2,10 +2,11 @@ export const paths = {
   home: "/home",
   map: "/map",
   comparison: "/comparison",
+  account: "/account",
   dashboard: (iso: string) => `/dashboard/${iso.toLowerCase()}`,
 } as const;
 
-export type AppScreen = "home" | "map" | "comparison" | "dashboard";
+export type AppScreen = "home" | "map" | "comparison" | "dashboard" | "account";
 
 export function getScreenFromPathname(pathname: string): AppScreen {
   if (pathname.startsWith("/dashboard/")) {
@@ -18,6 +19,10 @@ export function getScreenFromPathname(pathname: string): AppScreen {
 
   if (pathname === paths.comparison) {
     return "comparison";
+  }
+
+  if (pathname === paths.account) {
+    return "account";
   }
 
   if (pathname === paths.home) {
