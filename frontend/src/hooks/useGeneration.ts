@@ -86,10 +86,13 @@ export function useAllGeneration(isos: string[]) {
   const [data, setData] = useState<CountryGeneration[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const isoKey = isos.join(",");
 
   useEffect(() => {
+    const codes = isoKey ? isoKey.split(",") : [];
+
     // Stop early when there are no countries to load.
-    if (!isos || isos.length === 0) {
+    if (codes.length === 0) {
       setData([]);
       setLoading(false);
       return;
@@ -102,7 +105,7 @@ export function useAllGeneration(isos: string[]) {
 
       try {
         // 1. Build one request per country.
-        const promises = isos.map((iso) => fetchGeneration(iso));
+        const promises = codes.map((iso) => fetchGeneration(iso));
 
         // 2. Run all requests in parallel.
         const results = await Promise.allSettled(promises);
@@ -136,7 +139,7 @@ export function useAllGeneration(isos: string[]) {
       cancelled = true;
       window.clearInterval(intervalId);
     };
-  }, [isos.join(",")]); // Rebuild the timer only when the country list changes.
+  }, [isoKey]); // Rebuild the timer only when the country list changes.
 
   return { data, loading, error };
 }

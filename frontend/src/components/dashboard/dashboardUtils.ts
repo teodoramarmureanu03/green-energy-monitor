@@ -52,10 +52,7 @@ export function formatCompactMw(value: number | null | undefined): string {
   return String(Math.round(value));
 }
 
-export function formatDateTime(
-  timestamp: string,
-  timeZone?: string
-): string {
+export function formatDateTime(timestamp: string, timeZone?: string): string {
   return new Date(timestamp).toLocaleString("en-GB", {
     day: "numeric",
     month: "short",
@@ -86,8 +83,7 @@ export function getSourcePercentages(windMw: number, solarMw: number) {
 
 export function parseHistoryPoints(
   points: GenerationHistoryApiPoint[],
-  period: HistoryPeriod,
-  timeZone = "UTC"
+  period: HistoryPeriod
 ): GenerationHistoryPoint[] {
   // One row per chart bucket; labels depend on whether we show days, weeks, or months.
   return points
@@ -97,9 +93,9 @@ export function parseHistoryPoints(
       return {
         date: point.date,
 
-        label: formatChartLabel(date, period, timeZone),
+        label: formatChartLabel(date, period),
 
-        tooltipLabel: formatTooltipLabel(date, period, timeZone),
+        tooltipLabel: formatTooltipLabel(date, period),
 
         total: point.total,
         renewableMw: point.renewableMw,
@@ -116,11 +112,7 @@ function parseDateKey(value: string): Date {
   return new Date(Date.UTC(year, month - 1, day));
 }
 
-function formatChartLabel(
-  date: Date,
-  period: HistoryPeriod,
-  _timeZone: string
-): string {
+function formatChartLabel(date: Date, period: HistoryPeriod): string {
   // Date keys from the API are calendar dates (UTC midnight). Format in UTC so
   // viewer timezones never shift the chart day backward/forward.
   if (period === "week") {
@@ -141,11 +133,7 @@ function formatChartLabel(
   });
 }
 
-function formatTooltipLabel(
-  date: Date,
-  period: HistoryPeriod,
-  _timeZone: string
-): string {
+function formatTooltipLabel(date: Date, period: HistoryPeriod): string {
   if (period === "week") {
     return formatCalendarDate(date, {
       weekday: "long",

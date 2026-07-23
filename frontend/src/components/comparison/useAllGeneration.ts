@@ -9,10 +9,13 @@ export function useAllGeneration(isoCodes: string[]) {
     {}
   );
   const [loading, setLoading] = useState<boolean>(true);
+  const isoKey = isoCodes.join(",");
 
   useEffect(() => {
+    const codes = isoKey ? isoKey.split(",") : [];
+
     // Stop early when there are no countries to load.
-    if (!isoCodes || isoCodes.length === 0) {
+    if (codes.length === 0) {
       setMap({});
       setLoading(false);
       return;
@@ -25,7 +28,7 @@ export function useAllGeneration(isoCodes: string[]) {
 
       try {
         // 1. Build one request per country.
-        const promises = isoCodes.map((iso) => fetchGeneration(iso));
+        const promises = codes.map((iso) => fetchGeneration(iso));
 
         // 2. Send all requests to the server in parallel.
         const results = await Promise.allSettled(promises);
@@ -37,7 +40,7 @@ export function useAllGeneration(isoCodes: string[]) {
 
         results.forEach((result, index) => {
           if (result.status === "fulfilled" && result.value) {
-            newMap[isoCodes[index]] = result.value;
+            newMap[codes[index]] = result.value;
           }
         });
 
@@ -64,7 +67,7 @@ export function useAllGeneration(isoCodes: string[]) {
       cancelled = true;
       window.clearInterval(intervalId);
     };
-  }, [isoCodes.join(",")]); // Rebuild requests only when the country list changes.
+  }, [isoKey]); // Rebuild requests only when the country list changes.
 
   return {
     map,

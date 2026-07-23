@@ -1,4 +1,8 @@
-import { getIsoFromPathname, getScreenFromPathname, paths } from "@/routes/paths";
+import {
+  getIsoFromPathname,
+  getScreenFromPathname,
+  paths,
+} from "@/routes/paths";
 
 import type { SidebarItemId } from "./layoutData";
 
@@ -29,6 +33,11 @@ export function getToolbarInfo(pathname: string): {
       return {
         title: "Dashboard",
         subtitle: iso ? `${iso} · solar & wind investment` : undefined,
+      };
+    case "account":
+      return {
+        title: "Account",
+        subtitle: "Sign in, register, or manage your profile",
       };
     default:
       return { title: "EU Renewables Monitor" };

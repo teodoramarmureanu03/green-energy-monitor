@@ -30,9 +30,14 @@ services:
       ASPNETCORE_URLS: http://+:8080
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=energy_monitor;Username=postgres;Password=postgres
-      # Loaded from repo-root .env (copy .env.example). Required for ENTSO-E sync.
+      # From repo-root .env (required for ENTSO-E sync).
       ENTSOE_API_KEY: ${ENTSOE_API_KEY:?Create .env from .env.example and set ENTSOE_API_KEY}
       EntsoeApiKey: ${ENTSOE_API_KEY}
+      # Auth / JWT (login, register, account deletion).
+      Jwt__Key: ${JWT_SECRET:-green-energy-monitor-dev-jwt-key-change-me-32chars!}
+      Jwt__Issuer: green-energy-monitor
+      Jwt__Audience: green-energy-monitor
+      JWT_SECRET: ${JWT_SECRET:-green-energy-monitor-dev-jwt-key-change-me-32chars!}
     depends_on:
       db:
         condition: service_healthy

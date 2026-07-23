@@ -9,14 +9,17 @@ import "./index.css";
 import App from "./App.tsx";
 import { ThemeProvider } from "./lib/theme.tsx";
 import { TimezoneProvider } from "./lib/timezone.tsx";
+import { AuthProvider } from "./lib/auth.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
       <ThemeProvider>
-        <TimezoneProvider>
-          <App />
-        </TimezoneProvider>
+        <AuthProvider>
+          <TimezoneProvider>
+            <App />
+          </TimezoneProvider>
+        </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>
   </StrictMode>
