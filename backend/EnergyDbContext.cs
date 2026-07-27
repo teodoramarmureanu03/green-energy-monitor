@@ -107,6 +107,8 @@ public class EnergyDbContext : DbContext
             entity.Property(user => user.PasswordHash)
                 .HasMaxLength(200)
                 .IsRequired();
+            entity.Property(user => user.IsAdmin)
+                .HasDefaultValue(false);
             entity.HasIndex(user => user.Email).IsUnique();
         });
     }

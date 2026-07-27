@@ -5,6 +5,7 @@ export interface AuthUser {
   email: string;
   displayName: string;
   gender: UserGender | string;
+  isAdmin?: boolean;
 }
 
 export interface AuthResponse {

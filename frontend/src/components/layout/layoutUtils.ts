@@ -39,6 +39,11 @@ export function getToolbarInfo(pathname: string): {
         title: "Account",
         subtitle: "Sign in, register, or manage your profile",
       };
+    case "admin":
+      return {
+        title: "Manage Users",
+        subtitle: "Admin-only user management",
+      };
     default:
       return { title: "EU Renewables Monitor" };
   }
@@ -54,6 +59,10 @@ export function isSidebarItemActive(
 
   if (itemId === "map") {
     return pathname === paths.map || pathname.startsWith("/dashboard/");
+  }
+
+  if (itemId === "admin") {
+    return pathname.startsWith("/admin");
   }
 
   return pathname === paths.comparison;
