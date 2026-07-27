@@ -45,10 +45,37 @@ public class AuthUserDto
     public string Email { get; set; } = "";
     public string DisplayName { get; set; } = "";
     public string Gender { get; set; } = "";
+    public bool IsAdmin { get; set; }
 }
 
 public class AuthResponse
 {
     public string Token { get; set; } = "";
     public AuthUserDto User { get; set; } = new();
+}
+
+public class AdminCreateUserRequest
+{
+    public string Email { get; set; } = "";
+    public string DisplayName { get; set; } = "";
+    public string Gender { get; set; } = "";
+    public string Password { get; set; } = "";
+}
+
+public class AdminUpdateUserRequest
+{
+    public string Email { get; set; } = "";
+    public string DisplayName { get; set; } = "";
+    public string Gender { get; set; } = "";
+    public string? Password { get; set; }
+}
+
+public class AdminUserDto
+{
+    public int Id { get; set; }
+    public string Email { get; set; } = "";
+    public string DisplayName { get; set; } = "";
+    public string Gender { get; set; } = "";
+    public bool IsAdmin { get; set; }
+    public DateTime CreatedAt { get; set; }
 }

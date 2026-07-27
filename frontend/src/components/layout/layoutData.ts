@@ -1,4 +1,4 @@
-import { GitCompareArrows, Map, Home } from "lucide-react";
+import { GitCompareArrows, Map, Home, Users } from "lucide-react";
 
 import { paths } from "@/routes/paths";
 
@@ -13,4 +13,13 @@ export const SIDEBAR_ITEMS = [
   },
 ] as const;
 
-export type SidebarItemId = (typeof SIDEBAR_ITEMS)[number]["id"];
+export const ADMIN_SIDEBAR_ITEM = {
+  id: "admin",
+  label: "Manage Users",
+  icon: Users,
+  to: paths.adminUsers,
+} as const;
+
+export type SidebarItemId =
+  | (typeof SIDEBAR_ITEMS)[number]["id"]
+  | typeof ADMIN_SIDEBAR_ITEM.id;

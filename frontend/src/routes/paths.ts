@@ -5,6 +5,7 @@ export const paths = {
   account: "/account",
   forgotPassword: "/forgot-password",
   resetPassword: "/reset-password",
+  adminUsers: "/admin/users",
   dashboard: (iso: string) => `/dashboard/${iso.toLowerCase()}`,
 } as const;
 
@@ -15,7 +16,8 @@ export type AppScreen =
   | "dashboard"
   | "account"
   | "forgotPassword"
-  | "resetPassword";
+  | "resetPassword"
+  | "admin";
 
 export function getScreenFromPathname(pathname: string): AppScreen {
   if (pathname.startsWith("/dashboard/")) {
@@ -40,6 +42,10 @@ export function getScreenFromPathname(pathname: string): AppScreen {
 
   if (pathname === paths.resetPassword) {
     return "resetPassword";
+  }
+
+  if (pathname.startsWith("/admin")) {
+    return "admin";
   }
 
   if (pathname === paths.home) {

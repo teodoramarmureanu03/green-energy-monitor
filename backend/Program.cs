@@ -65,6 +65,7 @@ builder.Services
             ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "green-energy-monitor",
             ValidAudience = builder.Configuration["Jwt:Audience"] ?? "green-energy-monitor",
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+            RoleClaimType = System.Security.Claims.ClaimTypes.Role,
         };
     });
 
@@ -113,6 +114,9 @@ using (var scope = app.Services.CreateScope())
     await EnsureViewerTimezoneTableAsync(db);
     await EnsureUsersTableAsync(db);
     await EnsureReferenceDataAsync(db);
+
+    var authService = scope.ServiceProvider.GetRequiredService<AuthService>();
+    await authService.EnsureAdminUserAsync();
 }
 
 app.MapControllers();
@@ -154,6 +158,9 @@ static async Task EnsureUsersTableAsync(EnergyDbContext db)
 
         ALTER TABLE "Users"
             ADD COLUMN IF NOT EXISTS "PasswordResetTokenExpiresAt" timestamp with time zone NULL;
+
+        ALTER TABLE "Users"
+            ADD COLUMN IF NOT EXISTS "IsAdmin" boolean NOT NULL DEFAULT FALSE;
 
         CREATE UNIQUE INDEX IF NOT EXISTS "IX_Users_Email"
             ON "Users" ("Email");

@@ -1,12 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Leaf, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 
+import { AuthRequiredTip } from "@/components/layout/AuthRequiredTip";
+import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { formatInTimeZone } from "@/lib/timezones";
 import { useTimezone } from "@/hooks/useTimezone";
 
-import { SIDEBAR_ITEMS } from "./layoutData";
+import { SIDEBAR_ITEMS, ADMIN_SIDEBAR_ITEM } from "./layoutData";
 import { isSidebarItemActive } from "./layoutUtils";
 
 function useNow() {
@@ -29,6 +31,18 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
   const location = useLocation();
   const now = useNow();
   const { timeZone, option } = useTimezone();
+  const { user } = useAuth();
+  const [showComparisonTip, setShowComparisonTip] = useState(false);
+  const comparisonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!showComparisonTip) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => setShowComparisonTip(false), 5000);
+    return () => window.clearTimeout(timeoutId);
+  }, [showComparisonTip]);
 
   const timeStr = formatInTimeZone(now, timeZone, {
     hour: "2-digit",
@@ -94,14 +108,43 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
         </div>
       )}
 
-      {showText && (
-        <div className="layout-sidebar-nav-label">Navigation</div>
-      )}
+      {showText && <div className="layout-sidebar-nav-label">Navigation</div>}
 
       <div className="layout-sidebar-nav">
         {SIDEBAR_ITEMS.map((item) => {
           const Icon = item.icon;
           const isActive = isSidebarItemActive(item.id, location.pathname);
+          const className = cn(
+            "layout-sidebar-link",
+            collapsed && "layout-sidebar-link-collapsed",
+            isActive && "layout-sidebar-link-active"
+          );
+
+          if (item.id === "comparison" && !user) {
+            return (
+              <div key={item.id} className="layout-sidebar-link-wrap">
+                <button
+                  ref={comparisonRef}
+                  type="button"
+                  title={item.label}
+                  className={className}
+                  onClick={() => setShowComparisonTip(true)}
+                >
+                  <Icon className="h-4.5 w-4.5 shrink-0" />
+                  {showText && (
+                    <span className="layout-sidebar-link-label">
+                      {item.label}
+                    </span>
+                  )}
+                </button>
+                <AuthRequiredTip
+                  visible={showComparisonTip}
+                  anchorRef={comparisonRef}
+                  placement={collapsed ? "right" : "below"}
+                />
+              </div>
+            );
+          }
 
           return (
             <NavLink
@@ -110,11 +153,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
               end={item.id === "home"}
               title={item.label}
               aria-current={isActive ? "page" : undefined}
-              className={cn(
-                "layout-sidebar-link",
-                collapsed && "layout-sidebar-link-collapsed",
-                isActive && "layout-sidebar-link-active"
-              )}
+              className={className}
             >
               <Icon className="h-4.5 w-4.5 shrink-0" />
               {showText && (
@@ -123,6 +162,31 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
             </NavLink>
           );
         })}
+
+        {user?.isAdmin && (
+          <NavLink
+            to={ADMIN_SIDEBAR_ITEM.to}
+            title={ADMIN_SIDEBAR_ITEM.label}
+            aria-current={
+              isSidebarItemActive(ADMIN_SIDEBAR_ITEM.id, location.pathname)
+                ? "page"
+                : undefined
+            }
+            className={cn(
+              "layout-sidebar-link",
+              collapsed && "layout-sidebar-link-collapsed",
+              isSidebarItemActive(ADMIN_SIDEBAR_ITEM.id, location.pathname) &&
+                "layout-sidebar-link-active"
+            )}
+          >
+            <ADMIN_SIDEBAR_ITEM.icon className="h-4.5 w-4.5 shrink-0" />
+            {showText && (
+              <span className="layout-sidebar-link-label">
+                {ADMIN_SIDEBAR_ITEM.label}
+              </span>
+            )}
+          </NavLink>
+        )}
       </div>
 
       {showText && (

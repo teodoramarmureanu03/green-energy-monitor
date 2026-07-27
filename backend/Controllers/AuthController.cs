@@ -142,9 +142,11 @@ public class AuthController : ControllerBase
         }
 
         var deleted = await _authService.DeleteAccountAsync(userId);
-        if (!deleted)
+        if (!deleted.Ok)
         {
-            return NotFound(new { Message = "Account not found." });
+            return deleted.Error == "Account not found."
+                ? NotFound(new { Message = deleted.Error })
+                : BadRequest(new { Message = deleted.Error });
         }
 
         return NoContent();

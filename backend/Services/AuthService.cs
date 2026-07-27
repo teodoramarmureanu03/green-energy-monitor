@@ -13,6 +13,11 @@ public class AuthService
 {
     private static readonly TimeSpan PasswordResetTokenLifetime = TimeSpan.FromHours(1);
 
+    public const string AdminEmail = "admin@gmail.com";
+    public const string AdminDisplayName = "Admin";
+    public const string AdminPassword = "admin";
+    public const string AdminRole = "Admin";
+
     private readonly EnergyDbContext _db;
     private readonly IConfiguration _config;
     private readonly IEmailService _emailService;
@@ -33,6 +38,37 @@ public class AuthService
         _logger = logger;
     }
 
+    public async Task EnsureAdminUserAsync()
+    {
+        var admin = await _db.Users.FirstOrDefaultAsync(user => user.Email == AdminEmail);
+        var passwordHash = BCrypt.Net.BCrypt.HashPassword(AdminPassword);
+
+        if (admin is null)
+        {
+            _db.Users.Add(new AppUser
+            {
+                Email = AdminEmail,
+                DisplayName = AdminDisplayName,
+                Gender = "Other",
+                PasswordHash = passwordHash,
+                IsAdmin = true,
+                CreatedAt = DateTime.UtcNow,
+            });
+        }
+        else
+        {
+            admin.DisplayName = AdminDisplayName;
+            admin.IsAdmin = true;
+            admin.PasswordHash = passwordHash;
+            if (string.IsNullOrWhiteSpace(admin.Gender))
+            {
+                admin.Gender = "Other";
+            }
+        }
+
+        await _db.SaveChangesAsync();
+    }
+
     public async Task<(AuthResponse? Response, string? Error)> RegisterAsync(RegisterRequest request)
     {
         var email = NormalizeEmail(request.Email);
@@ -44,20 +80,15 @@ public class AuthService
             return (null, "Enter a valid email address.");
         }
 
-        if (displayName.Length < 2)
+        if (email == AdminEmail)
         {
-            return (null, "Display name must be at least 2 characters.");
-        }
-
-        if (password.Length < 6)
-        {
-            return (null, "Password must be at least 6 characters.");
+            return (null, "This email is reserved for the admin account.");
         }
 
         var gender = NormalizeGender(request.Gender);
         if (gender is null)
         {
-            return (null, "Select male or female.");
+            return (null, "Select male, female, or other.");
         }
 
         var exists = await _db.Users.AnyAsync(user => user.Email == email);
@@ -72,6 +103,7 @@ public class AuthService
             DisplayName = displayName,
             Gender = gender,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+            IsAdmin = false,
             CreatedAt = DateTime.UtcNow,
         };
 
@@ -86,9 +118,9 @@ public class AuthService
         var email = NormalizeEmail(request.Email);
         var password = request.Password ?? "";
 
-        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+        if (string.IsNullOrWhiteSpace(email))
         {
-            return (null, "Email and password are required.");
+            return (null, "Email is required.");
         }
 
         var user = await _db.Users.FirstOrDefaultAsync(item => item.Email == email);
@@ -114,15 +146,11 @@ public class AuthService
         UpdateProfileRequest request)
     {
         var displayName = request.DisplayName?.Trim() ?? "";
-        if (displayName.Length < 2)
-        {
-            return (null, "Display name must be at least 2 characters.");
-        }
 
         var gender = NormalizeGender(request.Gender);
         if (gender is null)
         {
-            return (null, "Select male or female.");
+            return (null, "Select male, female, or other.");
         }
 
         var user = await _db.Users.FirstOrDefaultAsync(item => item.Id == userId);
@@ -131,7 +159,7 @@ public class AuthService
             return (null, "Account not found.");
         }
 
-        user.DisplayName = displayName;
+        user.DisplayName = user.IsAdmin ? AdminDisplayName : displayName;
         user.Gender = gender;
         await _db.SaveChangesAsync();
 
@@ -144,16 +172,6 @@ public class AuthService
     {
         var currentPassword = request.CurrentPassword ?? "";
         var newPassword = request.NewPassword ?? "";
-
-        if (string.IsNullOrWhiteSpace(currentPassword) || string.IsNullOrWhiteSpace(newPassword))
-        {
-            return (false, "Current and new passwords are required.");
-        }
-
-        if (newPassword.Length < 6)
-        {
-            return (false, "New password must be at least 6 characters.");
-        }
 
         var user = await _db.Users.FirstOrDefaultAsync(item => item.Id == userId);
         if (user is null)
@@ -256,17 +274,154 @@ public class AuthService
         return (true, null);
     }
 
-    public async Task<bool> DeleteAccountAsync(int userId)
+    public async Task<(bool Ok, string? Error)> DeleteAccountAsync(int userId)
     {
         var user = await _db.Users.FirstOrDefaultAsync(item => item.Id == userId);
         if (user is null)
         {
-            return false;
+            return (false, "Account not found.");
+        }
+
+        if (user.IsAdmin || user.Email == AdminEmail)
+        {
+            return (false, "The admin account cannot be deleted.");
         }
 
         _db.Users.Remove(user);
         await _db.SaveChangesAsync();
-        return true;
+        return (true, null);
+    }
+
+    public async Task<List<AdminUserDto>> ListUsersAsync()
+    {
+        return await _db.Users
+            .AsNoTracking()
+            .OrderByDescending(user => user.IsAdmin)
+            .ThenBy(user => user.Email)
+            .Select(user => new AdminUserDto
+            {
+                Id = user.Id,
+                Email = user.Email,
+                DisplayName = user.DisplayName,
+                Gender = user.Gender,
+                IsAdmin = user.IsAdmin,
+                CreatedAt = user.CreatedAt,
+            })
+            .ToListAsync();
+    }
+
+    public async Task<(AdminUserDto? User, string? Error)> AdminCreateUserAsync(
+        AdminCreateUserRequest request)
+    {
+        var email = NormalizeEmail(request.Email);
+        var displayName = request.DisplayName?.Trim() ?? "";
+        var password = request.Password ?? "";
+
+        if (string.IsNullOrWhiteSpace(email) || !email.Contains('@'))
+        {
+            return (null, "Enter a valid email address.");
+        }
+
+        if (email == AdminEmail)
+        {
+            return (null, "This email is reserved for the admin account.");
+        }
+
+        var gender = NormalizeGender(request.Gender) ?? "Other";
+
+        var exists = await _db.Users.AnyAsync(user => user.Email == email);
+        if (exists)
+        {
+            return (null, "An account with this email already exists.");
+        }
+
+        var user = new AppUser
+        {
+            Email = email,
+            DisplayName = displayName,
+            Gender = gender,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+            IsAdmin = false,
+            CreatedAt = DateTime.UtcNow,
+        };
+
+        _db.Users.Add(user);
+        await _db.SaveChangesAsync();
+
+        return (ToAdminDto(user), null);
+    }
+
+    public async Task<(AdminUserDto? User, string? Error)> AdminUpdateUserAsync(
+        int userId,
+        AdminUpdateUserRequest request)
+    {
+        var user = await _db.Users.FirstOrDefaultAsync(item => item.Id == userId);
+        if (user is null)
+        {
+            return (null, "Account not found.");
+        }
+
+        var email = NormalizeEmail(request.Email);
+        var displayName = request.DisplayName?.Trim() ?? "";
+        var gender = NormalizeGender(request.Gender) ?? user.Gender;
+
+        if (string.IsNullOrWhiteSpace(email) || !email.Contains('@'))
+        {
+            return (null, "Enter a valid email address.");
+        }
+
+        if (user.IsAdmin || user.Email == AdminEmail)
+        {
+            // Keep the reserved admin identity stable.
+            user.Email = AdminEmail;
+            user.DisplayName = AdminDisplayName;
+            user.IsAdmin = true;
+            user.Gender = gender;
+        }
+        else
+        {
+            if (email == AdminEmail)
+            {
+                return (null, "This email is reserved for the admin account.");
+            }
+
+            var emailTaken = await _db.Users.AnyAsync(item =>
+                item.Email == email && item.Id != userId);
+            if (emailTaken)
+            {
+                return (null, "An account with this email already exists.");
+            }
+
+            user.Email = email;
+            user.DisplayName = displayName;
+            user.Gender = gender;
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Password))
+        {
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+        }
+
+        await _db.SaveChangesAsync();
+        return (ToAdminDto(user), null);
+    }
+
+    public async Task<(bool Ok, string? Error)> AdminDeleteUserAsync(int userId)
+    {
+        var user = await _db.Users.FirstOrDefaultAsync(item => item.Id == userId);
+        if (user is null)
+        {
+            return (false, "Account not found.");
+        }
+
+        if (user.IsAdmin || user.Email == AdminEmail)
+        {
+            return (false, "The admin account cannot be deleted.");
+        }
+
+        _db.Users.Remove(user);
+        await _db.SaveChangesAsync();
+        return (true, null);
     }
 
     private AuthResponse BuildAuthResponse(AppUser user)
@@ -287,13 +442,18 @@ public class AuthService
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        var claims = new[]
+        var claims = new List<Claim>
         {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email),
-            new Claim(ClaimTypes.Name, user.DisplayName),
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new(JwtRegisteredClaimNames.Email, user.Email),
+            new(ClaimTypes.Name, user.DisplayName),
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
         };
+
+        if (user.IsAdmin)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, AdminRole));
+        }
 
         var token = new JwtSecurityToken(
             issuer: _config["Jwt:Issuer"] ?? "green-energy-monitor",
@@ -312,6 +472,18 @@ public class AuthService
             Email = user.Email,
             DisplayName = user.DisplayName,
             Gender = user.Gender,
+            IsAdmin = user.IsAdmin,
+        };
+
+    private static AdminUserDto ToAdminDto(AppUser user) =>
+        new()
+        {
+            Id = user.Id,
+            Email = user.Email,
+            DisplayName = user.DisplayName,
+            Gender = user.Gender,
+            IsAdmin = user.IsAdmin,
+            CreatedAt = user.CreatedAt,
         };
 
     private static string? NormalizeGender(string? gender)
@@ -325,6 +497,11 @@ public class AuthService
         if (value.Equals("Female", StringComparison.OrdinalIgnoreCase))
         {
             return "Female";
+        }
+
+        if (value.Equals("Other", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Other";
         }
 
         return null;

@@ -15,7 +15,7 @@ public class AppUser
     public string DisplayName { get; set; } = "";
 
     /// <summary>
-    /// "Male" or "Female" — used for the toolbar avatar.
+    /// "Male", "Female", or "Other" — used for the toolbar avatar.
     /// </summary>
     public string Gender { get; set; } = "";
 
@@ -27,6 +27,11 @@ public class AppUser
     public string? PasswordResetTokenHash { get; set; }
 
     public DateTime? PasswordResetTokenExpiresAt { get; set; }
+
+    /// <summary>
+    /// When true, the user can open the admin users dashboard.
+    /// </summary>
+    public bool IsAdmin { get; set; }
 
     public DateTime CreatedAt { get; set; }
 }

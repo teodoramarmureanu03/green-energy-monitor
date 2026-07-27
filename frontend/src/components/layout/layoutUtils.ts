@@ -49,6 +49,11 @@ export function getToolbarInfo(pathname: string): {
         title: "Reset password",
         subtitle: "Choose a new password for your account",
       };
+    case "admin":
+      return {
+        title: "Manage Users",
+        subtitle: "Admin-only user management",
+      };
     default:
       return { title: "EU Renewables Monitor" };
   }
@@ -64,6 +69,10 @@ export function isSidebarItemActive(
 
   if (itemId === "map") {
     return pathname === paths.map || pathname.startsWith("/dashboard/");
+  }
+
+  if (itemId === "admin") {
+    return pathname.startsWith("/admin");
   }
 
   return pathname === paths.comparison;

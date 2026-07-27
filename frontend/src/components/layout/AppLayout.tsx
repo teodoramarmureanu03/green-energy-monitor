@@ -56,7 +56,8 @@ export function AppLayout() {
           {screen !== "home" &&
             screen !== "account" &&
             screen !== "forgotPassword" &&
-            screen !== "resetPassword" && <EuropeSummary />}
+            screen !== "resetPassword" &&
+            screen !== "admin" && <EuropeSummary />}
 
           <Outlet />
         </div>
