@@ -55,10 +55,10 @@ public class AuthController : ControllerBase
             return StatusCode(StatusCodes.Status502BadGateway, new { Message = ex.Message });
         }
 
-        // Same message whether or not the account exists (avoids email enumeration).
+        // Same message whether or not the account exists (avoids account enumeration).
         return Ok(new
         {
-            Message = "If an account exists for that email, we sent a password reset link.",
+            Message = "If an account matches that username and email, we sent a password reset link.",
         });
     }
 
@@ -101,7 +101,7 @@ public class AuthController : ControllerBase
             return Unauthorized();
         }
 
-        var (user, error) = await _authService.UpdateProfileAsync(userId, request);
+        var (response, error) = await _authService.UpdateProfileAsync(userId, request);
         if (error is not null)
         {
             return error == "Account not found."
@@ -109,7 +109,7 @@ public class AuthController : ControllerBase
                 : BadRequest(new { Message = error });
         }
 
-        return Ok(user);
+        return Ok(response);
     }
 
     [Authorize]

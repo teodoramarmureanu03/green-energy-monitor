@@ -14,6 +14,7 @@ public class AuthService
     private static readonly TimeSpan PasswordResetTokenLifetime = TimeSpan.FromHours(1);
 
     public const string AdminEmail = "admin@gmail.com";
+    public const string AdminUsername = "admin";
     public const string AdminDisplayName = "Admin";
     public const string AdminPassword = "admin";
     public const string AdminRole = "Admin";
@@ -40,30 +41,47 @@ public class AuthService
 
     public async Task EnsureAdminUserAsync()
     {
-        var admin = await _db.Users.FirstOrDefaultAsync(user => user.Email == AdminEmail);
-        var passwordHash = BCrypt.Net.BCrypt.HashPassword(AdminPassword);
+        var admin = await _db.Users.FirstOrDefaultAsync(user => user.IsAdmin)
+            ?? await _db.Users.FirstOrDefaultAsync(user => user.Username == AdminUsername)
+            ?? await _db.Users.FirstOrDefaultAsync(user => user.Email == AdminEmail);
 
         if (admin is null)
         {
             _db.Users.Add(new AppUser
             {
+                Username = AdminUsername,
                 Email = AdminEmail,
                 DisplayName = AdminDisplayName,
                 Gender = "Other",
-                PasswordHash = passwordHash,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(AdminPassword),
                 IsAdmin = true,
                 CreatedAt = DateTime.UtcNow,
             });
+            await _db.SaveChangesAsync();
+            return;
         }
-        else
+
+        admin.IsAdmin = true;
+
+        var adminUsernameTaken = await _db.Users.AnyAsync(user =>
+            user.Username == AdminUsername && user.Id != admin.Id);
+        if (!adminUsernameTaken)
+        {
+            admin.Username = AdminUsername;
+        }
+        else if (string.IsNullOrWhiteSpace(admin.Username))
+        {
+            admin.Username = $"{AdminUsername}_{admin.Id}";
+        }
+
+        if (string.IsNullOrWhiteSpace(admin.DisplayName))
         {
             admin.DisplayName = AdminDisplayName;
-            admin.IsAdmin = true;
-            admin.PasswordHash = passwordHash;
-            if (string.IsNullOrWhiteSpace(admin.Gender))
-            {
-                admin.Gender = "Other";
-            }
+        }
+
+        if (string.IsNullOrWhiteSpace(admin.Gender))
+        {
+            admin.Gender = "Other";
         }
 
         await _db.SaveChangesAsync();
@@ -71,18 +89,20 @@ public class AuthService
 
     public async Task<(AuthResponse? Response, string? Error)> RegisterAsync(RegisterRequest request)
     {
+        var username = NormalizeUsername(request.Username);
         var email = NormalizeEmail(request.Email);
         var displayName = request.DisplayName?.Trim() ?? "";
         var password = request.Password ?? "";
 
+        var usernameError = ValidateUsername(username);
+        if (usernameError is not null)
+        {
+            return (null, usernameError);
+        }
+
         if (string.IsNullOrWhiteSpace(email) || !email.Contains('@'))
         {
             return (null, "Enter a valid email address.");
-        }
-
-        if (email == AdminEmail)
-        {
-            return (null, "This email is reserved for the admin account.");
         }
 
         var gender = NormalizeGender(request.Gender);
@@ -91,16 +111,17 @@ public class AuthService
             return (null, "Select male, female, or other.");
         }
 
-        var exists = await _db.Users.AnyAsync(user => user.Email == email);
-        if (exists)
+        var usernameTaken = await _db.Users.AnyAsync(user => user.Username == username);
+        if (usernameTaken)
         {
-            return (null, "An account with this email already exists.");
+            return (null, "That username is already taken.");
         }
 
         var user = new AppUser
         {
+            Username = username,
             Email = email,
-            DisplayName = displayName,
+            DisplayName = string.IsNullOrWhiteSpace(displayName) ? username : displayName,
             Gender = gender,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
             IsAdmin = false,
@@ -115,18 +136,18 @@ public class AuthService
 
     public async Task<(AuthResponse? Response, string? Error)> LoginAsync(LoginRequest request)
     {
-        var email = NormalizeEmail(request.Email);
+        var username = NormalizeUsername(request.Username);
         var password = request.Password ?? "";
 
-        if (string.IsNullOrWhiteSpace(email))
+        if (string.IsNullOrWhiteSpace(username))
         {
-            return (null, "Email is required.");
+            return (null, "Username is required.");
         }
 
-        var user = await _db.Users.FirstOrDefaultAsync(item => item.Email == email);
+        var user = await _db.Users.FirstOrDefaultAsync(item => item.Username == username);
         if (user is null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
         {
-            return (null, "Invalid email or password.");
+            return (null, "Invalid username or password.");
         }
 
         return (BuildAuthResponse(user), null);
@@ -141,11 +162,24 @@ public class AuthService
         return user is null ? null : ToDto(user);
     }
 
-    public async Task<(AuthUserDto? User, string? Error)> UpdateProfileAsync(
+    public async Task<(AuthResponse? Response, string? Error)> UpdateProfileAsync(
         int userId,
         UpdateProfileRequest request)
     {
+        var username = NormalizeUsername(request.Username);
+        var email = NormalizeEmail(request.Email);
         var displayName = request.DisplayName?.Trim() ?? "";
+
+        var usernameError = ValidateUsername(username);
+        if (usernameError is not null)
+        {
+            return (null, usernameError);
+        }
+
+        if (string.IsNullOrWhiteSpace(email) || !email.Contains('@'))
+        {
+            return (null, "Enter a valid email address.");
+        }
 
         var gender = NormalizeGender(request.Gender);
         if (gender is null)
@@ -159,11 +193,20 @@ public class AuthService
             return (null, "Account not found.");
         }
 
-        user.DisplayName = user.IsAdmin ? AdminDisplayName : displayName;
+        var usernameTaken = await _db.Users.AnyAsync(item =>
+            item.Username == username && item.Id != userId);
+        if (usernameTaken)
+        {
+            return (null, "That username is already taken.");
+        }
+
+        user.Username = username;
+        user.Email = email;
+        user.DisplayName = displayName;
         user.Gender = gender;
         await _db.SaveChangesAsync();
 
-        return (ToDto(user), null);
+        return (BuildAuthResponse(user), null);
     }
 
     public async Task<(bool Ok, string? Error)> ChangePasswordAsync(
@@ -192,13 +235,15 @@ public class AuthService
 
     public async Task RequestPasswordResetAsync(ForgotPasswordRequest request)
     {
+        var username = NormalizeUsername(request.Username);
         var email = NormalizeEmail(request.Email);
-        if (string.IsNullOrWhiteSpace(email) || !email.Contains('@'))
+        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(email))
         {
             return;
         }
 
-        var user = await _db.Users.FirstOrDefaultAsync(item => item.Email == email);
+        var user = await _db.Users.FirstOrDefaultAsync(item =>
+            item.Username == username && item.Email == email);
         if (user is null)
         {
             return;
@@ -218,9 +263,9 @@ public class AuthService
 
         var html = $"""
             <p>Hello {System.Net.WebUtility.HtmlEncode(user.DisplayName)},</p>
-            <p>We received a request to reset your Green Energy Monitor password.</p>
+            <p>We received a request to reset the Green Energy Monitor password for username <strong>{System.Net.WebUtility.HtmlEncode(user.Username)}</strong>.</p>
             <p><a href="{resetUrl}">Reset your password</a></p>
-            <p>This link expires in 1 hour. If you did not request a reset, you can ignore this email.</p>
+            <p>This link expires in 1 hour and only changes the password for that username. If you did not request a reset, you can ignore this email.</p>
             """;
 
         try
@@ -252,11 +297,6 @@ public class AuthService
             return (false, "Reset link is invalid or has expired.");
         }
 
-        if (newPassword.Length < 6)
-        {
-            return (false, "New password must be at least 6 characters.");
-        }
-
         var tokenHash = HashResetToken(token);
         var user = await _db.Users.FirstOrDefaultAsync(item =>
             item.PasswordResetTokenHash == tokenHash);
@@ -282,7 +322,7 @@ public class AuthService
             return (false, "Account not found.");
         }
 
-        if (user.IsAdmin || user.Email == AdminEmail)
+        if (user.IsAdmin || user.Username == AdminUsername)
         {
             return (false, "The admin account cannot be deleted.");
         }
@@ -297,10 +337,11 @@ public class AuthService
         return await _db.Users
             .AsNoTracking()
             .OrderByDescending(user => user.IsAdmin)
-            .ThenBy(user => user.Email)
+            .ThenBy(user => user.Username)
             .Select(user => new AdminUserDto
             {
                 Id = user.Id,
+                Username = user.Username,
                 Email = user.Email,
                 DisplayName = user.DisplayName,
                 Gender = user.Gender,
@@ -313,32 +354,35 @@ public class AuthService
     public async Task<(AdminUserDto? User, string? Error)> AdminCreateUserAsync(
         AdminCreateUserRequest request)
     {
+        var username = NormalizeUsername(request.Username);
         var email = NormalizeEmail(request.Email);
         var displayName = request.DisplayName?.Trim() ?? "";
         var password = request.Password ?? "";
+
+        var usernameError = ValidateUsername(username);
+        if (usernameError is not null)
+        {
+            return (null, usernameError);
+        }
 
         if (string.IsNullOrWhiteSpace(email) || !email.Contains('@'))
         {
             return (null, "Enter a valid email address.");
         }
 
-        if (email == AdminEmail)
-        {
-            return (null, "This email is reserved for the admin account.");
-        }
-
         var gender = NormalizeGender(request.Gender) ?? "Other";
 
-        var exists = await _db.Users.AnyAsync(user => user.Email == email);
-        if (exists)
+        var usernameTaken = await _db.Users.AnyAsync(user => user.Username == username);
+        if (usernameTaken)
         {
-            return (null, "An account with this email already exists.");
+            return (null, "That username is already taken.");
         }
 
         var user = new AppUser
         {
+            Username = username,
             Email = email,
-            DisplayName = displayName,
+            DisplayName = string.IsNullOrWhiteSpace(displayName) ? username : displayName,
             Gender = gender,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
             IsAdmin = false,
@@ -361,41 +405,33 @@ public class AuthService
             return (null, "Account not found.");
         }
 
+        var username = NormalizeUsername(request.Username);
         var email = NormalizeEmail(request.Email);
         var displayName = request.DisplayName?.Trim() ?? "";
         var gender = NormalizeGender(request.Gender) ?? user.Gender;
+
+        var usernameError = ValidateUsername(username);
+        if (usernameError is not null)
+        {
+            return (null, usernameError);
+        }
 
         if (string.IsNullOrWhiteSpace(email) || !email.Contains('@'))
         {
             return (null, "Enter a valid email address.");
         }
 
-        if (user.IsAdmin || user.Email == AdminEmail)
+        var usernameTaken = await _db.Users.AnyAsync(item =>
+            item.Username == username && item.Id != userId);
+        if (usernameTaken)
         {
-            // Keep the reserved admin identity stable.
-            user.Email = AdminEmail;
-            user.DisplayName = AdminDisplayName;
-            user.IsAdmin = true;
-            user.Gender = gender;
+            return (null, "That username is already taken.");
         }
-        else
-        {
-            if (email == AdminEmail)
-            {
-                return (null, "This email is reserved for the admin account.");
-            }
 
-            var emailTaken = await _db.Users.AnyAsync(item =>
-                item.Email == email && item.Id != userId);
-            if (emailTaken)
-            {
-                return (null, "An account with this email already exists.");
-            }
-
-            user.Email = email;
-            user.DisplayName = displayName;
-            user.Gender = gender;
-        }
+        user.Username = username;
+        user.Email = email;
+        user.DisplayName = string.IsNullOrWhiteSpace(displayName) ? user.DisplayName : displayName;
+        user.Gender = gender;
 
         if (!string.IsNullOrWhiteSpace(request.Password))
         {
@@ -414,7 +450,7 @@ public class AuthService
             return (false, "Account not found.");
         }
 
-        if (user.IsAdmin || user.Email == AdminEmail)
+        if (user.IsAdmin || user.Username == AdminUsername)
         {
             return (false, "The admin account cannot be deleted.");
         }
@@ -445,6 +481,7 @@ public class AuthService
         var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new(JwtRegisteredClaimNames.UniqueName, user.Username),
             new(JwtRegisteredClaimNames.Email, user.Email),
             new(ClaimTypes.Name, user.DisplayName),
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
@@ -469,6 +506,7 @@ public class AuthService
         new()
         {
             Id = user.Id,
+            Username = user.Username,
             Email = user.Email,
             DisplayName = user.DisplayName,
             Gender = user.Gender,
@@ -479,6 +517,7 @@ public class AuthService
         new()
         {
             Id = user.Id,
+            Username = user.Username,
             Email = user.Email,
             DisplayName = user.DisplayName,
             Gender = user.Gender,
@@ -509,6 +548,29 @@ public class AuthService
 
     private static string NormalizeEmail(string? email) =>
         (email ?? "").Trim().ToLowerInvariant();
+
+    private static string NormalizeUsername(string? username) =>
+        (username ?? "").Trim().ToLowerInvariant();
+
+    private static string? ValidateUsername(string username)
+    {
+        if (string.IsNullOrWhiteSpace(username))
+        {
+            return "Username is required.";
+        }
+
+        if (username.Length < 2)
+        {
+            return "Username must be at least 2 characters.";
+        }
+
+        if (username.Contains(' ') || username.Contains('@'))
+        {
+            return "Username cannot contain spaces or @.";
+        }
+
+        return null;
+    }
 
     private static string HashResetToken(string rawToken)
     {

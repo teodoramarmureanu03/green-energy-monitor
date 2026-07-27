@@ -4,11 +4,17 @@ namespace backend.Models;
 
 /// <summary>
 /// Registered application user. Password is stored as a BCrypt hash only.
+/// Username is the unique login identity; email may be shared across accounts.
 /// </summary>
 public class AppUser
 {
     [Key]
     public int Id { get; set; }
+
+    /// <summary>
+    /// Unique login name (case-insensitive).
+    /// </summary>
+    public string Username { get; set; } = "";
 
     public string Email { get; set; } = "";
 

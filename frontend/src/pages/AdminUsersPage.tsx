@@ -18,6 +18,7 @@ const TOKEN_KEY = "eu-renewables-auth-token";
 
 function emptyCreateForm() {
   return {
+    username: "",
     email: "",
     displayName: "",
     gender: "Other" as UserGender,
@@ -34,6 +35,7 @@ export function AdminUsersPage() {
   const [createForm, setCreateForm] = useState(emptyCreateForm);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState({
+    username: "",
     email: "",
     displayName: "",
     gender: "Other" as UserGender,
@@ -101,6 +103,7 @@ export function AdminUsersPage() {
   function startEdit(item: AdminUser) {
     setEditingId(item.id);
     setEditForm({
+      username: item.username,
       email: item.email,
       displayName: item.displayName,
       gender: (item.gender as UserGender) || "Other",
@@ -127,6 +130,7 @@ export function AdminUsersPage() {
 
     try {
       await updateAdminUser(token, editingId, {
+        username: editForm.username,
         email: editForm.email,
         displayName: editForm.displayName,
         gender: editForm.gender,
@@ -147,7 +151,7 @@ export function AdminUsersPage() {
       return;
     }
 
-    if (!window.confirm(`Delete user ${item.email}?`)) {
+    if (!window.confirm(`Delete user ${item.username}?`)) {
       return;
     }
 
@@ -179,7 +183,8 @@ export function AdminUsersPage() {
       <header className="admin-header">
         <h1 className="admin-title">Manage users</h1>
         <p className="admin-muted">
-          Only the admin account can view and change accounts here.
+          Only the admin account can view and change accounts here. Usernames
+          must be unique; emails may be shared.
         </p>
       </header>
 
@@ -193,6 +198,20 @@ export function AdminUsersPage() {
       <form className="admin-card" onSubmit={handleCreate}>
         <h2 className="admin-section-title">Add user</h2>
         <div className="admin-form-grid">
+          <label className="admin-field">
+            <span>Username</span>
+            <input
+              type="text"
+              value={createForm.username}
+              onChange={(event) =>
+                setCreateForm((form) => ({
+                  ...form,
+                  username: event.target.value,
+                }))
+              }
+              required
+            />
+          </label>
           <label className="admin-field">
             <span>Email</span>
             <input
@@ -282,6 +301,7 @@ export function AdminUsersPage() {
             <table className="admin-table">
               <thead>
                 <tr>
+                  <th>Username</th>
                   <th>Name</th>
                   <th>Email</th>
                   <th>Gender</th>
@@ -292,6 +312,7 @@ export function AdminUsersPage() {
               <tbody>
                 {users.map((item) => (
                   <tr key={item.id}>
+                    <td>{item.username}</td>
                     <td>{item.displayName || "—"}</td>
                     <td>{item.email}</td>
                     <td>{item.gender || "—"}</td>
@@ -331,6 +352,23 @@ export function AdminUsersPage() {
           <h2 className="admin-section-title">Edit user</h2>
           <div className="admin-form-grid">
             <label className="admin-field">
+              <span>Username</span>
+              <input
+                type="text"
+                value={editForm.username}
+                onChange={(event) =>
+                  setEditForm((form) => ({
+                    ...form,
+                    username: event.target.value,
+                  }))
+                }
+                required
+                disabled={
+                  users.find((item) => item.id === editingId)?.isAdmin === true
+                }
+              />
+            </label>
+            <label className="admin-field">
               <span>Email</span>
               <input
                 type="email"
@@ -342,9 +380,6 @@ export function AdminUsersPage() {
                   }))
                 }
                 required
-                disabled={
-                  users.find((item) => item.id === editingId)?.isAdmin === true
-                }
               />
             </label>
             <label className="admin-field">
@@ -357,9 +392,6 @@ export function AdminUsersPage() {
                     ...form,
                     displayName: event.target.value,
                   }))
-                }
-                disabled={
-                  users.find((item) => item.id === editingId)?.isAdmin === true
                 }
               />
             </label>

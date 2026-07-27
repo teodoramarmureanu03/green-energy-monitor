@@ -24,6 +24,7 @@ function normalizeUser(user: AuthUser): AuthUser {
   const gender = (user.gender ?? "").trim().toLowerCase();
   return {
     ...user,
+    username: user.username ?? "",
     isAdmin: Boolean(user.isAdmin),
     gender:
       gender === "female"
@@ -73,15 +74,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const login = useCallback(async (email: string, password: string) => {
+  const clearError = useCallback(() => {
     setError(null);
-    const response = await loginAccount({ email, password });
+  }, []);
+
+  const login = useCallback(async (username: string, password: string) => {
+    setError(null);
+    const response = await loginAccount({ username, password });
     window.localStorage.setItem(TOKEN_KEY, response.token);
     setUser(normalizeUser(response.user));
   }, []);
 
   const register = useCallback(
     async (
+      username: string,
       email: string,
       displayName: string,
       password: string,
@@ -89,6 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     ) => {
       setError(null);
       const response = await registerAccount({
+        username,
         email,
         displayName,
         password,
@@ -101,18 +108,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const updateProfile = useCallback(
-    async (displayName: string, gender: UserGender) => {
+    async (
+      username: string,
+      displayName: string,
+      gender: UserGender,
+      email: string
+    ) => {
       const token = window.localStorage.getItem(TOKEN_KEY);
       if (!token) {
         throw new Error("You are not signed in.");
       }
 
       setError(null);
-      const updated = await updateProfileRequest(token, {
+      const response = await updateProfileRequest(token, {
+        username,
         displayName,
         gender,
+        email,
       });
-      setUser(normalizeUser(updated));
+      window.localStorage.setItem(TOKEN_KEY, response.token);
+      setUser(normalizeUser(response.user));
     },
     []
   );
@@ -153,17 +168,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       isLoading,
       error,
-      login: async (email, password) => {
+      login: async (username, password) => {
         try {
-          await login(email, password);
+          await login(username, password);
         } catch (err) {
           setError(err instanceof Error ? err.message : "Could not sign in.");
           throw err;
         }
       },
-      register: async (email, displayName, password, gender) => {
+      register: async (username, email, displayName, password, gender) => {
         try {
-          await register(email, displayName, password, gender);
+          await register(username, email, displayName, password, gender);
         } catch (err) {
           setError(
             err instanceof Error ? err.message : "Could not create account."
@@ -171,9 +186,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           throw err;
         }
       },
-      updateProfile: async (displayName, gender) => {
+      updateProfile: async (username, displayName, gender, email) => {
         try {
-          await updateProfile(displayName, gender);
+          await updateProfile(username, displayName, gender, email);
         } catch (err) {
           setError(
             err instanceof Error ? err.message : "Could not update profile."
@@ -202,7 +217,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           throw err;
         }
       },
-      clearError: () => setError(null),
+      clearError,
     }),
     [
       user,
@@ -214,6 +229,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       changePassword,
       logout,
       deleteAccount,
+      clearError,
     ]
   );
 

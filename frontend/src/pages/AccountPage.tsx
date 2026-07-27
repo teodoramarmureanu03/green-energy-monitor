@@ -16,6 +16,7 @@ function isUserGender(value: string): value is UserGender {
 
 function emptyAuthFields() {
   return {
+    username: "",
     email: "",
     displayName: "",
     gender: "" as UserGender | "",
@@ -39,19 +40,26 @@ export function AccountPage() {
 
   const [tab, setTab] = useState<AuthTab>("login");
   const [authFields, setAuthFields] = useState(emptyAuthFields);
+  const [profileUsername, setProfileUsername] = useState("");
   const [profileName, setProfileName] = useState("");
+  const [profileEmail, setProfileEmail] = useState("");
   const [profileGender, setProfileGender] = useState<UserGender | "">("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAuthSubmitting, setIsAuthSubmitting] = useState(false);
+  const [isProfileSubmitting, setIsProfileSubmitting] = useState(false);
+  const [isPasswordSubmitting, setIsPasswordSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [profileError, setProfileError] = useState<string | null>(null);
   const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
 
   useEffect(() => {
     clearError();
     setSaveMessage(null);
+    setProfileError(null);
     setPasswordMessage(null);
     setConfirmDelete(false);
   }, [tab, clearError]);
@@ -77,7 +85,9 @@ export function AccountPage() {
       return;
     }
 
+    setProfileUsername(user.username);
     setProfileName(user.displayName);
+    setProfileEmail(user.email);
     setProfileGender(isUserGender(user.gender) ? user.gender : "");
   }, [user]);
 
@@ -89,17 +99,18 @@ export function AccountPage() {
 
   async function handleAuthSubmit(event: FormEvent) {
     event.preventDefault();
-    setIsSubmitting(true);
+    setIsAuthSubmitting(true);
     clearError();
 
     try {
       if (tab === "login") {
-        await login(authFields.email, authFields.password);
+        await login(authFields.username, authFields.password);
       } else {
         if (!isUserGender(authFields.gender)) {
           return;
         }
         await register(
+          authFields.username,
           authFields.email,
           authFields.displayName,
           authFields.password,
@@ -110,27 +121,45 @@ export function AccountPage() {
     } catch {
       // Shown via auth context error.
     } finally {
-      setIsSubmitting(false);
+      setIsAuthSubmitting(false);
     }
   }
 
   async function handleProfileSave(event: FormEvent) {
     event.preventDefault();
-    if (!isUserGender(profileGender)) {
+    setSaveMessage(null);
+    setProfileError(null);
+    clearError();
+
+    const username = profileUsername.trim();
+    const email = profileEmail.trim();
+    if (!username) {
+      setProfileError("Username is required.");
       return;
     }
 
-    setIsSubmitting(true);
-    setSaveMessage(null);
-    clearError();
+    if (!email || !email.includes("@")) {
+      setProfileError("Enter a valid email address.");
+      return;
+    }
+
+    if (!isUserGender(profileGender)) {
+      setProfileError("Select male, female, or other.");
+      return;
+    }
+
+    setIsProfileSubmitting(true);
 
     try {
-      await updateProfile(profileName, profileGender);
+      await updateProfile(username, profileName, profileGender, email);
+      setProfileUsername(username);
+      setProfileName(profileName);
+      setProfileEmail(email);
       setSaveMessage("Profile saved.");
     } catch {
       // Shown via auth context error.
     } finally {
-      setIsSubmitting(false);
+      setIsProfileSubmitting(false);
     }
   }
 
@@ -144,7 +173,7 @@ export function AccountPage() {
       return;
     }
 
-    setIsSubmitting(true);
+    setIsPasswordSubmitting(true);
 
     try {
       await changePassword(currentPassword, newPassword);
@@ -155,12 +184,12 @@ export function AccountPage() {
     } catch {
       // Shown via auth context error.
     } finally {
-      setIsSubmitting(false);
+      setIsPasswordSubmitting(false);
     }
   }
 
   async function handleDeleteAccount() {
-    setIsSubmitting(true);
+    setIsDeleting(true);
 
     try {
       await deleteAccount();
@@ -168,7 +197,7 @@ export function AccountPage() {
     } catch {
       // Shown via auth context error.
     } finally {
-      setIsSubmitting(false);
+      setIsDeleting(false);
       setConfirmDelete(false);
     }
   }
@@ -198,8 +227,25 @@ export function AccountPage() {
           <h2 className="account-section-title">Profile details</h2>
 
           <label className="account-field">
+            <span>Username</span>
+            <input
+              type="text"
+              value={profileUsername}
+              onChange={(event) => setProfileUsername(event.target.value)}
+              required
+              autoComplete="username"
+            />
+          </label>
+
+          <label className="account-field">
             <span>Email</span>
-            <input type="email" value={user.email} disabled />
+            <input
+              type="email"
+              value={profileEmail}
+              onChange={(event) => setProfileEmail(event.target.value)}
+              required
+              autoComplete="off"
+            />
           </label>
 
           <label className="account-field">
@@ -246,9 +292,9 @@ export function AccountPage() {
             </label>
           </fieldset>
 
-          {error && !passwordMessage && (
+          {(profileError || (error && !passwordMessage)) && (
             <p className="account-error" role="alert">
-              {error}
+              {profileError ?? error}
             </p>
           )}
           {saveMessage && <p className="account-success">{saveMessage}</p>}
@@ -257,9 +303,9 @@ export function AccountPage() {
             <button
               type="submit"
               className="account-btn-primary"
-              disabled={isSubmitting}
+              disabled={isProfileSubmitting}
             >
-              {isSubmitting ? "Saving…" : "Save changes"}
+              {isProfileSubmitting ? "Saving…" : "Save changes"}
             </button>
             <button
               type="button"
@@ -268,7 +314,7 @@ export function AccountPage() {
                 logout();
                 setAuthFields(emptyAuthFields());
               }}
-              disabled={isSubmitting}
+              disabled={isProfileSubmitting}
             >
               Sign out
             </button>
@@ -331,9 +377,9 @@ export function AccountPage() {
           <button
             type="submit"
             className="account-btn-primary"
-            disabled={isSubmitting}
+            disabled={isPasswordSubmitting}
           >
-            {isSubmitting ? "Updating…" : "Update password"}
+            {isPasswordSubmitting ? "Updating…" : "Update password"}
           </button>
         </form>
 
@@ -351,7 +397,7 @@ export function AccountPage() {
                   type="button"
                   className="account-btn-secondary"
                   onClick={() => setConfirmDelete(false)}
-                  disabled={isSubmitting}
+                  disabled={isDeleting}
                 >
                   Cancel
                 </button>
@@ -359,9 +405,9 @@ export function AccountPage() {
                   type="button"
                   className="account-btn-danger"
                   onClick={() => void handleDeleteAccount()}
-                  disabled={isSubmitting}
+                  disabled={isDeleting}
                 >
-                  {isSubmitting ? "Deleting…" : "Delete account"}
+                  {isDeleting ? "Deleting…" : "Delete account"}
                 </button>
               </div>
             </div>
@@ -389,8 +435,8 @@ export function AccountPage() {
           </h1>
           <p className="account-muted">
             {tab === "login"
-              ? "Sign in to access your profile."
-              : "Register to save your account details."}
+              ? "Sign in with your username and password."
+              : "Choose a unique username. Email can be shared with other accounts."}
           </p>
         </div>
       </header>
@@ -423,8 +469,42 @@ export function AccountPage() {
         onSubmit={handleAuthSubmit}
         autoComplete="off"
       >
+        <label className="account-field">
+          <span>Username</span>
+          <input
+            type="text"
+            name="auth-username"
+            autoComplete="username"
+            value={authFields.username}
+            onChange={(event) =>
+              setAuthFields((fields) => ({
+                ...fields,
+                username: event.target.value,
+              }))
+            }
+            required
+          />
+        </label>
+
         {tab === "register" && (
           <>
+            <label className="account-field">
+              <span>Email</span>
+              <input
+                type="email"
+                name="register-email"
+                autoComplete="off"
+                value={authFields.email}
+                onChange={(event) =>
+                  setAuthFields((fields) => ({
+                    ...fields,
+                    email: event.target.value,
+                  }))
+                }
+                required
+              />
+            </label>
+
             <label className="account-field">
               <span>Display name</span>
               <input
@@ -490,23 +570,6 @@ export function AccountPage() {
         )}
 
         <label className="account-field">
-          <span>Email</span>
-          <input
-            type="email"
-            name="auth-email"
-            autoComplete="off"
-            value={authFields.email}
-            onChange={(event) =>
-              setAuthFields((fields) => ({
-                ...fields,
-                email: event.target.value,
-              }))
-            }
-            required
-          />
-        </label>
-
-        <label className="account-field">
           <span>Password</span>
           <input
             type="password"
@@ -541,9 +604,9 @@ export function AccountPage() {
         <button
           type="submit"
           className="account-btn-primary"
-          disabled={isSubmitting}
+          disabled={isAuthSubmitting}
         >
-          {isSubmitting
+          {isAuthSubmitting
             ? "Please wait…"
             : tab === "login"
               ? "Sign in"

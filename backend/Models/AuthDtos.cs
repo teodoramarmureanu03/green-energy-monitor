@@ -1,9 +1,8 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace backend.Models;
 
 public class RegisterRequest
 {
+    public string Username { get; set; } = "";
     public string Email { get; set; } = "";
     public string DisplayName { get; set; } = "";
     public string Gender { get; set; } = "";
@@ -12,12 +11,14 @@ public class RegisterRequest
 
 public class LoginRequest
 {
-    public string Email { get; set; } = "";
+    public string Username { get; set; } = "";
     public string Password { get; set; } = "";
 }
 
 public class UpdateProfileRequest
 {
+    public string Username { get; set; } = "";
+    public string Email { get; set; } = "";
     public string DisplayName { get; set; } = "";
     public string Gender { get; set; } = "";
 }
@@ -30,6 +31,7 @@ public class ChangePasswordRequest
 
 public class ForgotPasswordRequest
 {
+    public string Username { get; set; } = "";
     public string Email { get; set; } = "";
 }
 
@@ -42,6 +44,7 @@ public class ResetPasswordRequest
 public class AuthUserDto
 {
     public int Id { get; set; }
+    public string Username { get; set; } = "";
     public string Email { get; set; } = "";
     public string DisplayName { get; set; } = "";
     public string Gender { get; set; } = "";
@@ -56,6 +59,7 @@ public class AuthResponse
 
 public class AdminCreateUserRequest
 {
+    public string Username { get; set; } = "";
     public string Email { get; set; } = "";
     public string DisplayName { get; set; } = "";
     public string Gender { get; set; } = "";
@@ -64,6 +68,7 @@ public class AdminCreateUserRequest
 
 public class AdminUpdateUserRequest
 {
+    public string Username { get; set; } = "";
     public string Email { get; set; } = "";
     public string DisplayName { get; set; } = "";
     public string Gender { get; set; } = "";
@@ -73,6 +78,7 @@ public class AdminUpdateUserRequest
 public class AdminUserDto
 {
     public int Id { get; set; }
+    public string Username { get; set; } = "";
     public string Email { get; set; } = "";
     public string DisplayName { get; set; } = "";
     public string Gender { get; set; } = "";
