@@ -1,9 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 
-import {
-  fetchViewerTimezone,
-  saveViewerTimezone,
-} from "@/lib/api";
+import { fetchViewerTimezone, saveViewerTimezone } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 import {
   DEFAULT_TIMEZONE_ISO,
@@ -45,9 +42,7 @@ function getInitialIso(isAuthenticated: boolean): string {
 export function TimezoneProvider({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth();
   const isAuthenticated = Boolean(user);
-  const [countryIso, setCountryIsoState] = useState(() =>
-    getInitialIso(false)
-  );
+  const [countryIso, setCountryIsoState] = useState(() => getInitialIso(false));
   const [clientId] = useState(getOrCreateClientId);
   const option = getTimezoneOption(countryIso);
 

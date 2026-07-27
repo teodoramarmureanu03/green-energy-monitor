@@ -41,6 +41,11 @@ public class ResetPasswordRequest
     public string NewPassword { get; set; } = "";
 }
 
+public class VerifyEmailRequest
+{
+    public string Token { get; set; } = "";
+}
+
 public class AuthUserDto
 {
     public int Id { get; set; }

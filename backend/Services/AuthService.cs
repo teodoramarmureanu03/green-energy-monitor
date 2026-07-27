@@ -3,15 +3,18 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using backend.Models;
+using MailKit.Net.Smtp;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using MimeKit;
 
 namespace backend.Services;
 
 public class AuthService
 {
     private static readonly TimeSpan PasswordResetTokenLifetime = TimeSpan.FromHours(1);
+    private static readonly TimeSpan EmailVerificationTokenLifetime = TimeSpan.FromHours(24);
 
     public const string AdminEmail = "admin@gmail.com";
     public const string AdminUsername = "admin";
@@ -22,6 +25,7 @@ public class AuthService
     private readonly EnergyDbContext _db;
     private readonly IConfiguration _config;
     private readonly IEmailService _emailService;
+    private readonly IEmailMailboxVerifier _mailboxVerifier;
     private readonly EmailOptions _emailOptions;
     private readonly ILogger<AuthService> _logger;
 
@@ -29,12 +33,14 @@ public class AuthService
         EnergyDbContext db,
         IConfiguration config,
         IEmailService emailService,
+        IEmailMailboxVerifier mailboxVerifier,
         IOptions<EmailOptions> emailOptions,
         ILogger<AuthService> logger)
     {
         _db = db;
         _config = config;
         _emailService = emailService;
+        _mailboxVerifier = mailboxVerifier;
         _emailOptions = emailOptions.Value;
         _logger = logger;
     }
@@ -87,7 +93,7 @@ public class AuthService
         await _db.SaveChangesAsync();
     }
 
-    public async Task<(AuthResponse? Response, string? Error)> RegisterAsync(RegisterRequest request)
+    public async Task<(string? Message, string? Error)> RegisterAsync(RegisterRequest request)
     {
         var username = NormalizeUsername(request.Username);
         var email = NormalizeEmail(request.Email);
@@ -100,9 +106,14 @@ public class AuthService
             return (null, usernameError);
         }
 
-        if (string.IsNullOrWhiteSpace(email) || !email.Contains('@'))
+        if (!IsValidEmailAddress(email))
         {
-            return (null, "Enter a valid email address.");
+            return (null, "That email address is invalid. Check it and try again.");
+        }
+
+        if (string.IsNullOrWhiteSpace(displayName))
+        {
+            return (null, "Display name is required.");
         }
 
         var gender = NormalizeGender(request.Gender);
@@ -111,24 +122,147 @@ public class AuthService
             return (null, "Select male, female, or other.");
         }
 
+        if (string.IsNullOrEmpty(password))
+        {
+            return (null, "Password is required.");
+        }
+
+        var mailboxStatus = await _mailboxVerifier.CheckAsync(email);
+        if (mailboxStatus == MailboxCheckStatus.Undeliverable)
+        {
+            return (null, "That email address is invalid or cannot receive mail. Check it and try again.");
+        }
+
+        await CleanupExpiredPendingRegistrationsAsync();
+
         var usernameTaken = await _db.Users.AnyAsync(user => user.Username == username);
         if (usernameTaken)
         {
             return (null, "That username is already taken.");
         }
 
+        var rawToken = CreateUrlSafeToken();
+        var tokenHash = HashToken(rawToken);
+        var resolvedDisplayName = displayName;
+        var passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
+
+        var existingPending = await _db.PendingRegistrations
+            .FirstOrDefaultAsync(item => item.Username == username);
+
+        if (existingPending is not null)
+        {
+            existingPending.Email = email;
+            existingPending.DisplayName = resolvedDisplayName;
+            existingPending.Gender = gender;
+            existingPending.PasswordHash = passwordHash;
+            existingPending.TokenHash = tokenHash;
+            existingPending.ExpiresAt = DateTime.UtcNow.Add(EmailVerificationTokenLifetime);
+            existingPending.CreatedAt = DateTime.UtcNow;
+        }
+        else
+        {
+            _db.PendingRegistrations.Add(new PendingRegistration
+            {
+                Username = username,
+                Email = email,
+                DisplayName = resolvedDisplayName,
+                Gender = gender,
+                PasswordHash = passwordHash,
+                TokenHash = tokenHash,
+                ExpiresAt = DateTime.UtcNow.Add(EmailVerificationTokenLifetime),
+                CreatedAt = DateTime.UtcNow,
+            });
+        }
+
+        await _db.SaveChangesAsync();
+
+        var baseUrl = (_emailOptions.FrontendBaseUrl ?? "http://localhost:3000").TrimEnd('/');
+        var verifyUrl = $"{baseUrl}/verify-email?token={Uri.EscapeDataString(rawToken)}";
+
+        var html = $"""
+            <p>Hello {System.Net.WebUtility.HtmlEncode(resolvedDisplayName)},</p>
+            <p>Confirm your Green Energy Monitor signup for username <strong>{System.Net.WebUtility.HtmlEncode(username)}</strong>.</p>
+            <p><a href="{verifyUrl}">Verify email and create account</a></p>
+            <p>This link expires in 24 hours. Your account is not created until you verify.</p>
+            """;
+
+        try
+        {
+            await _emailService.SendAsync(
+                email,
+                "Verify your Green Energy Monitor email",
+                html);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send verification email for username {Username}.", username);
+
+            var pendingToRemove = await _db.PendingRegistrations
+                .FirstOrDefaultAsync(item => item.Username == username);
+            if (pendingToRemove is not null)
+            {
+                _db.PendingRegistrations.Remove(pendingToRemove);
+                await _db.SaveChangesAsync();
+            }
+
+            if (LooksLikeInvalidRecipientError(ex))
+            {
+                return (null, "That email address is invalid or cannot receive mail. Check it and try again.");
+            }
+
+            if (ex is InvalidOperationException && !string.IsNullOrWhiteSpace(ex.Message))
+            {
+                return (null, ex.Message);
+            }
+
+            return (null, "Could not send the verification email. Please try again in a moment.");
+        }
+
+        return (
+            $"Verification email sent to {email}. Open the link in that message to create your account.",
+            null);
+    }
+
+    public async Task<(AuthResponse? Response, string? Error)> VerifyEmailAsync(VerifyEmailRequest request)
+    {
+        var token = request.Token?.Trim() ?? "";
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return (null, "Verification link is invalid or has expired.");
+        }
+
+        await CleanupExpiredPendingRegistrationsAsync();
+
+        var tokenHash = HashToken(token);
+        var pending = await _db.PendingRegistrations.FirstOrDefaultAsync(item =>
+            item.TokenHash == tokenHash);
+
+        if (pending is null || pending.ExpiresAt < DateTime.UtcNow)
+        {
+            return (null, "Verification link is invalid or has expired.");
+        }
+
+        var usernameTaken = await _db.Users.AnyAsync(user => user.Username == pending.Username);
+        if (usernameTaken)
+        {
+            _db.PendingRegistrations.Remove(pending);
+            await _db.SaveChangesAsync();
+            return (null, "That username is already taken. Please register again with a different username.");
+        }
+
         var user = new AppUser
         {
-            Username = username,
-            Email = email,
-            DisplayName = string.IsNullOrWhiteSpace(displayName) ? username : displayName,
-            Gender = gender,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+            Username = pending.Username,
+            Email = pending.Email,
+            DisplayName = pending.DisplayName,
+            Gender = pending.Gender,
+            PasswordHash = pending.PasswordHash,
             IsAdmin = false,
             CreatedAt = DateTime.UtcNow,
         };
 
         _db.Users.Add(user);
+        _db.PendingRegistrations.Remove(pending);
         await _db.SaveChangesAsync();
 
         return (BuildAuthResponse(user), null);
@@ -142,6 +276,11 @@ public class AuthService
         if (string.IsNullOrWhiteSpace(username))
         {
             return (null, "Username is required.");
+        }
+
+        if (string.IsNullOrEmpty(password))
+        {
+            return (null, "Password is required.");
         }
 
         var user = await _db.Users.FirstOrDefaultAsync(item => item.Username == username);
@@ -249,12 +388,9 @@ public class AuthService
             return;
         }
 
-        var rawToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32))
-            .TrimEnd('=')
-            .Replace('+', '-')
-            .Replace('/', '_');
+        var rawToken = CreateUrlSafeToken();
 
-        user.PasswordResetTokenHash = HashResetToken(rawToken);
+        user.PasswordResetTokenHash = HashToken(rawToken);
         user.PasswordResetTokenExpiresAt = DateTime.UtcNow.Add(PasswordResetTokenLifetime);
         await _db.SaveChangesAsync();
 
@@ -297,7 +433,7 @@ public class AuthService
             return (false, "Reset link is invalid or has expired.");
         }
 
-        var tokenHash = HashResetToken(token);
+        var tokenHash = HashToken(token);
         var user = await _db.Users.FirstOrDefaultAsync(item =>
             item.PasswordResetTokenHash == tokenHash);
 
@@ -376,6 +512,13 @@ public class AuthService
         if (usernameTaken)
         {
             return (null, "That username is already taken.");
+        }
+
+        var pending = await _db.PendingRegistrations
+            .FirstOrDefaultAsync(item => item.Username == username);
+        if (pending is not null)
+        {
+            _db.PendingRegistrations.Remove(pending);
         }
 
         var user = new AppUser
@@ -549,6 +692,61 @@ public class AuthService
     private static string NormalizeEmail(string? email) =>
         (email ?? "").Trim().ToLowerInvariant();
 
+    private static bool IsValidEmailAddress(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email) || !email.Contains('@'))
+        {
+            return false;
+        }
+
+        try
+        {
+            var parsed = MailboxAddress.Parse(email);
+            return !string.IsNullOrWhiteSpace(parsed.Address)
+                && parsed.Address.Contains('@')
+                && parsed.Address.IndexOf('@') > 0
+                && parsed.Address.IndexOf('@') < parsed.Address.Length - 1;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static bool LooksLikeInvalidRecipientError(Exception ex)
+    {
+        for (var current = ex; current is not null; current = current.InnerException)
+        {
+            if (current is ParseException)
+            {
+                return true;
+            }
+
+            if (current is SmtpCommandException smtp
+                && smtp.ErrorCode == SmtpErrorCode.RecipientNotAccepted)
+            {
+                return true;
+            }
+
+            var text = (current.Message ?? "").ToLowerInvariant();
+            if (text.Contains("mailbox unavailable")
+                || text.Contains("user unknown")
+                || text.Contains("invalid address")
+                || text.Contains("invalid mailbox")
+                || text.Contains("recipient address rejected")
+                || text.Contains("no such user")
+                || text.Contains("address not found")
+                || text.Contains("not found")
+                || text.Contains("does not exist")
+                || text.Contains("cannot receive mail"))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private static string NormalizeUsername(string? username) =>
         (username ?? "").Trim().ToLowerInvariant();
 
@@ -572,7 +770,28 @@ public class AuthService
         return null;
     }
 
-    private static string HashResetToken(string rawToken)
+    private async Task CleanupExpiredPendingRegistrationsAsync()
+    {
+        var expired = await _db.PendingRegistrations
+            .Where(item => item.ExpiresAt < DateTime.UtcNow)
+            .ToListAsync();
+
+        if (expired.Count == 0)
+        {
+            return;
+        }
+
+        _db.PendingRegistrations.RemoveRange(expired);
+        await _db.SaveChangesAsync();
+    }
+
+    private static string CreateUrlSafeToken() =>
+        Convert.ToBase64String(RandomNumberGenerator.GetBytes(32))
+            .TrimEnd('=')
+            .Replace('+', '-')
+            .Replace('/', '_');
+
+    private static string HashToken(string rawToken)
     {
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(rawToken));
         return Convert.ToHexString(bytes);

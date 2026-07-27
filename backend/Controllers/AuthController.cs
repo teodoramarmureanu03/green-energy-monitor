@@ -20,7 +20,20 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
-        var (response, error) = await _authService.RegisterAsync(request);
+        var (message, error) = await _authService.RegisterAsync(request);
+
+        if (error is not null)
+        {
+            return BadRequest(new { Message = error });
+        }
+
+        return Ok(new { Message = message });
+    }
+
+    [HttpPost("verify-email")]
+    public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailRequest request)
+    {
+        var (response, error) = await _authService.VerifyEmailAsync(request);
 
         if (error is not null)
         {

@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 
 import { UserAvatar } from "@/components/layout/UserAvatar";
@@ -55,21 +55,23 @@ export function AccountPage() {
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
+  const [registerMessage, setRegisterMessage] = useState<string | null>(null);
+  const [registerError, setRegisterError] = useState<string | null>(null);
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const wasLoggedInRef = useRef(false);
 
-  useEffect(() => {
-    clearError();
-    setSaveMessage(null);
-    setProfileError(null);
-    setPasswordMessage(null);
-    setConfirmDelete(false);
-  }, [tab, clearError]);
-
-  // Keep signed-out forms empty (no leftover register/login values).
+  // Only reset signed-out forms after a real logout — never while registering.
   useEffect(() => {
     if (user) {
+      wasLoggedInRef.current = true;
       return;
     }
 
+    if (!wasLoggedInRef.current) {
+      return;
+    }
+
+    wasLoggedInRef.current = false;
     setAuthFields(emptyAuthFields());
     setTab("login");
     setCurrentPassword("");
@@ -78,6 +80,9 @@ export function AccountPage() {
     setConfirmDelete(false);
     setSaveMessage(null);
     setPasswordMessage(null);
+    setRegisterMessage(null);
+    setRegisterError(null);
+    setLoginError(null);
   }, [user]);
 
   useEffect(() => {
@@ -94,32 +99,101 @@ export function AccountPage() {
   function switchTab(next: AuthTab) {
     setTab(next);
     setAuthFields(emptyAuthFields());
+    setRegisterMessage(null);
+    setRegisterError(null);
+    setLoginError(null);
     clearError();
+  }
+
+  function validateLoginFields(): string | null {
+    if (!authFields.username.trim()) {
+      return "Username is required.";
+    }
+    if (!authFields.password) {
+      return "Password is required.";
+    }
+    return null;
+  }
+
+  function validateRegisterFields(): string | null {
+    if (!authFields.username.trim()) {
+      return "Username is required.";
+    }
+    if (!authFields.email.trim()) {
+      return "Email is required.";
+    }
+    if (!authFields.email.includes("@")) {
+      return "Enter a valid email address.";
+    }
+    if (!authFields.displayName.trim()) {
+      return "Display name is required.";
+    }
+    if (!isUserGender(authFields.gender)) {
+      return "Select male, female, or other.";
+    }
+    if (!authFields.password) {
+      return "Password is required.";
+    }
+    return null;
   }
 
   async function handleAuthSubmit(event: FormEvent) {
     event.preventDefault();
-    setIsAuthSubmitting(true);
     clearError();
+    setRegisterMessage(null);
+    setRegisterError(null);
+    setLoginError(null);
 
-    try {
-      if (tab === "login") {
-        await login(authFields.username, authFields.password);
-      } else {
-        if (!isUserGender(authFields.gender)) {
-          return;
-        }
-        await register(
-          authFields.username,
-          authFields.email,
-          authFields.displayName,
-          authFields.password,
-          authFields.gender
-        );
+    if (tab === "login") {
+      const validationError = validateLoginFields();
+      if (validationError) {
+        setLoginError(validationError);
+        return;
       }
-      setAuthFields(emptyAuthFields());
-    } catch {
-      // Shown via auth context error.
+
+      setIsAuthSubmitting(true);
+      try {
+        await login(authFields.username.trim(), authFields.password);
+        setAuthFields(emptyAuthFields());
+      } catch {
+        // Login errors are shown via auth context error.
+      } finally {
+        setIsAuthSubmitting(false);
+      }
+      return;
+    }
+
+    const validationError = validateRegisterFields();
+    if (validationError) {
+      setRegisterError(validationError);
+      return;
+    }
+
+    if (!isUserGender(authFields.gender)) {
+      setRegisterError("Select male, female, or other.");
+      return;
+    }
+
+    setIsAuthSubmitting(true);
+    try {
+      const message = await register(
+        authFields.username.trim(),
+        authFields.email.trim(),
+        authFields.displayName.trim(),
+        authFields.password,
+        authFields.gender
+      );
+      setAuthFields((fields) => ({
+        ...fields,
+        password: "",
+      }));
+      setRegisterMessage(message);
+    } catch (err) {
+      setRegisterError(
+        err instanceof Error
+          ? err.message
+          : "Could not send verification email."
+      );
     } finally {
       setIsAuthSubmitting(false);
     }
@@ -436,7 +510,7 @@ export function AccountPage() {
           <p className="account-muted">
             {tab === "login"
               ? "Sign in with your username and password."
-              : "Choose a unique username. Email can be shared with other accounts."}
+              : "Choose a unique username. We will email a verification link before creating your account."}
           </p>
         </div>
       </header>
@@ -468,6 +542,7 @@ export function AccountPage() {
         className="account-card"
         onSubmit={handleAuthSubmit}
         autoComplete="off"
+        noValidate
       >
         <label className="account-field">
           <span>Username</span>
@@ -482,7 +557,6 @@ export function AccountPage() {
                 username: event.target.value,
               }))
             }
-            required
           />
         </label>
 
@@ -501,7 +575,6 @@ export function AccountPage() {
                     email: event.target.value,
                   }))
                 }
-                required
               />
             </label>
 
@@ -531,7 +604,6 @@ export function AccountPage() {
                   onChange={() =>
                     setAuthFields((fields) => ({ ...fields, gender: "Male" }))
                   }
-                  required
                 />
                 <span>Male</span>
               </label>
@@ -546,7 +618,6 @@ export function AccountPage() {
                       gender: "Female",
                     }))
                   }
-                  required
                 />
                 <span>Female</span>
               </label>
@@ -561,7 +632,6 @@ export function AccountPage() {
                       gender: "Other",
                     }))
                   }
-                  required
                 />
                 <span>Other</span>
               </label>
@@ -595,9 +665,21 @@ export function AccountPage() {
           </p>
         )}
 
-        {error && (
+        {tab === "login" && (loginError || error) && (
           <p className="account-error" role="alert">
-            {error}
+            {loginError ?? error}
+          </p>
+        )}
+
+        {tab === "register" && registerError && (
+          <p className="account-error" role="alert">
+            {registerError}
+          </p>
+        )}
+
+        {tab === "register" && registerMessage && (
+          <p className="account-success" role="status">
+            {registerMessage}
           </p>
         )}
 
@@ -610,7 +692,7 @@ export function AccountPage() {
             ? "Please wait…"
             : tab === "login"
               ? "Sign in"
-              : "Create account"}
+              : "Send verification email"}
         </button>
       </form>
     </section>

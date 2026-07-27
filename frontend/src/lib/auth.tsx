@@ -13,6 +13,7 @@ import {
   updateProfile as updateProfileRequest,
   changePassword as changePasswordRequest,
   deleteAccount as deleteAccountRequest,
+  type AuthResponse,
   type AuthUser,
   type UserGender,
 } from "@/lib/auth-api";
@@ -85,6 +86,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(normalizeUser(response.user));
   }, []);
 
+  const establishSession = useCallback((response: AuthResponse) => {
+    setError(null);
+    window.localStorage.setItem(TOKEN_KEY, response.token);
+    setUser(normalizeUser(response.user));
+  }, []);
+
   const register = useCallback(
     async (
       username: string,
@@ -94,15 +101,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       gender: UserGender
     ) => {
       setError(null);
-      const response = await registerAccount({
+      return registerAccount({
         username,
         email,
         displayName,
         password,
         gender,
       });
-      window.localStorage.setItem(TOKEN_KEY, response.token);
-      setUser(normalizeUser(response.user));
     },
     []
   );
@@ -176,12 +181,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           throw err;
         }
       },
+      establishSession,
       register: async (username, email, displayName, password, gender) => {
         try {
-          await register(username, email, displayName, password, gender);
+          return await register(username, email, displayName, password, gender);
         } catch (err) {
           setError(
-            err instanceof Error ? err.message : "Could not create account."
+            err instanceof Error
+              ? err.message
+              : "Could not send verification email."
           );
           throw err;
         }
@@ -224,6 +232,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isLoading,
       error,
       login,
+      establishSession,
       register,
       updateProfile,
       changePassword,

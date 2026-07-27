@@ -1,18 +1,19 @@
 import { createContext } from "react";
-import type { AuthUser, UserGender } from "@/lib/auth-api";
+import type { AuthResponse, AuthUser, UserGender } from "@/lib/auth-api";
 
 export interface AuthContextValue {
   user: AuthUser | null;
   isLoading: boolean;
   error: string | null;
   login: (username: string, password: string) => Promise<void>;
+  establishSession: (response: AuthResponse) => void;
   register: (
     username: string,
     email: string,
     displayName: string,
     password: string,
     gender: UserGender
-  ) => Promise<void>;
+  ) => Promise<string>;
   updateProfile: (
     username: string,
     displayName: string,

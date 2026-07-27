@@ -31,9 +31,7 @@ export function MapScreen() {
       </header>
 
       <div className="map-card">
-        <EuropeMap
-          onSelectCountry={(iso) => navigate(paths.dashboard(iso))}
-        />
+        <EuropeMap onSelectCountry={(iso) => navigate(paths.dashboard(iso))} />
       </div>
     </div>
   );
