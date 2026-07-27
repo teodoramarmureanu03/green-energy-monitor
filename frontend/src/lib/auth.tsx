@@ -14,6 +14,7 @@ import {
   changePassword as changePasswordRequest,
   deleteAccount as deleteAccountRequest,
   type AuthUser,
+  type UserGender,
 } from "@/lib/auth-api";
 import { AuthContext, type AuthContextValue } from "@/lib/auth-context";
 
@@ -24,7 +25,13 @@ function normalizeUser(user: AuthUser): AuthUser {
   return {
     ...user,
     gender:
-      gender === "female" ? "Female" : gender === "male" ? "Male" : user.gender,
+      gender === "female"
+        ? "Female"
+        : gender === "male"
+          ? "Male"
+          : gender === "other"
+            ? "Other"
+            : user.gender,
   };
 }
 
@@ -77,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: string,
       displayName: string,
       password: string,
-      gender: "Male" | "Female"
+      gender: UserGender
     ) => {
       setError(null);
       const response = await registerAccount({
@@ -93,7 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const updateProfile = useCallback(
-    async (displayName: string, gender: "Male" | "Female") => {
+    async (displayName: string, gender: UserGender) => {
       const token = window.localStorage.getItem(TOKEN_KEY);
       if (!token) {
         throw new Error("You are not signed in.");

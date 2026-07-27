@@ -15,7 +15,7 @@ public class AppUser
     public string DisplayName { get; set; } = "";
 
     /// <summary>
-    /// "Male" or "Female" — used for the toolbar avatar.
+    /// "Male", "Female", or "Other" — used for the toolbar avatar.
     /// </summary>
     public string Gender { get; set; } = "";
 

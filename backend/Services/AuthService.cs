@@ -29,20 +29,10 @@ public class AuthService
             return (null, "Enter a valid email address.");
         }
 
-        if (displayName.Length < 2)
-        {
-            return (null, "Display name must be at least 2 characters.");
-        }
-
-        if (password.Length < 6)
-        {
-            return (null, "Password must be at least 6 characters.");
-        }
-
         var gender = NormalizeGender(request.Gender);
         if (gender is null)
         {
-            return (null, "Select male or female.");
+            return (null, "Select male, female, or other.");
         }
 
         var exists = await _db.Users.AnyAsync(user => user.Email == email);
@@ -71,9 +61,9 @@ public class AuthService
         var email = NormalizeEmail(request.Email);
         var password = request.Password ?? "";
 
-        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+        if (string.IsNullOrWhiteSpace(email))
         {
-            return (null, "Email and password are required.");
+            return (null, "Email is required.");
         }
 
         var user = await _db.Users.FirstOrDefaultAsync(item => item.Email == email);
@@ -99,15 +89,11 @@ public class AuthService
         UpdateProfileRequest request)
     {
         var displayName = request.DisplayName?.Trim() ?? "";
-        if (displayName.Length < 2)
-        {
-            return (null, "Display name must be at least 2 characters.");
-        }
 
         var gender = NormalizeGender(request.Gender);
         if (gender is null)
         {
-            return (null, "Select male or female.");
+            return (null, "Select male, female, or other.");
         }
 
         var user = await _db.Users.FirstOrDefaultAsync(item => item.Id == userId);
@@ -129,16 +115,6 @@ public class AuthService
     {
         var currentPassword = request.CurrentPassword ?? "";
         var newPassword = request.NewPassword ?? "";
-
-        if (string.IsNullOrWhiteSpace(currentPassword) || string.IsNullOrWhiteSpace(newPassword))
-        {
-            return (false, "Current and new passwords are required.");
-        }
-
-        if (newPassword.Length < 6)
-        {
-            return (false, "New password must be at least 6 characters.");
-        }
 
         var user = await _db.Users.FirstOrDefaultAsync(item => item.Id == userId);
         if (user is null)
@@ -225,6 +201,11 @@ public class AuthService
         if (value.Equals("Female", StringComparison.OrdinalIgnoreCase))
         {
             return "Female";
+        }
+
+        if (value.Equals("Other", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Other";
         }
 
         return null;

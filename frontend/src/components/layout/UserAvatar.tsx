@@ -4,7 +4,9 @@ interface UserAvatarProps {
   className?: string;
 }
 
-function normalizeGender(gender?: string | null): "Male" | "Female" | null {
+type AvatarGender = "Male" | "Female" | "Other";
+
+function normalizeGender(gender?: string | null): AvatarGender | null {
   const value = (gender ?? "").trim().toLowerCase();
   if (value === "male") {
     return "Male";
@@ -12,8 +14,17 @@ function normalizeGender(gender?: string | null): "Male" | "Female" | null {
   if (value === "female") {
     return "Female";
   }
+  if (value === "other") {
+    return "Other";
+  }
   return null;
 }
+
+const AVATAR_SRC: Record<AvatarGender, string> = {
+  Male: "/avatars/male.png",
+  Female: "/avatars/female.png",
+  Other: "/avatars/other.png",
+};
 
 /** Circular profile avatar for toolbar / account page. */
 export function UserAvatar({
@@ -22,27 +33,12 @@ export function UserAvatar({
   className = "",
 }: UserAvatarProps) {
   const resolved = normalizeGender(gender);
-
   const imgStyle = { width: size, height: size };
 
-  if (resolved === "Female") {
+  if (resolved) {
     return (
       <img
-        src="/avatars/female.png"
-        alt=""
-        width={size}
-        height={size}
-        style={imgStyle}
-        className={`user-avatar-img ${className}`.trim()}
-        draggable={false}
-      />
-    );
-  }
-
-  if (resolved === "Male") {
-    return (
-      <img
-        src="/avatars/male.png"
+        src={AVATAR_SRC[resolved]}
         alt=""
         width={size}
         height={size}

@@ -2,16 +2,21 @@ import { useEffect, useState, type FormEvent } from "react";
 
 import { UserAvatar } from "@/components/layout/UserAvatar";
 import { useAuth } from "@/hooks/useAuth";
+import type { UserGender } from "@/lib/auth-api";
 
 import "./AccountPage.css";
 
 type AuthTab = "login" | "register";
 
+function isUserGender(value: string): value is UserGender {
+  return value === "Male" || value === "Female" || value === "Other";
+}
+
 function emptyAuthFields() {
   return {
     email: "",
     displayName: "",
-    gender: "" as "Male" | "Female" | "",
+    gender: "" as UserGender | "",
     password: "",
   };
 }
@@ -33,9 +38,7 @@ export function AccountPage() {
   const [tab, setTab] = useState<AuthTab>("login");
   const [authFields, setAuthFields] = useState(emptyAuthFields);
   const [profileName, setProfileName] = useState("");
-  const [profileGender, setProfileGender] = useState<"Male" | "Female" | "">(
-    ""
-  );
+  const [profileGender, setProfileGender] = useState<UserGender | "">("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -73,9 +76,7 @@ export function AccountPage() {
     }
 
     setProfileName(user.displayName);
-    setProfileGender(
-      user.gender === "Female" || user.gender === "Male" ? user.gender : ""
-    );
+    setProfileGender(isUserGender(user.gender) ? user.gender : "");
   }, [user]);
 
   function switchTab(next: AuthTab) {
@@ -93,7 +94,7 @@ export function AccountPage() {
       if (tab === "login") {
         await login(authFields.email, authFields.password);
       } else {
-        if (authFields.gender !== "Male" && authFields.gender !== "Female") {
+        if (!isUserGender(authFields.gender)) {
           return;
         }
         await register(
@@ -113,7 +114,7 @@ export function AccountPage() {
 
   async function handleProfileSave(event: FormEvent) {
     event.preventDefault();
-    if (profileGender !== "Male" && profileGender !== "Female") {
+    if (!isUserGender(profileGender)) {
       return;
     }
 
@@ -205,8 +206,6 @@ export function AccountPage() {
               type="text"
               value={profileName}
               onChange={(event) => setProfileName(event.target.value)}
-              required
-              minLength={2}
               autoComplete="off"
             />
           </label>
@@ -232,6 +231,16 @@ export function AccountPage() {
                 required
               />
               <span>Female</span>
+            </label>
+            <label className="account-gender-option">
+              <input
+                type="radio"
+                name="profile-gender"
+                checked={profileGender === "Other"}
+                onChange={() => setProfileGender("Other")}
+                required
+              />
+              <span>Other</span>
             </label>
           </fieldset>
 
@@ -273,8 +282,6 @@ export function AccountPage() {
               type="password"
               value={currentPassword}
               onChange={(event) => setCurrentPassword(event.target.value)}
-              required
-              minLength={6}
               autoComplete="current-password"
             />
           </label>
@@ -285,8 +292,6 @@ export function AccountPage() {
               type="password"
               value={newPassword}
               onChange={(event) => setNewPassword(event.target.value)}
-              required
-              minLength={6}
               autoComplete="new-password"
             />
           </label>
@@ -297,8 +302,6 @@ export function AccountPage() {
               type="password"
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
-              required
-              minLength={6}
               autoComplete="new-password"
             />
           </label>
@@ -427,8 +430,6 @@ export function AccountPage() {
                     displayName: event.target.value,
                   }))
                 }
-                required
-                minLength={2}
               />
             </label>
 
@@ -460,6 +461,21 @@ export function AccountPage() {
                   required
                 />
                 <span>Female</span>
+              </label>
+              <label className="account-gender-option">
+                <input
+                  type="radio"
+                  name="register-gender"
+                  checked={authFields.gender === "Other"}
+                  onChange={() =>
+                    setAuthFields((fields) => ({
+                      ...fields,
+                      gender: "Other",
+                    }))
+                  }
+                  required
+                />
+                <span>Other</span>
               </label>
             </fieldset>
           </>
@@ -495,8 +511,6 @@ export function AccountPage() {
                 password: event.target.value,
               }))
             }
-            required
-            minLength={6}
           />
         </label>
 

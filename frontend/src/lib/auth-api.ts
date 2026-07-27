@@ -1,8 +1,10 @@
+export type UserGender = "Male" | "Female" | "Other";
+
 export interface AuthUser {
   id: number;
   email: string;
   displayName: string;
-  gender: "Male" | "Female" | string;
+  gender: UserGender | string;
 }
 
 export interface AuthResponse {
@@ -27,7 +29,7 @@ async function readErrorMessage(response: Response, fallback: string) {
 export async function registerAccount(input: {
   email: string;
   displayName: string;
-  gender: "Male" | "Female";
+  gender: UserGender;
   password: string;
 }): Promise<AuthResponse> {
   const response = await fetch(`${API_BASE}/api/auth/register`, {
@@ -89,7 +91,7 @@ export async function deleteAccount(token: string): Promise<void> {
 
 export async function updateProfile(
   token: string,
-  input: { displayName: string; gender: "Male" | "Female" }
+  input: { displayName: string; gender: UserGender }
 ): Promise<AuthUser> {
   const response = await fetch(`${API_BASE}/api/auth/me`, {
     method: "PUT",
