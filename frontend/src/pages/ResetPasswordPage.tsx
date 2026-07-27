@@ -86,7 +86,6 @@ export function ResetPasswordPage() {
               value={newPassword}
               onChange={(event) => setNewPassword(event.target.value)}
               required
-              minLength={6}
             />
           </label>
 
@@ -99,7 +98,6 @@ export function ResetPasswordPage() {
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
               required
-              minLength={6}
             />
           </label>
 

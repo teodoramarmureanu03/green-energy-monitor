@@ -2,6 +2,7 @@ export type UserGender = "Male" | "Female" | "Other";
 
 export interface AuthUser {
   id: number;
+  username: string;
   email: string;
   displayName: string;
   gender: UserGender | string;
@@ -28,6 +29,7 @@ async function readErrorMessage(response: Response, fallback: string) {
 }
 
 export async function registerAccount(input: {
+  username: string;
   email: string;
   displayName: string;
   gender: UserGender;
@@ -49,7 +51,7 @@ export async function registerAccount(input: {
 }
 
 export async function loginAccount(input: {
-  email: string;
+  username: string;
   password: string;
 }): Promise<AuthResponse> {
   const response = await fetch(`${API_BASE}/api/auth/login`, {
@@ -92,8 +94,13 @@ export async function deleteAccount(token: string): Promise<void> {
 
 export async function updateProfile(
   token: string,
-  input: { displayName: string; gender: UserGender }
-): Promise<AuthUser> {
+  input: {
+    username: string;
+    displayName: string;
+    gender: UserGender;
+    email: string;
+  }
+): Promise<AuthResponse> {
   const response = await fetch(`${API_BASE}/api/auth/me`, {
     method: "PUT",
     headers: {
@@ -132,11 +139,14 @@ export async function changePassword(
   }
 }
 
-export async function requestPasswordReset(email: string): Promise<string> {
+export async function requestPasswordReset(input: {
+  username: string;
+  email: string;
+}): Promise<string> {
   const response = await fetch(`${API_BASE}/api/auth/forgot-password`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email }),
+    body: JSON.stringify(input),
   });
 
   if (!response.ok) {
@@ -153,7 +163,7 @@ export async function requestPasswordReset(email: string): Promise<string> {
   return (
     payload.message ??
     payload.Message ??
-    "If an account exists for that email, we sent a password reset link."
+    "If an account matches that username and email, we sent a password reset link."
   );
 }
 

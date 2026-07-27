@@ -42,7 +42,7 @@ export function getToolbarInfo(pathname: string): {
     case "forgotPassword":
       return {
         title: "Forgot password",
-        subtitle: "Request a password reset email",
+        subtitle: "Reset with username and email",
       };
     case "resetPassword":
       return {

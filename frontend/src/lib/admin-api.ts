@@ -4,6 +4,7 @@ const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
 
 export interface AdminUser {
   id: number;
+  username: string;
   email: string;
   displayName: string;
   gender: UserGender | string;
@@ -45,6 +46,7 @@ export async function fetchAdminUsers(token: string): Promise<AdminUser[]> {
 export async function createAdminUser(
   token: string,
   input: {
+    username: string;
     email: string;
     displayName: string;
     gender: UserGender;
@@ -68,6 +70,7 @@ export async function updateAdminUser(
   token: string,
   id: number,
   input: {
+    username: string;
     email: string;
     displayName: string;
     gender: UserGender;

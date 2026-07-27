@@ -8,6 +8,7 @@ import { paths } from "@/routes/paths";
 import "./AccountPage.css";
 
 export function ForgotPasswordPage() {
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,8 +21,9 @@ export function ForgotPasswordPage() {
     setMessage(null);
 
     try {
-      const result = await requestPasswordReset(email);
+      const result = await requestPasswordReset({ username, email });
       setMessage(result);
+      setUsername("");
       setEmail("");
     } catch (err) {
       setError(
@@ -39,12 +41,25 @@ export function ForgotPasswordPage() {
         <div>
           <h1 className="account-title">Forgot password?</h1>
           <p className="account-muted">
-            Enter your email and we will send you a reset link.
+            Enter your username and email so we can reset the correct account,
+            then send a link to that address.
           </p>
         </div>
       </header>
 
       <form className="account-card" onSubmit={handleSubmit} autoComplete="off">
+        <label className="account-field">
+          <span>Username</span>
+          <input
+            type="text"
+            name="forgot-username"
+            autoComplete="username"
+            value={username}
+            onChange={(event) => setUsername(event.target.value)}
+            required
+          />
+        </label>
+
         <label className="account-field">
           <span>Email</span>
           <input

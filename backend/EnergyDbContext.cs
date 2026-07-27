@@ -95,6 +95,9 @@ public class EnergyDbContext : DbContext
         {
             entity.ToTable("Users");
             entity.HasKey(user => user.Id);
+            entity.Property(user => user.Username)
+                .HasMaxLength(100)
+                .IsRequired();
             entity.Property(user => user.Email)
                 .HasMaxLength(256)
                 .IsRequired();
@@ -111,7 +114,8 @@ public class EnergyDbContext : DbContext
                 .HasMaxLength(128);
             entity.Property(user => user.IsAdmin)
                 .HasDefaultValue(false);
-            entity.HasIndex(user => user.Email).IsUnique();
+            entity.HasIndex(user => user.Username).IsUnique();
+            entity.HasIndex(user => user.Email);
             entity.HasIndex(user => user.PasswordResetTokenHash);
         });
     }
