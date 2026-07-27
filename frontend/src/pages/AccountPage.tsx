@@ -1,7 +1,9 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { Link } from "react-router-dom";
 
 import { UserAvatar } from "@/components/layout/UserAvatar";
 import { useAuth } from "@/hooks/useAuth";
+import { paths } from "@/routes/paths";
 
 import "./AccountPage.css";
 
@@ -499,6 +501,14 @@ export function AccountPage() {
             minLength={6}
           />
         </label>
+
+        {tab === "login" && (
+          <p className="account-muted account-link-row">
+            <Link to={paths.forgotPassword} className="account-text-link">
+              Forgot password?
+            </Link>
+          </p>
+        )}
 
         {error && (
           <p className="account-error" role="alert">

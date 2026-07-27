@@ -5,7 +5,9 @@ import { HomeScreen } from "@/components/home/HomeScreen";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { AccountPage } from "@/pages/AccountPage";
 import { DashboardPage } from "@/pages/DashboardPage";
+import { ForgotPasswordPage } from "@/pages/ForgotPasswordPage";
 import { MapPage } from "@/pages/MapPage";
+import { ResetPasswordPage } from "@/pages/ResetPasswordPage";
 import { paths } from "@/routes/paths";
 
 export default function App() {
@@ -17,6 +19,8 @@ export default function App() {
         <Route path="map" element={<MapPage />} />
         <Route path="comparison" element={<ComparisonScreen />} />
         <Route path="account" element={<AccountPage />} />
+        <Route path="forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="reset-password" element={<ResetPasswordPage />} />
         <Route path="dashboard/:iso" element={<DashboardPage />} />
         <Route path="*" element={<Navigate to={paths.home} replace />} />
       </Route>

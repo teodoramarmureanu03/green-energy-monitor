@@ -42,6 +42,9 @@ builder.Services.AddScoped<GenerationService>();
 builder.Services.AddScoped<HistoryService>();
 builder.Services.AddScoped<PreferencesService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.Configure<backend.Models.EmailOptions>(
+    builder.Configuration.GetSection(backend.Models.EmailOptions.SectionName));
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddHttpClient<EntsoeService>();
 builder.Services.AddHostedService<EntsoeDataSyncService>();
 
@@ -146,8 +149,17 @@ static async Task EnsureUsersTableAsync(EnergyDbContext db)
         ALTER TABLE "Users"
             ADD COLUMN IF NOT EXISTS "Gender" character varying(20) NOT NULL DEFAULT 'Male';
 
+        ALTER TABLE "Users"
+            ADD COLUMN IF NOT EXISTS "PasswordResetTokenHash" character varying(128) NULL;
+
+        ALTER TABLE "Users"
+            ADD COLUMN IF NOT EXISTS "PasswordResetTokenExpiresAt" timestamp with time zone NULL;
+
         CREATE UNIQUE INDEX IF NOT EXISTS "IX_Users_Email"
             ON "Users" ("Email");
+
+        CREATE INDEX IF NOT EXISTS "IX_Users_PasswordResetTokenHash"
+            ON "Users" ("PasswordResetTokenHash");
         """);
 }
 

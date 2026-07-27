@@ -21,5 +21,12 @@ public class AppUser
 
     public string PasswordHash { get; set; } = "";
 
+    /// <summary>
+    /// SHA-256 hash of the one-time password reset token (null when none is active).
+    /// </summary>
+    public string? PasswordResetTokenHash { get; set; }
+
+    public DateTime? PasswordResetTokenExpiresAt { get; set; }
+
     public DateTime CreatedAt { get; set; }
 }

@@ -107,7 +107,10 @@ public class EnergyDbContext : DbContext
             entity.Property(user => user.PasswordHash)
                 .HasMaxLength(200)
                 .IsRequired();
+            entity.Property(user => user.PasswordResetTokenHash)
+                .HasMaxLength(128);
             entity.HasIndex(user => user.Email).IsUnique();
+            entity.HasIndex(user => user.PasswordResetTokenHash);
         });
     }
 }
