@@ -1,6 +1,8 @@
+import { useEffect, useRef, useState, type FocusEvent, type MouseEvent } from "react";
 import { Sun, Moon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+import { AuthRequiredTip } from "@/components/layout/AuthRequiredTip";
 import { UserAvatar } from "@/components/layout/UserAvatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
@@ -18,6 +20,36 @@ export function Toolbar({ title, subtitle }: ToolbarProps) {
   const { theme, toggleTheme } = useTheme();
   const { countryIso, setCountryIso } = useTimezone();
   const { user } = useAuth();
+  const [showTimezoneTip, setShowTimezoneTip] = useState(false);
+  const timezoneRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showTimezoneTip) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => setShowTimezoneTip(false), 5000);
+    return () => window.clearTimeout(timeoutId);
+  }, [showTimezoneTip]);
+
+  function handleTimezoneChange(nextIso: string) {
+    if (!user) {
+      setShowTimezoneTip(true);
+      return;
+    }
+
+    setCountryIso(nextIso);
+  }
+
+  function handleTimezoneInteract(
+    event: MouseEvent<HTMLSelectElement> | FocusEvent<HTMLSelectElement>
+  ) {
+    if (!user) {
+      event.preventDefault();
+      event.currentTarget.blur();
+      setShowTimezoneTip(true);
+    }
+  }
 
   return (
     <div className="layout-toolbar">
@@ -27,22 +59,35 @@ export function Toolbar({ title, subtitle }: ToolbarProps) {
       </div>
 
       <div className="layout-toolbar-actions">
-        <label className="layout-toolbar-timezone">
-          <span className="layout-toolbar-timezone-label">Timezone</span>
-          <select
-            className="layout-toolbar-timezone-select"
-            value={countryIso}
-            onChange={(event) => setCountryIso(event.target.value)}
-            aria-label="Select country timezone for dates and charts"
-            title="Dates, times, and chart days use this country's timezone"
-          >
-            {TIMEZONE_OPTIONS.map((option) => (
-              <option key={option.isoCode} value={option.isoCode}>
-                {option.name}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div ref={timezoneRef} className="layout-toolbar-timezone-wrap">
+          <label className="layout-toolbar-timezone">
+            <span className="layout-toolbar-timezone-label">Timezone</span>
+            <select
+              className="layout-toolbar-timezone-select"
+              value={countryIso}
+              onChange={(event) => handleTimezoneChange(event.target.value)}
+              onMouseDown={handleTimezoneInteract}
+              onFocus={handleTimezoneInteract}
+              aria-label="Select country timezone for dates and charts"
+              title={
+                user
+                  ? "Dates, times, and chart days use this country's timezone"
+                  : "Sign in to change timezone"
+              }
+            >
+              {TIMEZONE_OPTIONS.map((option) => (
+                <option key={option.isoCode} value={option.isoCode}>
+                  {option.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <AuthRequiredTip
+            visible={showTimezoneTip}
+            anchorRef={timezoneRef}
+            placement="below"
+          />
+        </div>
 
         <button
           type="button"

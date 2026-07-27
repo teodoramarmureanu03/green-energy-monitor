@@ -1,5 +1,5 @@
 import { createContext } from "react";
-import type { AuthUser } from "@/lib/auth-api";
+import type { AuthUser, UserGender } from "@/lib/auth-api";
 
 export interface AuthContextValue {
   user: AuthUser | null;
@@ -10,12 +10,9 @@ export interface AuthContextValue {
     email: string,
     displayName: string,
     password: string,
-    gender: "Male" | "Female"
+    gender: UserGender
   ) => Promise<void>;
-  updateProfile: (
-    displayName: string,
-    gender: "Male" | "Female"
-  ) => Promise<void>;
+  updateProfile: (displayName: string, gender: UserGender) => Promise<void>;
   changePassword: (
     currentPassword: string,
     newPassword: string

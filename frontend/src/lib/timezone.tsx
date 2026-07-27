@@ -4,6 +4,7 @@ import {
   fetchViewerTimezone,
   saveViewerTimezone,
 } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
 import {
   DEFAULT_TIMEZONE_ISO,
   getTimezoneOption,
@@ -25,7 +26,11 @@ function getOrCreateClientId(): string {
   return created;
 }
 
-function getInitialIso(): string {
+function getInitialIso(isAuthenticated: boolean): string {
+  if (!isAuthenticated) {
+    return DEFAULT_TIMEZONE_ISO;
+  }
+
   const stored = window.localStorage.getItem(STORAGE_KEY);
   if (
     stored &&
@@ -38,15 +43,42 @@ function getInitialIso(): string {
 }
 
 export function TimezoneProvider({ children }: { children: ReactNode }) {
-  const [countryIso, setCountryIsoState] = useState(getInitialIso);
-  const clientId = getOrCreateClientId();
+  const { user, isLoading } = useAuth();
+  const isAuthenticated = Boolean(user);
+  const [countryIso, setCountryIsoState] = useState(() =>
+    getInitialIso(false)
+  );
+  const [clientId] = useState(getOrCreateClientId);
   const option = getTimezoneOption(countryIso);
 
+  // Signed-out visitors always use Romania; signed-in users keep their preference.
   useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, countryIso);
-  }, [countryIso]);
+    if (isLoading) {
+      return;
+    }
+
+    if (!isAuthenticated) {
+      setCountryIsoState(DEFAULT_TIMEZONE_ISO);
+      window.localStorage.setItem(STORAGE_KEY, DEFAULT_TIMEZONE_ISO);
+      return;
+    }
+
+    setCountryIsoState(getInitialIso(true));
+  }, [isAuthenticated, isLoading]);
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+
+    window.localStorage.setItem(STORAGE_KEY, countryIso);
+  }, [countryIso, isAuthenticated]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+
     let cancelled = false;
 
     fetchViewerTimezone(clientId)
@@ -67,18 +99,25 @@ export function TimezoneProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [clientId]);
+  }, [clientId, isAuthenticated]);
 
   function setCountryIso(isoCode: string) {
+    if (!isAuthenticated) {
+      setCountryIsoState(DEFAULT_TIMEZONE_ISO);
+      return;
+    }
+
     const next = isoCode.toUpperCase();
     const selected = getTimezoneOption(next);
     setCountryIsoState(selected.isoCode);
 
-    void saveViewerTimezone(clientId, selected.isoCode, selected.timeZone).catch(
-      () => {
-        // Preference still applies locally even if persistence fails.
-      }
-    );
+    void saveViewerTimezone(
+      clientId,
+      selected.isoCode,
+      selected.timeZone
+    ).catch(() => {
+      // Preference still applies locally even if persistence fails.
+    });
   }
 
   return (
