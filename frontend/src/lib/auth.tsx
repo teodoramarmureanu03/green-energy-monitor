@@ -24,6 +24,7 @@ function normalizeUser(user: AuthUser): AuthUser {
   const gender = (user.gender ?? "").trim().toLowerCase();
   return {
     ...user,
+    isAdmin: Boolean(user.isAdmin),
     gender:
       gender === "female"
         ? "Female"

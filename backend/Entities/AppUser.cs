@@ -21,5 +21,10 @@ public class AppUser
 
     public string PasswordHash { get; set; } = "";
 
+    /// <summary>
+    /// When true, the user can open the admin users dashboard.
+    /// </summary>
+    public bool IsAdmin { get; set; }
+
     public DateTime CreatedAt { get; set; }
 }

@@ -185,7 +185,7 @@ export function AccountPage() {
         <header className="account-header">
           <UserAvatar gender={user.gender} size={48} />
           <div>
-            <h1 className="account-title">Your profile</h1>
+            <h1 className="account-title">{user.displayName}</h1>
             <p className="account-muted">
               Update your details, password, or delete your account.
             </p>
@@ -282,7 +282,9 @@ export function AccountPage() {
               type="password"
               value={currentPassword}
               onChange={(event) => setCurrentPassword(event.target.value)}
-              autoComplete="current-password"
+              autoComplete="off"
+              data-1p-ignore
+              data-lpignore="true"
             />
           </label>
 
@@ -292,7 +294,9 @@ export function AccountPage() {
               type="password"
               value={newPassword}
               onChange={(event) => setNewPassword(event.target.value)}
-              autoComplete="new-password"
+              autoComplete="off"
+              data-1p-ignore
+              data-lpignore="true"
             />
           </label>
 
@@ -302,7 +306,9 @@ export function AccountPage() {
               type="password"
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
-              autoComplete="new-password"
+              autoComplete="off"
+              data-1p-ignore
+              data-lpignore="true"
             />
           </label>
 
@@ -503,7 +509,9 @@ export function AccountPage() {
           <input
             type="password"
             name="auth-password"
-            autoComplete="new-password"
+            autoComplete={tab === "login" ? "one-time-code" : "off"}
+            data-1p-ignore
+            data-lpignore="true"
             value={authFields.password}
             onChange={(event) =>
               setAuthFields((fields) => ({

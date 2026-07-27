@@ -6,6 +6,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { AuthRequiredPanel } from "@/components/layout/AuthRequiredPanel";
 import { useAuth } from "@/hooks/useAuth";
 import { AccountPage } from "@/pages/AccountPage";
+import { AdminUsersPage } from "@/pages/AdminUsersPage";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { MapPage } from "@/pages/MapPage";
 import { paths } from "@/routes/paths";
@@ -33,6 +34,7 @@ export default function App() {
         <Route path="map" element={<MapPage />} />
         <Route path="comparison" element={<ComparisonRoute />} />
         <Route path="account" element={<AccountPage />} />
+        <Route path="admin/users" element={<AdminUsersPage />} />
         <Route path="dashboard/:iso" element={<DashboardPage />} />
         <Route path="*" element={<Navigate to={paths.home} replace />} />
       </Route>

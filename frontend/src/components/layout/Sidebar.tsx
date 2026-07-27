@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { formatInTimeZone } from "@/lib/timezones";
 import { useTimezone } from "@/hooks/useTimezone";
 
-import { SIDEBAR_ITEMS } from "./layoutData";
+import { SIDEBAR_ITEMS, ADMIN_SIDEBAR_ITEM } from "./layoutData";
 import { isSidebarItemActive } from "./layoutUtils";
 
 function useNow() {
@@ -162,6 +162,31 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
             </NavLink>
           );
         })}
+
+        {user?.isAdmin && (
+          <NavLink
+            to={ADMIN_SIDEBAR_ITEM.to}
+            title={ADMIN_SIDEBAR_ITEM.label}
+            aria-current={
+              isSidebarItemActive(ADMIN_SIDEBAR_ITEM.id, location.pathname)
+                ? "page"
+                : undefined
+            }
+            className={cn(
+              "layout-sidebar-link",
+              collapsed && "layout-sidebar-link-collapsed",
+              isSidebarItemActive(ADMIN_SIDEBAR_ITEM.id, location.pathname) &&
+                "layout-sidebar-link-active"
+            )}
+          >
+            <ADMIN_SIDEBAR_ITEM.icon className="h-4.5 w-4.5 shrink-0" />
+            {showText && (
+              <span className="layout-sidebar-link-label">
+                {ADMIN_SIDEBAR_ITEM.label}
+              </span>
+            )}
+          </NavLink>
+        )}
       </div>
 
       {showText && (
