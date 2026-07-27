@@ -2,25 +2,57 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { ComparisonTable } from "./ComparisonTable";
 import type { RankedCountryGeneration } from "./comparisonUtils";
+import type { Country, CountryGeneration } from "@/types/contract";
 
-// Mock the formatting helper so the test does not depend on the external util file.
-vi.mock("./comparisonUtils", () => ({
-  formatMw: (val: number) => `${Math.round(val).toLocaleString("en-GB")}`,
-}));
+vi.mock("./comparisonUtils", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./comparisonUtils")>();
+
+  return {
+    ...actual,
+    formatMw: (val: number) => `${Math.round(val).toLocaleString("en-GB")}`,
+  };
+});
+
+function mockCountry(partial: Pick<Country, "isoCode" | "name">): Country {
+  return {
+    id: partial.isoCode.toLowerCase(),
+    isoCode: partial.isoCode,
+    name: partial.name,
+    lat: 0 as Country["lat"],
+    lng: 0 as Country["lng"],
+    multiZone: false,
+    zones: [partial.isoCode],
+  };
+}
+
+function mockGeneration(isoCode: string, name: string): CountryGeneration {
+  return {
+    isoCode,
+    country: name,
+    timestamp: "2026-07-22T00:00:00.000Z",
+    zonesAggregated: [],
+    total: 0,
+    renewableMw: 0,
+    renewablePct: 0,
+    bySource: [],
+  };
+}
 
 const mockData: RankedCountryGeneration[] = [
   {
-    country: { isoCode: "RO", name: "Romania" },
+    country: mockCountry({ isoCode: "RO", name: "Romania" }),
+    generation: mockGeneration("RO", "Romania"),
     windMw: 1500,
     solarMw: 500,
     totalRenewable: 2000,
-  } as any,
+  },
   {
-    country: { isoCode: "DE", name: "Germany" },
+    country: mockCountry({ isoCode: "DE", name: "Germany" }),
+    generation: mockGeneration("DE", "Germany"),
     windMw: 5000,
     solarMw: 3000,
     totalRenewable: 8000,
-  } as any,
+  },
 ];
 
 describe("ComparisonTable Component", () => {
@@ -39,7 +71,6 @@ describe("ComparisonTable Component", () => {
   });
 
   it("renders the table rows and calculates progress bar width correctly", () => {
-    // maxMw is 8000 (Germany). Romania has 2000 => barWidth should be (2000 / 8000) * 100 = 25%.
     const { container } = render(
       <ComparisonTable
         loading={false}
@@ -49,19 +80,15 @@ describe("ComparisonTable Component", () => {
       />
     );
 
-    // Check rendered text.
     expect(screen.getByText("Romania")).toBeInTheDocument();
     expect(screen.getByText("Germany")).toBeInTheDocument();
-    expect(screen.getByText("1,500")).toBeInTheDocument(); // Wind RO
-    expect(screen.getByText("3,000")).toBeInTheDocument(); // Solar DE
+    expect(screen.getByText("1,500")).toBeInTheDocument();
+    expect(screen.getByText("3,000")).toBeInTheDocument();
 
-    // Check the progress bar width for Romania (first data row).
     const progressFills = container.querySelectorAll(
       ".comparison-progress-fill"
     );
     expect(progressFills.length).toBe(2);
-
-    // Check the inline style for the first row (RO) -> width: 25%.
     expect((progressFills[0] as HTMLElement).style.width).toBe("25%");
   });
 
@@ -76,7 +103,6 @@ describe("ComparisonTable Component", () => {
       />
     );
 
-    // Click the Romania row.
     const row = screen.getByText("Romania").closest("tr");
     expect(row).toBeInTheDocument();
 
@@ -98,12 +124,10 @@ describe("ComparisonTable Component", () => {
     const row = screen.getByText("Germany").closest("tr");
     expect(row).toBeInTheDocument();
 
-    // Focus the element and press Enter.
     fireEvent.keyDown(row!, { key: "Enter" });
     expect(handleOpen).toHaveBeenCalledWith("DE");
 
-    // Press Space.
     fireEvent.keyDown(row!, { key: " " });
-    expect(handleOpen).toHaveBeenCalledTimes(2); // Called once more.
+    expect(handleOpen).toHaveBeenCalledTimes(2);
   });
 });

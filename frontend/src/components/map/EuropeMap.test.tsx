@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { EuropeMap } from "./EuropeMap";
 import * as api from "@/lib/api";
+import type { CountryGeneration } from "@/types/contract";
 
-// Mock the useCountries hook.
 vi.mock("@/hooks/useCountries", () => ({
   useCountries: () => ({
     countries: [
@@ -13,7 +13,6 @@ vi.mock("@/hooks/useCountries", () => ({
   }),
 }));
 
-// Mock the map asset so tests do not load a huge GeoJSON file.
 vi.mock("@/assets/europe.json", () => ({
   default: {
     type: "FeatureCollection",
@@ -21,23 +20,46 @@ vi.mock("@/assets/europe.json", () => ({
   },
 }));
 
+function mockGeneration(
+  partial: Pick<CountryGeneration, "isoCode" | "country" | "renewablePct">
+): CountryGeneration {
+  return {
+    isoCode: partial.isoCode,
+    country: partial.country,
+    timestamp: "2026-07-22T00:00:00.000Z",
+    zonesAggregated: [],
+    total: 1000,
+    renewableMw: 400,
+    renewablePct: partial.renewablePct,
+    bySource: [],
+  };
+}
+
 describe("EuropeMap Component", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
 
   it("renders the accessible country navigation buttons", async () => {
-    // Mock the API response for both countries.
     const spyFetch = vi.spyOn(api, "fetchGeneration");
     spyFetch.mockImplementation(async (iso) => {
-      if (iso === "RO")
-        return { isoCode: "RO", country: "Romania", renewablePct: 45 } as any;
-      return { isoCode: "DE", country: "Germany", renewablePct: 30 } as any;
+      if (iso === "RO") {
+        return mockGeneration({
+          isoCode: "RO",
+          country: "Romania",
+          renewablePct: 45,
+        });
+      }
+
+      return mockGeneration({
+        isoCode: "DE",
+        country: "Germany",
+        renewablePct: 30,
+      });
     });
 
     render(<EuropeMap onSelectCountry={vi.fn()} />);
 
-    // Check that the accessible buttons rendered.
     await waitFor(() => {
       expect(screen.getByText(/Romania/i)).toBeInTheDocument();
       expect(screen.getByText(/Germany/i)).toBeInTheDocument();
@@ -46,13 +68,16 @@ describe("EuropeMap Component", () => {
 
   it("calls onSelectCountry when a country button is clicked", async () => {
     const handleSelect = vi.fn();
-    vi.spyOn(api, "fetchGeneration").mockResolvedValue({
-      renewablePct: 50,
-    } as any);
+    vi.spyOn(api, "fetchGeneration").mockResolvedValue(
+      mockGeneration({
+        isoCode: "RO",
+        country: "Romania",
+        renewablePct: 50,
+      })
+    );
 
     render(<EuropeMap onSelectCountry={handleSelect} />);
 
-    // Find the accessible button for a country and click it.
     const button = await screen.findByRole("button", { name: /Romania/i });
     fireEvent.click(button);
 

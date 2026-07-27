@@ -114,8 +114,11 @@ export function useAllGeneration(isos: string[]) {
 
         // 3. Keep only successful responses so one failure does not blank the page.
         const successfulData = results
-          .filter((res) => res.status === "fulfilled")
-          .map((res: any) => res.value);
+          .filter(
+            (res): res is PromiseFulfilledResult<CountryGeneration> =>
+              res.status === "fulfilled"
+          )
+          .map((res) => res.value);
 
         setData(successfulData);
         setError(null);
