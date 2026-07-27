@@ -2,14 +2,10 @@ import { useEffect, useState, type ReactNode } from "react";
 
 import { fetchViewerTimezone, saveViewerTimezone } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
-import {
-  DEFAULT_TIMEZONE_ISO,
-  getTimezoneOption,
-  TIMEZONE_OPTIONS,
-} from "@/lib/timezones";
+import { ALL_TIMEZONES, getUserLocalTimezone } from "@/lib/timezones";
 import { TimezoneContext } from "@/lib/timezone-context";
 
-const STORAGE_KEY = "eu-renewables-timezone-iso";
+const STORAGE_KEY = "eu-renewables-timezone-iana";
 const CLIENT_ID_KEY = "eu-renewables-client-id";
 
 function getOrCreateClientId(): string {
@@ -23,42 +19,33 @@ function getOrCreateClientId(): string {
   return created;
 }
 
-function getInitialIso(isAuthenticated: boolean): string {
-  if (!isAuthenticated) {
-    return DEFAULT_TIMEZONE_ISO;
-  }
-
+function getStoredTimezone(): string {
   const stored = window.localStorage.getItem(STORAGE_KEY);
-  if (
-    stored &&
-    TIMEZONE_OPTIONS.some((option) => option.isoCode === stored.toUpperCase())
-  ) {
-    return stored.toUpperCase();
+  if (stored && ALL_TIMEZONES.includes(stored)) {
+    return stored;
   }
 
-  return DEFAULT_TIMEZONE_ISO;
+  return getUserLocalTimezone();
 }
 
 export function TimezoneProvider({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth();
   const isAuthenticated = Boolean(user);
-  const [countryIso, setCountryIsoState] = useState(() => getInitialIso(false));
+  const [timeZone, setTimeZoneState] = useState(getUserLocalTimezone);
   const [clientId] = useState(getOrCreateClientId);
-  const option = getTimezoneOption(countryIso);
 
-  // Signed-out visitors always use Romania; signed-in users keep their preference.
+  // Guests always follow the browser; signed-in users keep their preference.
   useEffect(() => {
     if (isLoading) {
       return;
     }
 
     if (!isAuthenticated) {
-      setCountryIsoState(DEFAULT_TIMEZONE_ISO);
-      window.localStorage.setItem(STORAGE_KEY, DEFAULT_TIMEZONE_ISO);
+      setTimeZoneState(getUserLocalTimezone());
       return;
     }
 
-    setCountryIsoState(getInitialIso(true));
+    setTimeZoneState(getStoredTimezone());
   }, [isAuthenticated, isLoading]);
 
   useEffect(() => {
@@ -66,8 +53,8 @@ export function TimezoneProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    window.localStorage.setItem(STORAGE_KEY, countryIso);
-  }, [countryIso, isAuthenticated]);
+    window.localStorage.setItem(STORAGE_KEY, timeZone);
+  }, [timeZone, isAuthenticated]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -78,17 +65,16 @@ export function TimezoneProvider({ children }: { children: ReactNode }) {
 
     fetchViewerTimezone(clientId)
       .then((preference) => {
-        if (cancelled || !preference?.countryIso) {
+        if (cancelled || !preference?.timeZone) {
           return;
         }
 
-        const next = preference.countryIso.toUpperCase();
-        if (TIMEZONE_OPTIONS.some((item) => item.isoCode === next)) {
-          setCountryIsoState(next);
+        if (ALL_TIMEZONES.includes(preference.timeZone)) {
+          setTimeZoneState(preference.timeZone);
         }
       })
       .catch(() => {
-        // Keep localStorage value if the API is unavailable.
+        // Keep localStorage / browser value if the API is unavailable.
       });
 
     return () => {
@@ -96,34 +82,20 @@ export function TimezoneProvider({ children }: { children: ReactNode }) {
     };
   }, [clientId, isAuthenticated]);
 
-  function setCountryIso(isoCode: string) {
-    if (!isAuthenticated) {
-      setCountryIsoState(DEFAULT_TIMEZONE_ISO);
+  function setTimeZone(newZone: string) {
+    if (!isAuthenticated || !ALL_TIMEZONES.includes(newZone)) {
       return;
     }
 
-    const next = isoCode.toUpperCase();
-    const selected = getTimezoneOption(next);
-    setCountryIsoState(selected.isoCode);
+    setTimeZoneState(newZone);
 
-    void saveViewerTimezone(
-      clientId,
-      selected.isoCode,
-      selected.timeZone
-    ).catch(() => {
+    void saveViewerTimezone(clientId, "", newZone).catch(() => {
       // Preference still applies locally even if persistence fails.
     });
   }
 
   return (
-    <TimezoneContext.Provider
-      value={{
-        countryIso: option.isoCode,
-        timeZone: option.timeZone,
-        option,
-        setCountryIso,
-      }}
-    >
+    <TimezoneContext.Provider value={{ timeZone, setTimeZone }}>
       {children}
     </TimezoneContext.Provider>
   );

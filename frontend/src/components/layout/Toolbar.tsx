@@ -13,7 +13,7 @@ import { UserAvatar } from "@/components/layout/UserAvatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { useTimezone } from "@/hooks/useTimezone";
-import { TIMEZONE_OPTIONS } from "@/lib/timezones";
+import { ALL_TIMEZONES } from "@/lib/timezones";
 import { paths } from "@/routes/paths";
 
 interface ToolbarProps {
@@ -24,7 +24,7 @@ interface ToolbarProps {
 export function Toolbar({ title, subtitle }: ToolbarProps) {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
-  const { countryIso, setCountryIso } = useTimezone();
+  const { timeZone, setTimeZone } = useTimezone();
   const { user } = useAuth();
   const [showTimezoneTip, setShowTimezoneTip] = useState(false);
   const timezoneRef = useRef<HTMLDivElement>(null);
@@ -38,13 +38,13 @@ export function Toolbar({ title, subtitle }: ToolbarProps) {
     return () => window.clearTimeout(timeoutId);
   }, [showTimezoneTip]);
 
-  function handleTimezoneChange(nextIso: string) {
+  function handleTimezoneChange(nextZone: string) {
     if (!user) {
       setShowTimezoneTip(true);
       return;
     }
 
-    setCountryIso(nextIso);
+    setTimeZone(nextZone);
   }
 
   function handleTimezoneInteract(
@@ -70,20 +70,20 @@ export function Toolbar({ title, subtitle }: ToolbarProps) {
             <span className="layout-toolbar-timezone-label">Timezone</span>
             <select
               className="layout-toolbar-timezone-select"
-              value={countryIso}
+              value={timeZone}
               onChange={(event) => handleTimezoneChange(event.target.value)}
               onMouseDown={handleTimezoneInteract}
               onFocus={handleTimezoneInteract}
-              aria-label="Select country timezone for dates and charts"
+              aria-label="Select timezone for dates and charts"
               title={
                 user
-                  ? "Dates, times, and chart days use this country's timezone"
+                  ? "Dates, times, and chart days use this timezone"
                   : "Sign in to change timezone"
               }
             >
-              {TIMEZONE_OPTIONS.map((option) => (
-                <option key={option.isoCode} value={option.isoCode}>
-                  {option.name}
+              {ALL_TIMEZONES.map((tz) => (
+                <option key={tz} value={tz}>
+                  {tz}
                 </option>
               ))}
             </select>

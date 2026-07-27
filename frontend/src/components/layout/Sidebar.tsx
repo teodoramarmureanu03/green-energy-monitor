@@ -30,7 +30,7 @@ interface SidebarProps {
 export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
   const location = useLocation();
   const now = useNow();
-  const { timeZone, option } = useTimezone();
+  const { timeZone } = useTimezone();
   const { user } = useAuth();
   const [showComparisonTip, setShowComparisonTip] = useState(false);
   const comparisonRef = useRef<HTMLButtonElement>(null);
@@ -107,7 +107,7 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
 
           <div className="layout-sidebar-time">{timeStr}</div>
           <div className="layout-sidebar-date">{dateStr}</div>
-          <div className="layout-sidebar-timezone">{option.name} time</div>
+          <div className="layout-sidebar-timezone">{timeZone}</div>
         </div>
       )}
 
