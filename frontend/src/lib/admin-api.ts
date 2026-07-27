@@ -90,7 +90,10 @@ export async function updateAdminUser(
   return response.json();
 }
 
-export async function deleteAdminUser(token: string, id: number): Promise<void> {
+export async function deleteAdminUser(
+  token: string,
+  id: number
+): Promise<void> {
   const response = await fetch(`${API_BASE}/api/admin/users/${id}`, {
     method: "DELETE",
     headers: authHeaders(token),

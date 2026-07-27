@@ -40,7 +40,10 @@ export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
       return;
     }
 
-    const timeoutId = window.setTimeout(() => setShowComparisonTip(false), 5000);
+    const timeoutId = window.setTimeout(
+      () => setShowComparisonTip(false),
+      5000
+    );
     return () => window.clearTimeout(timeoutId);
   }, [showComparisonTip]);
 

@@ -49,6 +49,11 @@ export function getToolbarInfo(pathname: string): {
         title: "Reset password",
         subtitle: "Choose a new password for your account",
       };
+    case "verifyEmail":
+      return {
+        title: "Verify email",
+        subtitle: "Confirm your address to create your account",
+      };
     case "admin":
       return {
         title: "Manage Users",

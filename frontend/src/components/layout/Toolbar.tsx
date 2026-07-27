@@ -1,4 +1,10 @@
-import { useEffect, useRef, useState, type FocusEvent, type MouseEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type FocusEvent,
+  type MouseEvent,
+} from "react";
 import { Sun, Moon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 

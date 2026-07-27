@@ -34,7 +34,7 @@ export async function registerAccount(input: {
   displayName: string;
   gender: UserGender;
   password: string;
-}): Promise<AuthResponse> {
+}): Promise<string> {
   const response = await fetch(`${API_BASE}/api/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -43,7 +43,32 @@ export async function registerAccount(input: {
 
   if (!response.ok) {
     throw new Error(
-      await readErrorMessage(response, "Could not create account.")
+      await readErrorMessage(response, "Could not send verification email.")
+    );
+  }
+
+  const payload = (await response.json()) as {
+    message?: string;
+    Message?: string;
+  };
+
+  return (
+    payload.message ??
+    payload.Message ??
+    "Verification email sent. Open the link in that message to create your account."
+  );
+}
+
+export async function verifyEmailAccount(token: string): Promise<AuthResponse> {
+  const response = await fetch(`${API_BASE}/api/auth/verify-email`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token }),
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      await readErrorMessage(response, "Could not verify email.")
     );
   }
 

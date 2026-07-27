@@ -28,12 +28,6 @@ public class EmailService : IEmailService
         string htmlBody,
         CancellationToken cancellationToken = default)
     {
-        var message = new MimeMessage();
-        message.From.Add(new MailboxAddress(_options.FromName, _options.FromAddress));
-        message.To.Add(MailboxAddress.Parse(toEmail));
-        message.Subject = subject;
-        message.Body = new BodyBuilder { HtmlBody = htmlBody }.ToMessageBody();
-
         if (string.IsNullOrWhiteSpace(_options.Host))
         {
             throw new InvalidOperationException(
@@ -46,29 +40,81 @@ public class EmailService : IEmailService
                 "SMTP credentials are still placeholders. Put your real Gmail address and a Google App Password in .env.");
         }
 
+        var message = new MimeMessage();
+        message.From.Add(new MailboxAddress(_options.FromName, _options.FromAddress));
+        message.Subject = subject;
+        message.Body = new BodyBuilder { HtmlBody = htmlBody }.ToMessageBody();
+
+        try
+        {
+            message.To.Add(MailboxAddress.Parse(toEmail));
+        }
+        catch (ParseException ex)
+        {
+            throw new InvalidOperationException(
+                "That email address is invalid. Check it and try again.",
+                ex);
+        }
+
         using var client = new SmtpClient();
         var secureSocketOptions = ResolveSecureSocketOptions(_options.Port, _options.UseSsl);
 
-        _logger.LogInformation(
-            "Connecting to SMTP {Host}:{Port} ({Mode}) to send email to {Email}",
-            _options.Host,
-            _options.Port,
-            secureSocketOptions,
-            toEmail);
-
-        await client.ConnectAsync(_options.Host, _options.Port, secureSocketOptions, cancellationToken);
-
-        if (!string.IsNullOrWhiteSpace(_options.Username))
+        try
         {
-            // Google App Passwords are often copied with spaces; SMTP expects 16 chars.
-            var password = (_options.Password ?? "").Replace(" ", "");
-            await client.AuthenticateAsync(_options.Username, password, cancellationToken);
+            _logger.LogInformation(
+                "Connecting to SMTP {Host}:{Port} ({Mode}) to send email to {Email}",
+                _options.Host,
+                _options.Port,
+                secureSocketOptions,
+                toEmail);
+
+            await client.ConnectAsync(_options.Host, _options.Port, secureSocketOptions, cancellationToken);
+
+            if (!string.IsNullOrWhiteSpace(_options.Username))
+            {
+                // Google App Passwords are often copied with spaces; SMTP expects 16 chars.
+                var password = (_options.Password ?? "").Replace(" ", "");
+                await client.AuthenticateAsync(_options.Username, password, cancellationToken);
+            }
+
+            await client.SendAsync(message, cancellationToken);
+            await client.DisconnectAsync(true, cancellationToken);
+
+            _logger.LogInformation("Sent email to {Email}: {Subject}", toEmail, subject);
         }
+        catch (ParseException ex)
+        {
+            throw new InvalidOperationException(
+                "That email address is invalid. Check it and try again.",
+                ex);
+        }
+        catch (SmtpCommandException ex)
+        {
+            _logger.LogError(ex, "SMTP command failed while sending to {Email}", toEmail);
+            var detail = (ex.Message ?? "").ToLowerInvariant();
+            if (detail.Contains("mailbox")
+                || detail.Contains("recipient")
+                || detail.Contains("user unknown")
+                || detail.Contains("not found")
+                || detail.Contains("does not exist")
+                || ex.ErrorCode == SmtpErrorCode.RecipientNotAccepted)
+            {
+                throw new InvalidOperationException(
+                    "That email address is invalid or cannot receive mail. Check it and try again.",
+                    ex);
+            }
 
-        await client.SendAsync(message, cancellationToken);
-        await client.DisconnectAsync(true, cancellationToken);
-
-        _logger.LogInformation("Sent email to {Email}: {Subject}", toEmail, subject);
+            throw new InvalidOperationException(
+                "Could not send the verification email. Please try again in a moment.",
+                ex);
+        }
+        catch (SmtpProtocolException ex)
+        {
+            _logger.LogError(ex, "SMTP protocol error while sending to {Email}", toEmail);
+            throw new InvalidOperationException(
+                "Could not send the verification email. Please try again in a moment.",
+                ex);
+        }
     }
 
     private static SecureSocketOptions ResolveSecureSocketOptions(int port, bool useSsl)

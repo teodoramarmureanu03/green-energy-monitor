@@ -32,6 +32,7 @@ vi.mock("@/hooks/useAuth", () => ({
     error: null,
     login: vi.fn(),
     register: vi.fn(),
+    establishSession: vi.fn(),
     updateProfile: vi.fn(),
     logout: vi.fn(),
     deleteAccount: vi.fn(),

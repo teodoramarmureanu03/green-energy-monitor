@@ -21,5 +21,4 @@ export const ADMIN_SIDEBAR_ITEM = {
 } as const;
 
 export type SidebarItemId =
-  | (typeof SIDEBAR_ITEMS)[number]["id"]
-  | typeof ADMIN_SIDEBAR_ITEM.id;
+  (typeof SIDEBAR_ITEMS)[number]["id"] | typeof ADMIN_SIDEBAR_ITEM.id;

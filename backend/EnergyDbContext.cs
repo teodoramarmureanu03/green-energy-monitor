@@ -21,6 +21,7 @@ public class EnergyDbContext : DbContext
     public DbSet<ViewerTimezonePreference> ViewerTimezonePreferences =>
         Set<ViewerTimezonePreference>();
     public DbSet<AppUser> Users => Set<AppUser>();
+    public DbSet<PendingRegistration> PendingRegistrations => Set<PendingRegistration>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -117,6 +118,33 @@ public class EnergyDbContext : DbContext
             entity.HasIndex(user => user.Username).IsUnique();
             entity.HasIndex(user => user.Email);
             entity.HasIndex(user => user.PasswordResetTokenHash);
+        });
+
+        modelBuilder.Entity<PendingRegistration>(entity =>
+        {
+            entity.ToTable("PendingRegistrations");
+            entity.HasKey(item => item.Id);
+            entity.Property(item => item.Username)
+                .HasMaxLength(100)
+                .IsRequired();
+            entity.Property(item => item.Email)
+                .HasMaxLength(256)
+                .IsRequired();
+            entity.Property(item => item.DisplayName)
+                .HasMaxLength(100)
+                .IsRequired();
+            entity.Property(item => item.Gender)
+                .HasMaxLength(20)
+                .IsRequired();
+            entity.Property(item => item.PasswordHash)
+                .HasMaxLength(200)
+                .IsRequired();
+            entity.Property(item => item.TokenHash)
+                .HasMaxLength(128)
+                .IsRequired();
+            entity.HasIndex(item => item.Username).IsUnique();
+            entity.HasIndex(item => item.TokenHash).IsUnique();
+            entity.HasIndex(item => item.ExpiresAt);
         });
     }
 }
