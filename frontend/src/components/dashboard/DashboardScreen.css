@@ -14,6 +14,13 @@
   flex-wrap: wrap;
 }
 
+.dashboard-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .dashboard-title {
   font-size: 32px;
   font-weight: 700;
@@ -62,6 +69,48 @@
   font-size: 12px;
   font-weight: 600;
   width: fit-content;
+}
+
+.dashboard-download-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.dashboard-download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1.5px solid var(--dashboard-border);
+  background: var(--dashboard-card-bg);
+  color: var(--dashboard-text-dark);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+  white-space: nowrap;
+}
+
+.dashboard-download-btn:hover:not(:disabled) {
+  border-color: var(--dashboard-green-dark);
+  color: var(--dashboard-green-dark);
+  background: var(--dashboard-green-light);
+}
+
+.dashboard-download-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.dashboard-download-error {
+  margin: 0;
+  color: var(--dashboard-error-text);
+  font-size: 13px;
 }
 
 .dashboard-kpi-grid {

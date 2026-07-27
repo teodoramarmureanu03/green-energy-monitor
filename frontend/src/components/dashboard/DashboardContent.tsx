@@ -1,9 +1,11 @@
-import { useState } from "react";
-import type { CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
 
-import type { CountryGeneration, HistoryPeriod } from "@/types/contract";
+import type {
+  CountryGeneration,
+  GenerationHistoryApiPoint,
+  HistoryPeriod,
+} from "@/types/contract";
 import { colors } from "@/lib/tokens";
-import { useGenerationHistory } from "@/hooks/useGenerationHistory";
 import { useTimezone } from "@/hooks/useTimezone";
 
 import { Card, HeroKpiCard, KpiCard } from "./DashboardCards";
@@ -22,25 +24,26 @@ import {
   parseHistoryPoints,
 } from "./dashboardUtils";
 
+type HistoryByPeriod = Record<HistoryPeriod, GenerationHistoryApiPoint[]>;
+
 interface DashboardContentProps {
   data: CountryGeneration;
   countryName: string;
   selectedIso: string;
+  historyByPeriod: HistoryByPeriod;
+  historyLoading: boolean;
+  historyError: string | null;
 }
 
 export function DashboardContent({
   data,
   countryName,
-  selectedIso,
+  historyByPeriod,
+  historyLoading,
+  historyError,
 }: DashboardContentProps) {
   const [historyPeriod, setHistoryPeriod] = useState<HistoryPeriod>("week");
   const { timeZone } = useTimezone();
-
-  const {
-    historyByPeriod,
-    loading: historyLoading,
-    error: historyError,
-  } = useGenerationHistory(selectedIso);
 
   const { windMw, solarMw } = aggregateSources(data.bySource);
 
