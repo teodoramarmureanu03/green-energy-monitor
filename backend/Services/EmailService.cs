@@ -8,6 +8,8 @@ namespace backend.Services;
 
 public interface IEmailService
 {
+    bool IsConfigured { get; }
+
     Task SendAsync(string toEmail, string subject, string htmlBody, CancellationToken cancellationToken = default);
 }
 
@@ -22,22 +24,18 @@ public class EmailService : IEmailService
         _logger = logger;
     }
 
+    public bool IsConfigured => _options.IsConfigured;
+
     public async Task SendAsync(
         string toEmail,
         string subject,
         string htmlBody,
         CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(_options.Host))
+        if (!_options.IsConfigured)
         {
             throw new InvalidOperationException(
-                "SMTP is not configured. Set SMTP_HOST, SMTP_USERNAME, and SMTP_PASSWORD in .env.");
-        }
-
-        if (LooksLikePlaceholder(_options.Username) || LooksLikePlaceholder(_options.Password) || LooksLikePlaceholder(_options.FromAddress))
-        {
-            throw new InvalidOperationException(
-                "SMTP credentials are still placeholders. Put your real Gmail address and a Google App Password in .env.");
+                "Email sending is temporarily unavailable. Please try again later.");
         }
 
         var message = new MimeMessage();
@@ -131,20 +129,5 @@ public class EmailService : IEmailService
         }
 
         return SecureSocketOptions.Auto;
-    }
-
-    private static bool LooksLikePlaceholder(string? value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return true;
-        }
-
-        var normalized = value.Trim().ToLowerInvariant();
-        return normalized.Contains("your_real_gmail")
-            || normalized.Contains("your@gmail.com")
-            || normalized.Contains("your_16_char_app_password")
-            || normalized.Contains("your_app_password")
-            || normalized.Contains("example.com");
     }
 }
