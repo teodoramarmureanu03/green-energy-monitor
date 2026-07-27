@@ -3,6 +3,8 @@ export const paths = {
   map: "/map",
   comparison: "/comparison",
   account: "/account",
+  forgotPassword: "/forgot-password",
+  resetPassword: "/reset-password",
   adminUsers: "/admin/users",
   dashboard: (iso: string) => `/dashboard/${iso.toLowerCase()}`,
 } as const;
@@ -13,6 +15,8 @@ export type AppScreen =
   | "comparison"
   | "dashboard"
   | "account"
+  | "forgotPassword"
+  | "resetPassword"
   | "admin";
 
 export function getScreenFromPathname(pathname: string): AppScreen {
@@ -30,6 +34,14 @@ export function getScreenFromPathname(pathname: string): AppScreen {
 
   if (pathname === paths.account) {
     return "account";
+  }
+
+  if (pathname === paths.forgotPassword) {
+    return "forgotPassword";
+  }
+
+  if (pathname === paths.resetPassword) {
+    return "resetPassword";
   }
 
   if (pathname.startsWith("/admin")) {

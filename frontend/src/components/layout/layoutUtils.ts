@@ -39,6 +39,16 @@ export function getToolbarInfo(pathname: string): {
         title: "Account",
         subtitle: "Sign in, register, or manage your profile",
       };
+    case "forgotPassword":
+      return {
+        title: "Forgot password",
+        subtitle: "Request a password reset email",
+      };
+    case "resetPassword":
+      return {
+        title: "Reset password",
+        subtitle: "Choose a new password for your account",
+      };
     case "admin":
       return {
         title: "Manage Users",

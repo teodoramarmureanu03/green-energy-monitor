@@ -8,7 +8,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { AccountPage } from "@/pages/AccountPage";
 import { AdminUsersPage } from "@/pages/AdminUsersPage";
 import { DashboardPage } from "@/pages/DashboardPage";
+import { ForgotPasswordPage } from "@/pages/ForgotPasswordPage";
 import { MapPage } from "@/pages/MapPage";
+import { ResetPasswordPage } from "@/pages/ResetPasswordPage";
 import { paths } from "@/routes/paths";
 
 function ComparisonRoute() {
@@ -34,6 +36,8 @@ export default function App() {
         <Route path="map" element={<MapPage />} />
         <Route path="comparison" element={<ComparisonRoute />} />
         <Route path="account" element={<AccountPage />} />
+        <Route path="forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="reset-password" element={<ResetPasswordPage />} />
         <Route path="admin/users" element={<AdminUsersPage />} />
         <Route path="dashboard/:iso" element={<DashboardPage />} />
         <Route path="*" element={<Navigate to={paths.home} replace />} />

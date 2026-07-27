@@ -43,6 +43,37 @@ public class AuthController : ControllerBase
         return Ok(response);
     }
 
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+    {
+        try
+        {
+            await _authService.RequestPasswordResetAsync(request);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return StatusCode(StatusCodes.Status502BadGateway, new { Message = ex.Message });
+        }
+
+        // Same message whether or not the account exists (avoids email enumeration).
+        return Ok(new
+        {
+            Message = "If an account exists for that email, we sent a password reset link.",
+        });
+    }
+
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+    {
+        var (ok, error) = await _authService.ResetPasswordAsync(request);
+        if (!ok)
+        {
+            return BadRequest(new { Message = error });
+        }
+
+        return Ok(new { Message = "Password updated. You can sign in with your new password." });
+    }
+
     [Authorize]
     [HttpGet("me")]
     public async Task<IActionResult> Me()
