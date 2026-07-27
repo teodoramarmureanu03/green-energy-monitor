@@ -11,17 +11,11 @@ vi.mock("@/hooks/useTheme", () => ({
   }),
 }));
 
-const mockSetCountryIso = vi.fn();
+const mockSetTimeZone = vi.fn();
 vi.mock("@/hooks/useTimezone", () => ({
   useTimezone: () => ({
-    countryIso: "RO",
     timeZone: "Europe/Bucharest",
-    option: {
-      isoCode: "RO",
-      name: "Romania",
-      timeZone: "Europe/Bucharest",
-    },
-    setCountryIso: mockSetCountryIso,
+    setTimeZone: mockSetTimeZone,
   }),
 }));
 
@@ -62,14 +56,14 @@ describe("Toolbar Component", () => {
     expect(subtitleElement).not.toBeInTheDocument();
   });
 
-  it("renders the timezone country dropdown", () => {
+  it("renders the timezone dropdown", () => {
     renderToolbar(<Toolbar title="Theme Test" />);
 
     expect(screen.getByText("Timezone")).toBeInTheDocument();
     expect(
-      screen.getByLabelText("Select country timezone for dates and charts")
+      screen.getByLabelText("Select timezone for dates and charts")
     ).toBeInTheDocument();
-    expect(screen.getByDisplayValue("Romania")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Europe/Bucharest")).toBeInTheDocument();
   });
 
   it("renders the account button next to the theme toggle", () => {
