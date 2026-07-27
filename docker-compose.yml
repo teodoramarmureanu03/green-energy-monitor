@@ -38,7 +38,8 @@ services:
       Jwt__Issuer: green-energy-monitor
       Jwt__Audience: green-energy-monitor
       JWT_SECRET: ${JWT_SECRET:-green-energy-monitor-dev-jwt-key-change-me-32chars!}
-      # Password reset emails (optional; without SMTP the reset link is logged).
+      # Optional SMTP — set only in host-local .env (gitignored). When unset,
+      # registration still works without email verification; secrets stay private.
       Email__Host: ${SMTP_HOST:-}
       Email__Port: ${SMTP_PORT:-465}
       Email__UseSsl: ${SMTP_USE_SSL:-true}
