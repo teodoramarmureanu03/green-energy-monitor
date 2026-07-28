@@ -127,12 +127,6 @@ public class AuthService
             return (null, "Password is required.");
         }
 
-        var mailboxStatus = await _mailboxVerifier.CheckAsync(email);
-        if (mailboxStatus == MailboxCheckStatus.Undeliverable)
-        {
-            return (null, "That email address is invalid or cannot receive mail. Check it and try again.");
-        }
-
         await CleanupExpiredPendingRegistrationsAsync();
 
         var usernameTaken = await _db.Users.AnyAsync(user => user.Username == username);
@@ -141,10 +135,47 @@ public class AuthService
             return (null, "That username is already taken.");
         }
 
-        var rawToken = CreateUrlSafeToken();
-        var tokenHash = HashToken(rawToken);
         var resolvedDisplayName = displayName;
         var passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
+
+        // No SMTP secrets on the host → create the account immediately so public
+        // users can register without needing (or seeing) server email config.
+        if (!_emailService.IsConfigured)
+        {
+            _logger.LogWarning(
+                "SMTP is not configured; creating account {Username} without email verification.",
+                username);
+
+            var stalePending = await _db.PendingRegistrations
+                .FirstOrDefaultAsync(item => item.Username == username);
+            if (stalePending is not null)
+            {
+                _db.PendingRegistrations.Remove(stalePending);
+            }
+
+            _db.Users.Add(new AppUser
+            {
+                Username = username,
+                Email = email,
+                DisplayName = resolvedDisplayName,
+                Gender = gender,
+                PasswordHash = passwordHash,
+                IsAdmin = false,
+                CreatedAt = DateTime.UtcNow,
+            });
+            await _db.SaveChangesAsync();
+
+            return ("Account created. You can sign in now.", null);
+        }
+
+        var mailboxStatus = await _mailboxVerifier.CheckAsync(email);
+        if (mailboxStatus == MailboxCheckStatus.Undeliverable)
+        {
+            return (null, "That email address is invalid or cannot receive mail. Check it and try again.");
+        }
+
+        var rawToken = CreateUrlSafeToken();
+        var tokenHash = HashToken(rawToken);
 
         var existingPending = await _db.PendingRegistrations
             .FirstOrDefaultAsync(item => item.Username == username);
@@ -208,11 +239,6 @@ public class AuthService
             if (LooksLikeInvalidRecipientError(ex))
             {
                 return (null, "That email address is invalid or cannot receive mail. Check it and try again.");
-            }
-
-            if (ex is InvalidOperationException && !string.IsNullOrWhiteSpace(ex.Message))
-            {
-                return (null, ex.Message);
             }
 
             return (null, "Could not send the verification email. Please try again in a moment.");
@@ -374,6 +400,12 @@ public class AuthService
 
     public async Task RequestPasswordResetAsync(ForgotPasswordRequest request)
     {
+        if (!_emailService.IsConfigured)
+        {
+            throw new InvalidOperationException(
+                "Password reset by email is temporarily unavailable. Please try again later or contact an admin.");
+        }
+
         var username = NormalizeUsername(request.Username);
         var email = NormalizeEmail(request.Email);
         if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(email))
@@ -418,7 +450,7 @@ public class AuthService
                 "Failed to send password reset email for user {UserId}.",
                 user.Id);
             throw new InvalidOperationException(
-                "Could not send the reset email. Check SMTP settings in .env (Gmail + App Password).",
+                "Could not send the reset email. Please try again in a moment.",
                 ex);
         }
     }
