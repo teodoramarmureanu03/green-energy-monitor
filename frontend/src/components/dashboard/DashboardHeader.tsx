@@ -1,7 +1,5 @@
 import { Download } from "lucide-react";
-import type { RefObject } from "react";
 
-import { AuthRequiredTip } from "@/components/layout/AuthRequiredTip";
 import type { Country } from "@/types/contract";
 
 interface DashboardHeaderProps {
@@ -10,8 +8,6 @@ interface DashboardHeaderProps {
   onCountryChange: (iso: string) => void;
   onDownloadPdf: () => void;
   isExporting: boolean;
-  showAuthTip: boolean;
-  downloadButtonRef: RefObject<HTMLButtonElement | null>;
   downloadDisabled?: boolean;
 }
 
@@ -21,8 +17,6 @@ export function DashboardHeader({
   onCountryChange,
   onDownloadPdf,
   isExporting,
-  showAuthTip,
-  downloadButtonRef,
   downloadDisabled = false,
 }: DashboardHeaderProps) {
   return (
@@ -49,25 +43,17 @@ export function DashboardHeader({
           ))}
         </select>
 
-        <div className="dashboard-download-wrap">
-          <button
-            ref={downloadButtonRef}
-            type="button"
-            className="dashboard-download-btn"
-            onClick={onDownloadPdf}
-            disabled={isExporting || downloadDisabled}
-            aria-label="Download dashboard as PDF"
-            title="Download this country’s dashboard as PDF"
-          >
-            <Download size={16} aria-hidden="true" />
-            <span>{isExporting ? "Preparing PDF…" : "Download PDF"}</span>
-          </button>
-          <AuthRequiredTip
-            visible={showAuthTip}
-            anchorRef={downloadButtonRef}
-            placement="below"
-          />
-        </div>
+        <button
+          type="button"
+          className="dashboard-download-btn"
+          onClick={onDownloadPdf}
+          disabled={isExporting || downloadDisabled}
+          aria-label="Download dashboard as PDF"
+          title="Download this country’s dashboard as PDF"
+        >
+          <Download size={16} aria-hidden="true" />
+          <span>{isExporting ? "Preparing PDF…" : "Download PDF"}</span>
+        </button>
       </div>
     </div>
   );

@@ -1,0 +1,7 @@
+HTTP/1.1 401 Unauthorized
+Content-Type: application/json; charset=utf-8
+Date: Tue, 04 Aug 2026 06:50:13 GMT
+Server: Kestrel
+Set-Cookie: refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/api/auth; secure; samesite=none
+Transfer-Encoding: chunked
+

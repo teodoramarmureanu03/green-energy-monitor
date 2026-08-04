@@ -1,0 +1,137 @@
+.login-page {
+  position: relative;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  overflow: hidden;
+}
+
+/* fundal atragător + puțin translucid pe panel */
+.login-backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(15, 40, 55, 0.72),
+      rgba(30, 90, 80, 0.55)
+    ),
+    url("/your-energy-bg.jpg") center / cover no-repeat;
+  filter: saturate(1.05);
+}
+
+.login-panel {
+  position: relative;
+  z-index: 1;
+  width: min(420px, 100%);
+  padding: 2rem;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+  color: #f5faf8;
+}
+
+.login-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.75rem;
+}
+
+.login-subtitle {
+  margin: 0 0 1.25rem;
+  opacity: 0.85;
+}
+
+.login-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.login-tabs button {
+  padding: 0.55rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+  cursor: pointer;
+}
+
+.login-tabs button.is-active {
+  background: rgba(46, 160, 130, 0.85);
+  border-color: transparent;
+  font-weight: 600;
+}
+
+.login-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.login-form label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+}
+
+.login-form input {
+  padding: 0.7rem 0.85rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.12);
+  color: inherit;
+}
+
+.login-password-field {
+  position: relative;
+  display: grid;
+}
+
+.login-password-field input {
+  padding-right: 2.75rem;
+}
+
+.login-password-toggle {
+  position: absolute;
+  right: 0.45rem;
+  top: 50%;
+  transform: translateY(-50%);
+  margin: 0;
+  padding: 0.35rem;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.login-password-toggle:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.login-form > button[type="submit"] {
+  margin-top: 0.25rem;
+  padding: 0.8rem 1rem;
+  border: 0;
+  border-radius: 10px;
+  background: rgba(46, 160, 130, 0.9);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.login-form > button[type="submit"]:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.login-error {
+  margin: 0;
+  color: #ffb4b4;
+}

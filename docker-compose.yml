@@ -2,6 +2,8 @@ services:
   db:
     image: postgres:16-alpine
     container_name: energy_db
+    ports:
+      - "5433:5432"
     environment:
       POSTGRES_DB: energy_monitor
       POSTGRES_USER: postgres
@@ -33,21 +35,6 @@ services:
       # From repo-root .env (required for ENTSO-E sync).
       ENTSOE_API_KEY: ${ENTSOE_API_KEY:?Create .env from .env.example and set ENTSOE_API_KEY}
       EntsoeApiKey: ${ENTSOE_API_KEY}
-      # Auth / JWT (login, register, account deletion).
-      Jwt__Key: ${JWT_SECRET:-green-energy-monitor-dev-jwt-key-change-me-32chars!}
-      Jwt__Issuer: green-energy-monitor
-      Jwt__Audience: green-energy-monitor
-      JWT_SECRET: ${JWT_SECRET:-green-energy-monitor-dev-jwt-key-change-me-32chars!}
-      # Optional SMTP — set only in host-local .env (gitignored). When unset,
-      # registration still works without email verification; secrets stay private.
-      Email__Host: ${SMTP_HOST:-}
-      Email__Port: ${SMTP_PORT:-465}
-      Email__UseSsl: ${SMTP_USE_SSL:-true}
-      Email__Username: ${SMTP_USERNAME:-}
-      Email__Password: ${SMTP_PASSWORD:-}
-      Email__FromAddress: ${SMTP_FROM:-noreply@green-energy-monitor.local}
-      Email__FromName: Green Energy Monitor
-      Email__FrontendBaseUrl: ${FRONTEND_BASE_URL:-http://localhost:3000}
     depends_on:
       db:
         condition: service_healthy

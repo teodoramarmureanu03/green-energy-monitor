@@ -53,11 +53,7 @@ export function AppLayout() {
         <div className="app-layout-content">
           <Toolbar title={title} subtitle={subtitle} />
 
-          {screen !== "home" &&
-            screen !== "account" &&
-            screen !== "forgotPassword" &&
-            screen !== "resetPassword" &&
-            screen !== "admin" && <EuropeSummary />}
+          {screen !== "home" && <EuropeSummary />}
 
           <Outlet />
         </div>

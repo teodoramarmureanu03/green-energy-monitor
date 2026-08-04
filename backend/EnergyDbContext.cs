@@ -20,12 +20,35 @@ public class EnergyDbContext : DbContext
     public DbSet<CountryZone> CountryZones => Set<CountryZone>();
     public DbSet<ViewerTimezonePreference> ViewerTimezonePreferences =>
         Set<ViewerTimezonePreference>();
-    public DbSet<AppUser> Users => Set<AppUser>();
-    public DbSet<PendingRegistration> PendingRegistrations => Set<PendingRegistration>();
+    public DbSet<User> Users => Set<User>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.ToTable("Users");
+            entity.HasKey(user => user.Id);
+            entity.Property(user => user.Email).IsRequired();
+            entity.Property(user => user.PasswordHash).IsRequired();
+            entity.Property(user => user.Role).IsRequired();
+            entity.HasIndex(user => user.Email).IsUnique();
+        });
+
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.ToTable("RefreshTokens");
+            entity.HasKey(token => token.Id);
+            entity.Property(token => token.TokenHash).HasMaxLength(128).IsRequired();
+            entity.HasIndex(token => token.TokenHash).IsUnique();
+            entity.HasIndex(token => token.UserId);
+            entity.HasOne(token => token.User)
+                .WithMany()
+                .HasForeignKey(token => token.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
 
         // Live snapshot written after each ENTSO-E sync cycle.
         modelBuilder.Entity<GenerationRecord>(entity =>
@@ -92,59 +115,6 @@ public class EnergyDbContext : DbContext
             entity.HasIndex(preference => preference.ClientId).IsUnique();
         });
 
-        modelBuilder.Entity<AppUser>(entity =>
-        {
-            entity.ToTable("Users");
-            entity.HasKey(user => user.Id);
-            entity.Property(user => user.Username)
-                .HasMaxLength(100)
-                .IsRequired();
-            entity.Property(user => user.Email)
-                .HasMaxLength(256)
-                .IsRequired();
-            entity.Property(user => user.DisplayName)
-                .HasMaxLength(100)
-                .IsRequired();
-            entity.Property(user => user.Gender)
-                .HasMaxLength(20)
-                .IsRequired();
-            entity.Property(user => user.PasswordHash)
-                .HasMaxLength(200)
-                .IsRequired();
-            entity.Property(user => user.PasswordResetTokenHash)
-                .HasMaxLength(128);
-            entity.Property(user => user.IsAdmin)
-                .HasDefaultValue(false);
-            entity.HasIndex(user => user.Username).IsUnique();
-            entity.HasIndex(user => user.Email);
-            entity.HasIndex(user => user.PasswordResetTokenHash);
-        });
-
-        modelBuilder.Entity<PendingRegistration>(entity =>
-        {
-            entity.ToTable("PendingRegistrations");
-            entity.HasKey(item => item.Id);
-            entity.Property(item => item.Username)
-                .HasMaxLength(100)
-                .IsRequired();
-            entity.Property(item => item.Email)
-                .HasMaxLength(256)
-                .IsRequired();
-            entity.Property(item => item.DisplayName)
-                .HasMaxLength(100)
-                .IsRequired();
-            entity.Property(item => item.Gender)
-                .HasMaxLength(20)
-                .IsRequired();
-            entity.Property(item => item.PasswordHash)
-                .HasMaxLength(200)
-                .IsRequired();
-            entity.Property(item => item.TokenHash)
-                .HasMaxLength(128)
-                .IsRequired();
-            entity.HasIndex(item => item.Username).IsUnique();
-            entity.HasIndex(item => item.TokenHash).IsUnique();
-            entity.HasIndex(item => item.ExpiresAt);
-        });
     }
 }
+
