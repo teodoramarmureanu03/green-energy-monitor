@@ -66,7 +66,34 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddDbContext<EnergyDbContext>(options =>
 {
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+    var connectionString =
+        builder.Configuration.GetConnectionString("DefaultConnection")
+        ?? Environment.GetEnvironmentVariable("DATABASE_URL")
+        ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+
+    if (string.IsNullOrWhiteSpace(connectionString))
+    {
+        throw new InvalidOperationException(
+            "Missing database connection. Set ConnectionStrings:DefaultConnection or DATABASE_URL."
+        );
+    }
+
+    // Hosted Postgres (Railway/Render) often provides postgres:// URLs.
+    if (
+        connectionString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase)
+        || connectionString.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase)
+    )
+    {
+        var uri = new Uri(connectionString);
+        var userInfo = uri.UserInfo.Split(':', 2);
+        var user = Uri.UnescapeDataString(userInfo[0]);
+        var password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : "";
+        var database = uri.AbsolutePath.Trim('/');
+        connectionString =
+            $"Host={uri.Host};Port={(uri.Port > 0 ? uri.Port : 5432)};Database={database};Username={user};Password={password};SSL Mode=Require;Trust Server Certificate=true";
+    }
+
+    options.UseNpgsql(connectionString);
     options.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
 });
 
@@ -87,12 +114,24 @@ builder.Services.AddCors(options =>
         "AllowFrontend",
         policy =>
         {
+            var origins = (Environment.GetEnvironmentVariable("ALLOWED_ORIGINS") ?? "")
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .ToList();
+
+            // Local defaults when ALLOWED_ORIGINS is not set.
+            if (origins.Count == 0)
+            {
+                origins.AddRange(
+                    [
+                        "http://localhost:5173",
+                        "http://localhost:5174",
+                        "http://localhost:3000",
+                    ]
+                );
+            }
+
             policy
-                .WithOrigins(
-                    "http://localhost:5173",
-                    "http://localhost:5174",
-                    "http://localhost:3000"
-                )
+                .WithOrigins(origins.ToArray())
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials();
@@ -108,6 +147,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 
 using (var scope = app.Services.CreateScope())
 {
