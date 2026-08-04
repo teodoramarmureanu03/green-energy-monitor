@@ -443,3 +443,78 @@
     animation: none;
   }
 }
+
+.login-gender {
+  margin: 0;
+  padding: 0.75rem 0.85rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.08);
+  display: grid;
+  gap: 0.45rem;
+}
+
+.login-gender legend {
+  padding: 0 0.25rem;
+  font-size: 0.9rem;
+}
+
+.login-gender-option {
+  display: flex !important;
+  align-items: center;
+  gap: 0.5rem;
+  grid-template-columns: none !important;
+}
+
+.login-gender-option input {
+  width: auto;
+  padding: 0;
+}
+
+.login-forgot-row {
+  margin: -0.25rem 0 0;
+  text-align: right;
+}
+
+.login-forgot-link {
+  color: #d7fff8;
+  font-size: 0.9rem;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.login-forgot-link:hover {
+  color: #ffffff;
+}
+
+.login-success {
+  margin: 0;
+  color: #b7f7c8;
+  font-size: 0.92rem;
+}
+
+.login-footer-link {
+  margin: 1.25rem 0 0;
+  text-align: center;
+  font-size: 0.92rem;
+}
+
+.login-footer-link a {
+  color: #d7fff8;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.login-footer-link a:hover {
+  color: #ffffff;
+}
+
+.masked-secret-input {
+  -webkit-text-security: disc;
+  text-security: disc;
+}
+
+.masked-secret-input.is-revealed {
+  -webkit-text-security: none;
+  text-security: none;
+}

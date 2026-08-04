@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Eye, EyeOff, Leaf } from "lucide-react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 
 import { useAuth } from "@/hooks/useAuth";
 import { paths } from "@/routes/paths";
@@ -8,6 +8,7 @@ import { paths } from "@/routes/paths";
 import "./LoginPage.css";
 
 type Mode = "login" | "register";
+type Gender = "Male" | "Female" | "Other";
 
 const PREVIEW_NAV = ["Home", "Europe Map", "Comparison"] as const;
 
@@ -15,12 +16,16 @@ export function LoginPage() {
   const navigate = useNavigate();
   const { user, isLoading, login, register } = useAuth();
   const [mode, setMode] = useState<Mode>("login");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [gender, setGender] = useState<Gender>("Other");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   if (!isLoading && user) {
@@ -30,14 +35,32 @@ export function LoginPage() {
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     setError(null);
+    setMessage(null);
     setLoading(true);
 
     try {
       if (mode === "login") {
-        await login(email, password);
-      } else {
-        await register(email, password, confirmPassword);
+        await login(username, password);
+        navigate(paths.home, { replace: true });
+        return;
       }
+
+      const verifyMessage = await register({
+        username,
+        email,
+        displayName,
+        gender,
+        password,
+        confirmPassword,
+      });
+
+      if (verifyMessage) {
+        setMessage(verifyMessage);
+        setPassword("");
+        setConfirmPassword("");
+        return;
+      }
+
       navigate(paths.home, { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
@@ -111,7 +134,7 @@ export function LoginPage() {
 
         <p className="login-subtitle">
           {mode === "login"
-            ? "Sign in to open the energy monitor"
+            ? "Sign in with your username and password"
             : "Create an account to continue"}
         </p>
 
@@ -124,6 +147,7 @@ export function LoginPage() {
             onClick={() => {
               setMode("login");
               setError(null);
+              setMessage(null);
             }}
           >
             Sign in
@@ -136,35 +160,101 @@ export function LoginPage() {
             onClick={() => {
               setMode("register");
               setError(null);
+              setMessage(null);
             }}
           >
             Register
           </button>
         </div>
 
-        <form className="login-form" onSubmit={handleSubmit}>
+        <form
+          className="login-form"
+          onSubmit={handleSubmit}
+          autoComplete="off"
+          noValidate
+        >
           <label>
-            Email
+            Username
             <input
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              autoComplete="email"
+              type="text"
+              name="eu-renewables-username"
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              autoComplete="off"
               required
             />
           </label>
+
+          {mode === "register" && (
+            <>
+              <label>
+                Email
+                <input
+                  type="email"
+                  name="eu-renewables-email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  autoComplete="off"
+                  required
+                />
+              </label>
+              <label>
+                Display name
+                <input
+                  type="text"
+                  name="eu-renewables-display-name"
+                  value={displayName}
+                  onChange={(event) => setDisplayName(event.target.value)}
+                  autoComplete="off"
+                  required
+                />
+              </label>
+              <fieldset className="login-gender">
+                <legend>Gender</legend>
+                {(
+                  [
+                    ["Male", "Male"],
+                    ["Female", "Female"],
+                    ["Other", "Other"],
+                  ] as const
+                ).map(([value, label]) => (
+                  <label key={value} className="login-gender-option">
+                    <input
+                      type="radio"
+                      name="gender"
+                      value={value}
+                      checked={gender === value}
+                      onChange={() => setGender(value)}
+                    />
+                    {label}
+                  </label>
+                ))}
+              </fieldset>
+            </>
+          )}
+
           <label>
             Password
             <div className="login-password-field">
               <input
-                type={showPassword ? "text" : "password"}
+                type="text"
+                name="eu-renewables-secret"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                autoComplete={
-                  mode === "login" ? "current-password" : "new-password"
+                className={
+                  showPassword
+                    ? "masked-secret-input is-revealed"
+                    : "masked-secret-input"
                 }
+                autoComplete="off"
+                autoCapitalize="off"
+                autoCorrect="off"
+                spellCheck={false}
+                data-1p-ignore
+                data-lpignore="true"
+                data-form-type="other"
+                data-bwignore="true"
                 required
-                minLength={6}
               />
               <button
                 type="button"
@@ -176,17 +266,30 @@ export function LoginPage() {
               </button>
             </div>
           </label>
+
           {mode === "register" && (
             <label>
               Confirm password
               <div className="login-password-field">
                 <input
-                  type={showConfirmPassword ? "text" : "password"}
+                  type="text"
+                  name="eu-renewables-secret-confirm"
                   value={confirmPassword}
                   onChange={(event) => setConfirmPassword(event.target.value)}
-                  autoComplete="new-password"
+                  className={
+                    showConfirmPassword
+                      ? "masked-secret-input is-revealed"
+                      : "masked-secret-input"
+                  }
+                  autoComplete="off"
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  data-1p-ignore
+                  data-lpignore="true"
+                  data-form-type="other"
+                  data-bwignore="true"
                   required
-                  minLength={6}
                 />
                 <button
                   type="button"
@@ -207,12 +310,22 @@ export function LoginPage() {
               </div>
             </label>
           )}
+
+          {mode === "login" && (
+            <p className="login-forgot-row">
+              <Link to={paths.forgotPassword} className="login-forgot-link">
+                Forgot password?
+              </Link>
+            </p>
+          )}
+
           {error && <p className="login-error">{error}</p>}
+          {message && <p className="login-success">{message}</p>}
           <button type="submit" disabled={loading}>
             {loading
               ? mode === "login"
                 ? "Signing in…"
-                : "Creating account…"
+                : "Please wait…"
               : mode === "login"
                 ? "Sign in"
                 : "Create account"}

@@ -137,12 +137,8 @@ export async function fetchGenerationHistory(
   return response.json();
 }
 
-export async function fetchViewerTimezone(
-  clientId: string
-): Promise<ViewerTimezonePreference | null> {
-  const response = await apiFetch(
-    `/api/preferences/timezone?clientId=${encodeURIComponent(clientId)}`
-  );
+export async function fetchViewerTimezone(): Promise<ViewerTimezonePreference | null> {
+  const response = await apiFetch(`/api/preferences/timezone`);
 
   if (response.status === 401 || response.status === 404) {
     return null;
@@ -156,14 +152,13 @@ export async function fetchViewerTimezone(
 }
 
 export async function saveViewerTimezone(
-  clientId: string,
-  countryIso: string,
-  timeZone: string
+  timeZone: string,
+  countryIso = ""
 ): Promise<ViewerTimezonePreference> {
   const response = await apiFetch(`/api/preferences/timezone`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ clientId, countryIso, timeZone }),
+    body: JSON.stringify({ countryIso, timeZone }),
   });
 
   if (response.status === 401) {

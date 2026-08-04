@@ -22,6 +22,7 @@ public class EnergyDbContext : DbContext
         Set<ViewerTimezonePreference>();
     public DbSet<User> Users => Set<User>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<PendingRegistration> PendingRegistrations => Set<PendingRegistration>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -31,10 +32,30 @@ public class EnergyDbContext : DbContext
         {
             entity.ToTable("Users");
             entity.HasKey(user => user.Id);
+            entity.Property(user => user.Username).IsRequired();
             entity.Property(user => user.Email).IsRequired();
+            entity.Property(user => user.DisplayName).IsRequired();
+            entity.Property(user => user.Gender).IsRequired();
             entity.Property(user => user.PasswordHash).IsRequired();
             entity.Property(user => user.Role).IsRequired();
-            entity.HasIndex(user => user.Email).IsUnique();
+            entity.Property(user => user.PasswordResetTokenHash).HasMaxLength(128);
+            entity.HasIndex(user => user.Email);
+            entity.HasIndex(user => user.Username).IsUnique();
+            entity.HasIndex(user => user.PasswordResetTokenHash);
+        });
+
+        modelBuilder.Entity<PendingRegistration>(entity =>
+        {
+            entity.ToTable("PendingRegistrations");
+            entity.HasKey(item => item.Id);
+            entity.Property(item => item.Username).IsRequired();
+            entity.Property(item => item.Email).IsRequired();
+            entity.Property(item => item.DisplayName).IsRequired();
+            entity.Property(item => item.Gender).IsRequired();
+            entity.Property(item => item.PasswordHash).IsRequired();
+            entity.Property(item => item.TokenHash).HasMaxLength(128).IsRequired();
+            entity.HasIndex(item => item.Username).IsUnique();
+            entity.HasIndex(item => item.TokenHash).IsUnique();
         });
 
         modelBuilder.Entity<RefreshToken>(entity =>
