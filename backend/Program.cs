@@ -14,6 +14,9 @@ if (File.Exists(".env"))
     DotNetEnv.Env.Load();
 }
 
+// Render free tier hits Linux inotify limits; disable config file watching.
+Environment.SetEnvironmentVariable("DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE", "false");
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
