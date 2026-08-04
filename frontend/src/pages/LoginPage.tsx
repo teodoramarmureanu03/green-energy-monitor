@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Leaf } from "lucide-react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -9,6 +9,8 @@ import "./LoginPage.css";
 
 type Mode = "login" | "register";
 type Gender = "Male" | "Female" | "Other";
+
+const PREVIEW_NAV = ["Home", "Europe Map", "Comparison"] as const;
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -69,9 +71,67 @@ export function LoginPage() {
 
   return (
     <div className="login-page">
-      <div className="login-backdrop" aria-hidden="true" />
+      {/* Soft preview of the real app chrome behind the glass panel */}
+      <div className="login-app-preview" aria-hidden="true">
+        <aside className="login-preview-sidebar">
+          <div className="login-preview-brand">
+            <span className="login-preview-logo">
+              <Leaf size={18} />
+            </span>
+            <div>
+              <div className="login-preview-brand-title">EU Renewables</div>
+              <div className="login-preview-brand-sub">Monitor</div>
+            </div>
+          </div>
+          <div className="login-preview-live">
+            <span className="login-preview-live-dot" />
+            Live data · ENTSO-E
+          </div>
+          <ul className="login-preview-nav">
+            {PREVIEW_NAV.map((label, index) => (
+              <li
+                key={label}
+                className={index === 0 ? "is-active" : undefined}
+              >
+                {label}
+              </li>
+            ))}
+          </ul>
+        </aside>
+
+        <div className="login-preview-main">
+          <section className="login-preview-hero">
+            <span className="login-preview-badge">
+              Renewable Investment Advisor
+            </span>
+            <h2>The future of energy is renewable</h2>
+            <p>
+              Explore generation across Europe — map, dashboards, and country
+              comparison.
+            </p>
+          </section>
+          <div className="login-preview-mosaic">
+            <div className="login-preview-tile login-preview-tile-solar" />
+            <div className="login-preview-tile login-preview-tile-wind" />
+            <div className="login-preview-tile login-preview-tile-hydro" />
+            <div className="login-preview-tile login-preview-tile-geo" />
+          </div>
+        </div>
+      </div>
+
+      <div className="login-scrim" aria-hidden="true" />
+
       <div className="login-panel">
-        <h1 className="login-title">EU Renewables</h1>
+        <div className="login-panel-brand">
+          <span className="login-panel-logo">
+            <Leaf size={20} />
+          </span>
+          <div>
+            <h1 className="login-title">EU Renewables</h1>
+            <p className="login-kicker">Monitor</p>
+          </div>
+        </div>
+
         <p className="login-subtitle">
           {mode === "login"
             ? "Sign in with your username and password"
@@ -177,12 +237,14 @@ export function LoginPage() {
             Password
             <div className="login-password-field">
               <input
-                type={showPassword ? "text" : "text"}
+                type="text"
                 name="eu-renewables-secret"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 className={
-                  showPassword ? "masked-secret-input is-revealed" : "masked-secret-input"
+                  showPassword
+                    ? "masked-secret-input is-revealed"
+                    : "masked-secret-input"
                 }
                 autoComplete="off"
                 autoCapitalize="off"

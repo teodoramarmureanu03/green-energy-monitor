@@ -1,0 +1,34 @@
+# Render blueprint: managed Postgres + backend API.
+# Deploy: https://dashboard.render.com → New → Blueprint → connect this repo.
+# After first deploy, set ENTSOE_API_KEY and JWT_SECRET in the web service env,
+# and set ALLOWED_ORIGINS to your Netlify URL (https://….netlify.app).
+
+databases:
+  - name: energy-monitor-db
+    plan: free
+    databaseName: energy_monitor
+    user: energy
+
+services:
+  - type: web
+    name: energy-monitor-api
+    runtime: docker
+    plan: free
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_URLS
+        value: http://+:8080
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ENTSOE_API_KEY
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: ConnectionStrings__DefaultConnection
+        fromDatabase:
+          name: energy-monitor-db
+          property: connectionString
