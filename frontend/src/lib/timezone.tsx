@@ -5,18 +5,6 @@ import { ALL_TIMEZONES, getUserLocalTimezone } from "@/lib/timezones";
 import { TimezoneContext } from "@/lib/timezone-context";
 
 const STORAGE_KEY = "eu-renewables-timezone-iana";
-const CLIENT_ID_KEY = "eu-renewables-client-id";
-
-function getOrCreateClientId(): string {
-  const existing = window.localStorage.getItem(CLIENT_ID_KEY);
-  if (existing) {
-    return existing;
-  }
-
-  const created = crypto.randomUUID();
-  window.localStorage.setItem(CLIENT_ID_KEY, created);
-  return created;
-}
 
 function getStoredTimezone(): string {
   const stored = window.localStorage.getItem(STORAGE_KEY);
@@ -29,7 +17,6 @@ function getStoredTimezone(): string {
 
 export function TimezoneProvider({ children }: { children: ReactNode }) {
   const [timeZone, setTimeZoneState] = useState(getStoredTimezone);
-  const [clientId] = useState(getOrCreateClientId);
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, timeZone);
@@ -38,7 +25,7 @@ export function TimezoneProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false;
 
-    fetchViewerTimezone(clientId)
+    fetchViewerTimezone()
       .then((preference) => {
         if (cancelled || !preference?.timeZone) {
           return;
@@ -55,7 +42,7 @@ export function TimezoneProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [clientId]);
+  }, []);
 
   function setTimeZone(newZone: string) {
     if (!ALL_TIMEZONES.includes(newZone)) {
@@ -64,7 +51,7 @@ export function TimezoneProvider({ children }: { children: ReactNode }) {
 
     setTimeZoneState(newZone);
 
-    void saveViewerTimezone(clientId, "", newZone).catch(() => {
+    void saveViewerTimezone(newZone).catch(() => {
       // Preference still applies locally even if persistence fails.
     });
   }

@@ -5,9 +5,21 @@ export const AUTH_USER_KEY = "eu-renewables-auth-user";
 
 export interface AuthResponse {
   token: string;
+  username: string;
   email: string;
+  displayName: string;
+  gender: string;
   role: string;
   expiresInSeconds?: number;
+}
+
+export interface RegisterPayload {
+  username: string;
+  email: string;
+  displayName: string;
+  gender: string;
+  password: string;
+  confirmPassword: string;
 }
 
 async function readError(response: Response, fallback: string): Promise<string> {
@@ -24,14 +36,14 @@ export function setAccessToken(token: string): void {
 }
 
 export async function loginUser(
-  email: string,
+  username: string,
   password: string
 ): Promise<AuthResponse> {
   const response = await fetch(`${API_BASE}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ username, password }),
   });
 
   if (!response.ok) {
@@ -42,15 +54,13 @@ export async function loginUser(
 }
 
 export async function registerUser(
-  email: string,
-  password: string,
-  confirmPassword: string
-): Promise<AuthResponse> {
+  payload: RegisterPayload
+): Promise<AuthResponse | { message: string }> {
   const response = await fetch(`${API_BASE}/api/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
-    body: JSON.stringify({ email, password, confirmPassword }),
+    body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
@@ -77,7 +87,10 @@ export async function refreshAccessToken(): Promise<AuthResponse> {
 }
 
 export async function fetchCurrentUser(token: string): Promise<{
+  username: string;
   email: string;
+  displayName: string;
+  gender: string;
   role: string;
 }> {
   const response = await fetch(`${API_BASE}/api/auth/me`, {
@@ -99,4 +112,62 @@ export async function logoutUser(): Promise<void> {
   }).catch(() => {
     // Local session clear still happens on the client.
   });
+}
+
+export async function updateProfileUser(
+  token: string,
+  input: {
+    username: string;
+    email: string;
+    displayName: string;
+    gender: string;
+  }
+): Promise<AuthResponse> {
+  const response = await fetch(`${API_BASE}/api/auth/me`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify(input),
+  });
+
+  if (!response.ok) {
+    throw new Error(await readError(response, "Could not update profile."));
+  }
+
+  return response.json();
+}
+
+export async function changePasswordUser(
+  token: string,
+  currentPassword: string,
+  newPassword: string
+): Promise<void> {
+  const response = await fetch(`${API_BASE}/api/auth/me/password`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+
+  if (!response.ok) {
+    throw new Error(await readError(response, "Could not change password."));
+  }
+}
+
+export async function deleteAccountUser(token: string): Promise<void> {
+  const response = await fetch(`${API_BASE}/api/auth/me`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new Error(await readError(response, "Could not delete account."));
+  }
 }

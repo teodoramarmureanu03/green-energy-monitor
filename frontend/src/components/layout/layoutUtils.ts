@@ -34,6 +34,16 @@ export function getToolbarInfo(pathname: string): {
         title: "Dashboard",
         subtitle: iso ? `${iso} · solar & wind investment` : undefined,
       };
+    case "account":
+      return {
+        title: "Account",
+        subtitle: "Your profile and password",
+      };
+    case "admin":
+      return {
+        title: "Manage Users",
+        subtitle: "Admin account management",
+      };
     default:
       return { title: "EU Renewables Monitor" };
   }
@@ -49,6 +59,10 @@ export function isSidebarItemActive(
 
   if (itemId === "map") {
     return pathname === paths.map || pathname.startsWith("/dashboard/");
+  }
+
+  if (itemId === "admin") {
+    return pathname.startsWith("/admin");
   }
 
   return pathname === paths.comparison;

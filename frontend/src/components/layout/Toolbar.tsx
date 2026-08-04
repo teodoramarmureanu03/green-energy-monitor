@@ -1,6 +1,7 @@
-import { LogOut, Sun, Moon } from "lucide-react";
+import { Sun, Moon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+import { UserAvatar } from "@/components/layout/UserAvatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { useTimezone } from "@/hooks/useTimezone";
@@ -16,12 +17,7 @@ export function Toolbar({ title, subtitle }: ToolbarProps) {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const { timeZone, setTimeZone } = useTimezone();
-  const { user, logout } = useAuth();
-
-  async function handleLogout() {
-    await logout();
-    navigate(paths.login, { replace: true });
-  }
+  const { user } = useAuth();
 
   return (
     <div className="layout-toolbar">
@@ -53,12 +49,12 @@ export function Toolbar({ title, subtitle }: ToolbarProps) {
         {user && (
           <button
             type="button"
-            onClick={() => void handleLogout()}
-            aria-label="Sign out"
-            title={`Sign out (${user.email})`}
-            className="layout-toolbar-theme-btn"
+            onClick={() => navigate(paths.account)}
+            aria-label="Open your profile"
+            title={user.displayName || user.username}
+            className="layout-toolbar-avatar-btn is-authenticated"
           >
-            <LogOut className="h-4.25 w-4.25" />
+            <UserAvatar gender={user.gender} size={32} />
           </button>
         )}
 
