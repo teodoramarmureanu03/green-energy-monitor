@@ -1,6 +1,0 @@
-HTTP/1.1 200 OK
-Content-Type: application/json; charset=utf-8
-Date: Tue, 04 Aug 2026 06:50:13 GMT
-Server: Kestrel
-Transfer-Encoding: chunked
-

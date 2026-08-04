@@ -1,7 +1,0 @@
-HTTP/1.1 200 OK
-Content-Type: application/json; charset=utf-8
-Date: Tue, 04 Aug 2026 06:50:11 GMT
-Server: Kestrel
-Set-Cookie: refresh_token=BT6GcedGX2NxDBcPz3R%2B%2BEKGQ2ijijECUDJQBHj4c7V8xF5Bd7vN6qzScY6heKgvg4phvQKtlbYiV1RXm4Z4Vg%3D%3D; expires=Tue, 11 Aug 2026 06:50:12 GMT; path=/api/auth; secure; samesite=none; httponly
-Transfer-Encoding: chunked
-
