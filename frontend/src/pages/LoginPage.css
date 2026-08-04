@@ -220,11 +220,11 @@
   padding: 1.85rem 1.75rem 1.75rem;
   border-radius: 20px;
   color: var(--ink);
-  background: color-mix(in srgb, var(--surface) 93%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border-sage) 70%, rgba(255, 255, 255, 0.5));
+  background: color-mix(in srgb, var(--surface) 98%, transparent);
+  border: 1px solid var(--border-sage);
   box-shadow: var(--shadow-elevated);
-  backdrop-filter: blur(14px) saturate(1.05);
-  -webkit-backdrop-filter: blur(14px) saturate(1.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   animation: login-panel-in 480ms var(--ease-out-expo) both;
 }
 
@@ -324,7 +324,7 @@
   padding: 0.7rem 0.85rem;
   border-radius: 10px;
   border: 1.5px solid var(--border-sage);
-  background: color-mix(in srgb, var(--surface) 93%, transparent);
+  background: var(--surface);
   color: var(--ink);
   font: inherit;
   transition:
