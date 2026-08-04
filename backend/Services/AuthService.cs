@@ -27,7 +27,16 @@ public interface IAuthService
         string confirmPassword
     );
     Task<AuthSession?> VerifyEmailAsync(string token);
-    Task RequestPasswordResetAsync(string username, string email);
+    /// <summary>
+    /// When email bypass is on (or SMTP is off): set a new password with username + email.
+    /// Otherwise sends a reset link by email.
+    /// </summary>
+    Task<string> RequestPasswordResetAsync(
+        string username,
+        string email,
+        string? newPassword = null,
+        string? confirmPassword = null
+    );
     Task<(bool Ok, string? Error)> ResetPasswordAsync(string token, string newPassword);
     Task<AuthSession?> RefreshAsync(string? rawRefreshToken);
     Task RevokeRefreshTokenAsync(string? rawRefreshToken);
@@ -91,6 +100,17 @@ public class AuthService : IAuthService
         _logger = logger;
         _passwords = passwords;
     }
+
+    /// <summary>
+    /// Skip verify/reset emails only when EMAIL_BYPASS=true.
+    /// Prefer Resend (RESEND_API_KEY) on Render — SMTP ports are blocked there.
+    /// </summary>
+    private bool UseEmailBypass =>
+        string.Equals(
+            Environment.GetEnvironmentVariable("EMAIL_BYPASS"),
+            "true",
+            StringComparison.OrdinalIgnoreCase
+        );
 
     public async Task<AuthSession?> LoginAsync(string username, string password)
     {
@@ -171,12 +191,14 @@ public class AuthService : IAuthService
 
         var passwordHash = _passwords.Hash(password);
 
-        // No SMTP → create account immediately (same as before).
-        if (!_emailService.IsConfigured)
+        // No SMTP, or explicit/production email bypass → create account immediately.
+        if (UseEmailBypass || !_emailService.IsConfigured)
         {
             _logger.LogWarning(
-                "SMTP is not configured; creating account {Username} without email verification.",
-                username
+                "Creating account {Username} without email verification (bypass={Bypass}, smtpConfigured={Smtp}).",
+                username,
+                UseEmailBypass,
+                _emailService.IsConfigured
             );
 
             var stalePending = await _db.PendingRegistrations.FirstOrDefaultAsync(item =>
@@ -334,41 +356,80 @@ public class AuthService : IAuthService
         return await CreateSessionAsync(user);
     }
 
-    public async Task RequestPasswordResetAsync(string username, string email)
+    public async Task<string> RequestPasswordResetAsync(
+        string username,
+        string email,
+        string? newPassword = null,
+        string? confirmPassword = null
+    )
     {
-        if (!_emailService.IsConfigured)
-        {
-            throw new InvalidOperationException(
-                "Password reset by email is temporarily unavailable. Please try again later or contact an admin."
-            );
-        }
-
         username = NormalizeUsername(username);
         email = NormalizeEmail(email);
-        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(email))
+
+        if (UseEmailBypass || !_emailService.IsConfigured)
         {
-            return;
+            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(email))
+            {
+                throw new InvalidOperationException("Username and email are required.");
+            }
+
+            if (string.IsNullOrEmpty(newPassword))
+            {
+                throw new InvalidOperationException("New password is required.");
+            }
+
+            if (newPassword != confirmPassword)
+            {
+                throw new InvalidOperationException("New passwords do not match.");
+            }
+
+            var user = await _db.Users.FirstOrDefaultAsync(item =>
+                item.Username == username && item.Email == email
+            );
+            if (user is null)
+            {
+                throw new InvalidOperationException(
+                    "No account matches that username and email."
+                );
+            }
+
+            user.PasswordHash = _passwords.Hash(newPassword);
+            user.PasswordResetTokenHash = null;
+            user.PasswordResetTokenExpiresAt = null;
+            await _db.SaveChangesAsync();
+
+            _logger.LogWarning(
+                "Password reset via identity bypass for user {UserId} (email sending skipped).",
+                user.Id
+            );
+
+            return "Password updated. You can sign in with your new password.";
         }
 
-        var user = await _db.Users.FirstOrDefaultAsync(item =>
+        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(email))
+        {
+            return "If an account matches that username and email, we sent a password reset link.";
+        }
+
+        var matched = await _db.Users.FirstOrDefaultAsync(item =>
             item.Username == username && item.Email == email
         );
-        if (user is null)
+        if (matched is null)
         {
-            return;
+            return "If an account matches that username and email, we sent a password reset link.";
         }
 
         var rawToken = CreateUrlSafeToken();
-        user.PasswordResetTokenHash = HashToken(rawToken);
-        user.PasswordResetTokenExpiresAt = DateTime.UtcNow.Add(PasswordResetTokenLifetime);
+        matched.PasswordResetTokenHash = HashToken(rawToken);
+        matched.PasswordResetTokenExpiresAt = DateTime.UtcNow.Add(PasswordResetTokenLifetime);
         await _db.SaveChangesAsync();
 
         var baseUrl = (_emailOptions.FrontendBaseUrl ?? "http://localhost:3000").TrimEnd('/');
         var resetUrl = $"{baseUrl}/reset-password?token={Uri.EscapeDataString(rawToken)}";
 
         var html = $"""
-            <p>Hello {System.Net.WebUtility.HtmlEncode(user.DisplayName)},</p>
-            <p>We received a request to reset the Green Energy Monitor password for username <strong>{System.Net.WebUtility.HtmlEncode(user.Username)}</strong>.</p>
+            <p>Hello {System.Net.WebUtility.HtmlEncode(matched.DisplayName)},</p>
+            <p>We received a request to reset the Green Energy Monitor password for username <strong>{System.Net.WebUtility.HtmlEncode(matched.Username)}</strong>.</p>
             <p><a href="{resetUrl}">Reset your password</a></p>
             <p>This link expires in 1 hour. If you did not request a reset, you can ignore this email.</p>
             """;
@@ -376,19 +437,21 @@ public class AuthService : IAuthService
         try
         {
             await _emailService.SendAsync(
-                user.Email,
+                matched.Email,
                 "Reset your Green Energy Monitor password",
                 html
             );
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send password reset email for user {UserId}.", user.Id);
+            _logger.LogError(ex, "Failed to send password reset email for user {UserId}.", matched.Id);
             throw new InvalidOperationException(
                 "Could not send the reset email. Please try again in a moment.",
                 ex
             );
         }
+
+        return "If an account matches that username and email, we sent a password reset link.";
     }
 
     public async Task<(bool Ok, string? Error)> ResetPasswordAsync(string token, string newPassword)

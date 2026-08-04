@@ -82,14 +82,13 @@ public class AuthController : ControllerBase
     {
         try
         {
-            await _authService.RequestPasswordResetAsync(request.Username, request.Email);
-            return Ok(
-                new
-                {
-                    message =
-                        "If an account matches that username and email, we sent a password reset link.",
-                }
+            var message = await _authService.RequestPasswordResetAsync(
+                request.Username,
+                request.Email,
+                request.NewPassword,
+                request.ConfirmPassword
             );
+            return Ok(new { message });
         }
         catch (InvalidOperationException ex)
         {

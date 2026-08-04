@@ -124,14 +124,21 @@ builder.Services.AddScoped<GenerationService>();
 builder.Services.AddScoped<HistoryService>();
 builder.Services.AddScoped<PreferencesService>();
 builder.Services.AddHttpClient<EntsoeService>();
+builder.Services.AddHttpClient("resend");
 builder.Services.AddHostedService<EntsoeDataSyncService>();
 builder.Services.Configure<backend.Models.EmailOptions>(
     builder.Configuration.GetSection(backend.Models.EmailOptions.SectionName)
 );
-// Allow the same SMTP_* / FRONTEND_BASE_URL names as docker-compose /.env on Render.
+// Allow RESEND_API_KEY / SMTP_* / FRONTEND_BASE_URL names as docker-compose /.env on Render.
 builder.Services.PostConfigure<backend.Models.EmailOptions>(options =>
 {
     static string? Env(string key) => Environment.GetEnvironmentVariable(key);
+
+    var resendKey = Env("RESEND_API_KEY") ?? Env("Email__ResendApiKey");
+    if (!string.IsNullOrWhiteSpace(resendKey))
+    {
+        options.ResendApiKey = resendKey;
+    }
 
     if (string.IsNullOrWhiteSpace(options.Host))
     {
@@ -163,6 +170,12 @@ builder.Services.PostConfigure<backend.Models.EmailOptions>(options =>
     if (!string.IsNullOrWhiteSpace(from))
     {
         options.FromAddress = from;
+    }
+
+    var fromName = Env("Email__FromName");
+    if (!string.IsNullOrWhiteSpace(fromName))
+    {
+        options.FromName = fromName;
     }
 
     var frontend =

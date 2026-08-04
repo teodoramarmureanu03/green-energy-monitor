@@ -37,10 +37,10 @@ export function ForgotPasswordPage() {
     <div className="login-page">
       <div className="login-backdrop" aria-hidden="true" />
       <div className="login-panel">
-        <h1 className="login-title">Forgot password?</h1>
+        <h1 className="login-title">Forgot password</h1>
         <p className="login-subtitle">
-          Enter your username and email. We will send a reset link to that
-          address if the account matches.
+          Enter your username and email. We&apos;ll send a reset link if they
+          match an account.
         </p>
 
         <form
