@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -18,20 +19,30 @@ public class PreferencesController : ControllerBase
     }
 
     [HttpGet("timezone")]
-    public async Task<IActionResult> GetTimezone([FromQuery] string clientId)
+    public async Task<IActionResult> GetTimezone()
     {
-        if (string.IsNullOrWhiteSpace(clientId))
+        var ownerKey = GetOwnerKey();
+        if (ownerKey is null)
         {
-            return BadRequest(new { Message = "clientId is required." });
+            return Unauthorized();
         }
 
-        var preference = await _preferencesService.GetTimezoneAsync(clientId);
+        var preference = await _preferencesService.GetTimezoneAsync(ownerKey);
         return preference is null ? NotFound() : Ok(preference);
     }
 
     [HttpPut("timezone")]
     public async Task<IActionResult> SaveTimezone([FromBody] ViewerTimezoneRequest request)
     {
+        var ownerKey = GetOwnerKey();
+        if (ownerKey is null)
+        {
+            return Unauthorized();
+        }
+
+        // Ignore client-supplied clientId — preferences are bound to the JWT user.
+        request.ClientId = ownerKey;
+
         var (response, error) = await _preferencesService.SaveTimezoneAsync(request);
 
         if (error is not null)
@@ -40,5 +51,18 @@ public class PreferencesController : ControllerBase
         }
 
         return Ok(response);
+    }
+
+    private string? GetOwnerKey()
+    {
+        var username = User.FindFirstValue(ClaimTypes.Name) ?? User.Identity?.Name;
+        if (!string.IsNullOrWhiteSpace(username))
+        {
+            return username.Trim().ToLowerInvariant();
+        }
+
+        var userId =
+            User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
+        return string.IsNullOrWhiteSpace(userId) ? null : $"user:{userId.Trim()}";
     }
 }

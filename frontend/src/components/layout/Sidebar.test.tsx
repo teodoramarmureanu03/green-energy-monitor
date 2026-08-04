@@ -10,6 +10,13 @@ vi.mock("@/hooks/useTimezone", () => ({
   }),
 }));
 
+vi.mock("@/hooks/useAuth", () => ({
+  useAuth: () => ({
+    user: null,
+    isLoading: false,
+  }),
+}));
+
 describe("Sidebar Component", () => {
   it("renders all navigation links when expanded", () => {
     render(

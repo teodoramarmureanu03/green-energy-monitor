@@ -37,6 +37,8 @@ public class GenerationController : ControllerBase
         return Ok(countries);
     }
 
+    /// <summary>Manual ENTSO-E backfill — admin only (expensive upstream calls).</summary>
+    [Authorize(Roles = AuthService.AdminRole)]
     [HttpPost("backfill/{iso}")]
     public async Task<IActionResult> HandleBackfill(string iso, CancellationToken cancellationToken)
     {
@@ -49,7 +51,6 @@ public class GenerationController : ControllerBase
 
         try
         {
-            // Resolve only for backfill so normal reads do not require the ENTSO-E key.
             var entsoeService = HttpContext.RequestServices.GetRequiredService<EntsoeService>();
 
             await entsoeService.RefreshCountryDataAsync(

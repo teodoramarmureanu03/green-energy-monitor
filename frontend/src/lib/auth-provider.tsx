@@ -9,6 +9,8 @@ import {
 import {
   ACCESS_TOKEN_KEY,
   AUTH_USER_KEY,
+  changePasswordUser,
+  deleteAccountUser,
   fetchCurrentUser,
   getAccessToken,
   loginUser,
@@ -16,8 +18,22 @@ import {
   refreshAccessToken,
   registerUser,
   setAccessToken,
+  updateProfileUser,
+  type AuthResponse,
 } from "@/lib/auth";
 import { AuthContext, type AuthUser } from "@/lib/auth-context";
+
+function toAuthUser(
+  response: AuthResponse | Awaited<ReturnType<typeof fetchCurrentUser>>
+): AuthUser {
+  return {
+    username: response.username,
+    email: response.email,
+    displayName: response.displayName,
+    gender: response.gender,
+    role: response.role,
+  };
+}
 
 function saveSession(user: AuthUser, token: string) {
   window.sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
@@ -40,6 +56,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       let token = getAccessToken();
       const rawUser = window.sessionStorage.getItem(AUTH_USER_KEY);
 
+      // Tab/browser close clears sessionStorage. Do not silently log the user
+      // back in with only the refresh cookie (that would outlive a closed tab).
+      if (!token && !rawUser) {
+        clearSession();
+        if (!cancelled) {
+          setUser(null);
+          setIsLoading(false);
+        }
+        return;
+      }
+
       if (rawUser) {
         try {
           setUser(JSON.parse(rawUser) as AuthUser);
@@ -50,11 +77,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       try {
         if (!token) {
-          // Access missing/expired — try HttpOnly refresh cookie.
           const refreshed = await refreshAccessToken();
           token = refreshed.token;
           if (!cancelled) {
-            const next = { email: refreshed.email, role: refreshed.role };
+            const next = toAuthUser(refreshed);
             saveSession(next, token);
             setUser(next);
           }
@@ -63,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         const current = await fetchCurrentUser(token);
         if (!cancelled) {
-          const next = { email: current.email, role: current.role };
+          const next = toAuthUser(current);
           saveSession(next, token);
           setUser(next);
         }
@@ -71,7 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
           const refreshed = await refreshAccessToken();
           if (!cancelled) {
-            const next = { email: refreshed.email, role: refreshed.role };
+            const next = toAuthUser(refreshed);
             saveSession(next, refreshed.token);
             setUser(next);
           }
@@ -95,17 +121,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const login = useCallback(async (email: string, password: string) => {
-    const response = await loginUser(email, password);
-    const next = { email: response.email, role: response.role };
+  const login = useCallback(async (username: string, password: string) => {
+    const response = await loginUser(username, password);
+    const next = toAuthUser(response);
     saveSession(next, response.token);
     setUser(next);
   }, []);
 
   const register = useCallback(
-    async (email: string, password: string, confirmPassword: string) => {
-      const response = await registerUser(email, password, confirmPassword);
-      const next = { email: response.email, role: response.role };
+    async (input: {
+      username: string;
+      email: string;
+      displayName: string;
+      gender: string;
+      password: string;
+      confirmPassword: string;
+    }) => {
+      const response = await registerUser(input);
+      if ("token" in response && response.token) {
+        const next = toAuthUser(response);
+        saveSession(next, response.token);
+        setUser(next);
+        return null;
+      }
+
+      return (
+        ("message" in response && response.message) ||
+        "Verification email sent. Open the link in that message to create your account."
+      );
+    },
+    []
+  );
+
+  const establishSession = useCallback(
+    (response: {
+      token: string;
+      username: string;
+      email: string;
+      displayName: string;
+      gender: string;
+      role: string;
+    }) => {
+      const next = toAuthUser(response);
       saveSession(next, response.token);
       setUser(next);
     },
@@ -118,9 +175,72 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
+  const updateProfile = useCallback(
+    async (input: {
+      username: string;
+      email: string;
+      displayName: string;
+      gender: string;
+    }) => {
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error("You are not signed in.");
+      }
+
+      const response = await updateProfileUser(token, input);
+      const next = toAuthUser(response);
+      saveSession(next, response.token);
+      setUser(next);
+    },
+    []
+  );
+
+  const changePassword = useCallback(
+    async (currentPassword: string, newPassword: string) => {
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error("You are not signed in.");
+      }
+
+      await changePasswordUser(token, currentPassword, newPassword);
+    },
+    []
+  );
+
+  const deleteAccount = useCallback(async () => {
+    const token = getAccessToken();
+    if (!token) {
+      throw new Error("You are not signed in.");
+    }
+
+    await deleteAccountUser(token);
+    clearSession();
+    setUser(null);
+  }, []);
+
   const value = useMemo(
-    () => ({ user, isLoading, login, register, logout }),
-    [user, isLoading, login, register, logout]
+    () => ({
+      user,
+      isLoading,
+      login,
+      register,
+      establishSession,
+      logout,
+      updateProfile,
+      changePassword,
+      deleteAccount,
+    }),
+    [
+      user,
+      isLoading,
+      login,
+      register,
+      establishSession,
+      logout,
+      updateProfile,
+      changePassword,
+      deleteAccount,
+    ]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

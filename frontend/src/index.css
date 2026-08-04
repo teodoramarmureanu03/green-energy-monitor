@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+.masked-secret-input {
+  -webkit-text-security: disc;
+  text-security: disc;
+}
+
+.masked-secret-input.is-revealed {
+  -webkit-text-security: none;
+  text-security: none;
+}
+
 /* ============================================================================
    Design tokens — mirrors src/lib/tokens.ts, which re-exports every color
    below as `var(--x)` so React components stay theme-aware automatically.
