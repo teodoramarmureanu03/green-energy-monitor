@@ -1,7 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 
 import { fetchViewerTimezone, saveViewerTimezone } from "@/lib/api";
-import { useAuth } from "@/hooks/useAuth";
 import { ALL_TIMEZONES, getUserLocalTimezone } from "@/lib/timezones";
 import { TimezoneContext } from "@/lib/timezone-context";
 
@@ -29,38 +28,14 @@ function getStoredTimezone(): string {
 }
 
 export function TimezoneProvider({ children }: { children: ReactNode }) {
-  const { user, isLoading } = useAuth();
-  const isAuthenticated = Boolean(user);
-  const [timeZone, setTimeZoneState] = useState(getUserLocalTimezone);
+  const [timeZone, setTimeZoneState] = useState(getStoredTimezone);
   const [clientId] = useState(getOrCreateClientId);
 
-  // Guests always follow the browser; signed-in users keep their preference.
   useEffect(() => {
-    if (isLoading) {
-      return;
-    }
-
-    if (!isAuthenticated) {
-      setTimeZoneState(getUserLocalTimezone());
-      return;
-    }
-
-    setTimeZoneState(getStoredTimezone());
-  }, [isAuthenticated, isLoading]);
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      return;
-    }
-
     window.localStorage.setItem(STORAGE_KEY, timeZone);
-  }, [timeZone, isAuthenticated]);
+  }, [timeZone]);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      return;
-    }
-
     let cancelled = false;
 
     fetchViewerTimezone(clientId)
@@ -80,10 +55,10 @@ export function TimezoneProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [clientId, isAuthenticated]);
+  }, [clientId]);
 
   function setTimeZone(newZone: string) {
-    if (!isAuthenticated || !ALL_TIMEZONES.includes(newZone)) {
+    if (!ALL_TIMEZONES.includes(newZone)) {
       return;
     }
 

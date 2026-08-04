@@ -1,15 +1,6 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-  type FocusEvent,
-  type MouseEvent,
-} from "react";
-import { Sun, Moon } from "lucide-react";
+import { LogOut, Sun, Moon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-import { AuthRequiredTip } from "@/components/layout/AuthRequiredTip";
-import { UserAvatar } from "@/components/layout/UserAvatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { useTimezone } from "@/hooks/useTimezone";
@@ -25,36 +16,11 @@ export function Toolbar({ title, subtitle }: ToolbarProps) {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const { timeZone, setTimeZone } = useTimezone();
-  const { user } = useAuth();
-  const [showTimezoneTip, setShowTimezoneTip] = useState(false);
-  const timezoneRef = useRef<HTMLDivElement>(null);
+  const { user, logout } = useAuth();
 
-  useEffect(() => {
-    if (!showTimezoneTip) {
-      return;
-    }
-
-    const timeoutId = window.setTimeout(() => setShowTimezoneTip(false), 5000);
-    return () => window.clearTimeout(timeoutId);
-  }, [showTimezoneTip]);
-
-  function handleTimezoneChange(nextZone: string) {
-    if (!user) {
-      setShowTimezoneTip(true);
-      return;
-    }
-
-    setTimeZone(nextZone);
-  }
-
-  function handleTimezoneInteract(
-    event: MouseEvent<HTMLSelectElement> | FocusEvent<HTMLSelectElement>
-  ) {
-    if (!user) {
-      event.preventDefault();
-      event.currentTarget.blur();
-      setShowTimezoneTip(true);
-    }
+  async function handleLogout() {
+    await logout();
+    navigate(paths.login, { replace: true });
   }
 
   return (
@@ -65,21 +31,15 @@ export function Toolbar({ title, subtitle }: ToolbarProps) {
       </div>
 
       <div className="layout-toolbar-actions">
-        <div ref={timezoneRef} className="layout-toolbar-timezone-wrap">
+        <div className="layout-toolbar-timezone-wrap">
           <label className="layout-toolbar-timezone">
             <span className="layout-toolbar-timezone-label">Timezone</span>
             <select
               className="layout-toolbar-timezone-select"
               value={timeZone}
-              onChange={(event) => handleTimezoneChange(event.target.value)}
-              onMouseDown={handleTimezoneInteract}
-              onFocus={handleTimezoneInteract}
+              onChange={(event) => setTimeZone(event.target.value)}
               aria-label="Select timezone for dates and charts"
-              title={
-                user
-                  ? "Dates, times, and chart days use this timezone"
-                  : "Sign in to change timezone"
-              }
+              title="Dates, times, and chart days use this timezone"
             >
               {ALL_TIMEZONES.map((tz) => (
                 <option key={tz} value={tz}>
@@ -88,26 +48,19 @@ export function Toolbar({ title, subtitle }: ToolbarProps) {
               ))}
             </select>
           </label>
-          <AuthRequiredTip
-            visible={showTimezoneTip}
-            anchorRef={timezoneRef}
-            placement="below"
-          />
         </div>
 
-        <button
-          type="button"
-          onClick={() => navigate(paths.account)}
-          aria-label={user ? "Open your profile" : "Sign in or register"}
-          title={user ? user.displayName : "Sign in or register"}
-          className={
-            user
-              ? "layout-toolbar-avatar-btn is-authenticated"
-              : "layout-toolbar-avatar-btn"
-          }
-        >
-          <UserAvatar gender={user?.gender} size={user ? 32 : 22} />
-        </button>
+        {user && (
+          <button
+            type="button"
+            onClick={() => void handleLogout()}
+            aria-label="Sign out"
+            title={`Sign out (${user.email})`}
+            className="layout-toolbar-theme-btn"
+          >
+            <LogOut className="h-4.25 w-4.25" />
+          </button>
+        )}
 
         <button
           type="button"

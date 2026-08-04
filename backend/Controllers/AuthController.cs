@@ -1,18 +1,20 @@
 using System.Security.Claims;
-using backend.Models;
+using backend.DTOs;
 using backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace backend.Controllers;
 
-[ApiController]
 [Route("api/auth")]
+[ApiController]
 public class AuthController : ControllerBase
 {
-    private readonly AuthService _authService;
+    public const string RefreshCookieName = "refresh_token";
 
-    public AuthController(AuthService authService)
+    private readonly IAuthService _authService;
+
+    public AuthController(IAuthService authService)
     {
         _authService = authService;
     }
@@ -20,156 +22,122 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
-        var (message, error) = await _authService.RegisterAsync(request);
-
-        if (error is not null)
+        try
         {
-            return BadRequest(new { Message = error });
+            var result = await _authService.RegisterAsync(
+                request.Email,
+                request.Password,
+                request.ConfirmPassword
+            );
+
+            if (result is null)
+            {
+                return BadRequest(new { message = "Could not create account." });
+            }
+
+            SetRefreshCookie(result.RefreshToken);
+            return Ok(ToResponse(result));
         }
-
-        return Ok(new { Message = message });
-    }
-
-    [HttpPost("verify-email")]
-    public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailRequest request)
-    {
-        var (response, error) = await _authService.VerifyEmailAsync(request);
-
-        if (error is not null)
+        catch (InvalidOperationException ex)
         {
-            return BadRequest(new { Message = error });
+            return BadRequest(new { message = ex.Message });
         }
-
-        return Ok(response);
     }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        var (response, error) = await _authService.LoginAsync(request);
-
-        if (error is not null)
+        var result = await _authService.LoginAsync(request.Email, request.Password);
+        if (result is null)
         {
-            return Unauthorized(new { Message = error });
+            return Unauthorized(new { message = "Invalid email or password." });
         }
 
-        return Ok(response);
+        SetRefreshCookie(result.RefreshToken);
+        return Ok(ToResponse(result));
     }
 
-    [HttpPost("forgot-password")]
-    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+    [HttpPost("refresh")]
+    public async Task<IActionResult> Refresh()
     {
-        try
+        var raw = Request.Cookies[RefreshCookieName];
+        var result = await _authService.RefreshAsync(raw);
+        if (result is null)
         {
-            await _authService.RequestPasswordResetAsync(request);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return StatusCode(StatusCodes.Status502BadGateway, new { Message = ex.Message });
-        }
-
-        // Same message whether or not the account exists (avoids account enumeration).
-        return Ok(new
-        {
-            Message = "If an account matches that username and email, we sent a password reset link.",
-        });
-    }
-
-    [HttpPost("reset-password")]
-    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
-    {
-        var (ok, error) = await _authService.ResetPasswordAsync(request);
-        if (!ok)
-        {
-            return BadRequest(new { Message = error });
+            ClearRefreshCookie();
+            return Unauthorized(new { message = "Session expired. Please sign in again." });
         }
 
-        return Ok(new { Message = "Password updated. You can sign in with your new password." });
+        SetRefreshCookie(result.RefreshToken);
+        return Ok(ToResponse(result));
     }
 
     [Authorize]
     [HttpGet("me")]
     public async Task<IActionResult> Me()
     {
-        if (!TryGetUserId(out var userId))
+        var idValue =
+            User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
+        if (!int.TryParse(idValue, out var userId))
         {
             return Unauthorized();
         }
 
-        var user = await _authService.GetUserAsync(userId);
+        var user = await _authService.GetUserByIdAsync(userId);
         if (user is null)
         {
             return Unauthorized();
         }
 
-        return Ok(user);
+        return Ok(new { email = user.Email, role = user.Role });
     }
 
-    [Authorize]
-    [HttpPut("me")]
-    public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest request)
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout()
     {
-        if (!TryGetUserId(out var userId))
-        {
-            return Unauthorized();
-        }
-
-        var (response, error) = await _authService.UpdateProfileAsync(userId, request);
-        if (error is not null)
-        {
-            return error == "Account not found."
-                ? NotFound(new { Message = error })
-                : BadRequest(new { Message = error });
-        }
-
-        return Ok(response);
+        var raw = Request.Cookies[RefreshCookieName];
+        await _authService.RevokeRefreshTokenAsync(raw);
+        ClearRefreshCookie();
+        Response.Cookies.Delete("jwt_token");
+        return Ok(new { message = "Signed out." });
     }
 
-    [Authorize]
-    [HttpPut("me/password")]
-    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    private static object ToResponse(AuthSession session) =>
+        new
+        {
+            token = session.AccessToken,
+            email = session.User.Email,
+            role = session.User.Role,
+            expiresInSeconds = (int)AuthService.AccessTokenLifetime.TotalSeconds,
+        };
+
+    private void SetRefreshCookie(string refreshToken)
     {
-        if (!TryGetUserId(out var userId))
-        {
-            return Unauthorized();
-        }
-
-        var (ok, error) = await _authService.ChangePasswordAsync(userId, request);
-        if (!ok)
-        {
-            return error == "Account not found."
-                ? NotFound(new { Message = error })
-                : BadRequest(new { Message = error });
-        }
-
-        return Ok(new { Message = "Password updated." });
+        Response.Cookies.Append(
+            RefreshCookieName,
+            refreshToken,
+            new CookieOptions
+            {
+                HttpOnly = true,
+                // None + Secure so cross-origin localhost:3000 → :5000 still sends the cookie.
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Path = "/api/auth",
+                Expires = DateTime.UtcNow.Add(AuthService.RefreshTokenLifetime),
+            }
+        );
     }
 
-    [Authorize]
-    [HttpDelete("me")]
-    public async Task<IActionResult> DeleteAccount()
+    private void ClearRefreshCookie()
     {
-        if (!TryGetUserId(out var userId))
-        {
-            return Unauthorized();
-        }
-
-        var deleted = await _authService.DeleteAccountAsync(userId);
-        if (!deleted.Ok)
-        {
-            return deleted.Error == "Account not found."
-                ? NotFound(new { Message = deleted.Error })
-                : BadRequest(new { Message = deleted.Error });
-        }
-
-        return NoContent();
-    }
-
-    private bool TryGetUserId(out int userId)
-    {
-        var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? User.FindFirstValue("sub");
-
-        return int.TryParse(userIdValue, out userId);
+        Response.Cookies.Delete(
+            RefreshCookieName,
+            new CookieOptions
+            {
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Path = "/api/auth",
+            }
+        );
     }
 }

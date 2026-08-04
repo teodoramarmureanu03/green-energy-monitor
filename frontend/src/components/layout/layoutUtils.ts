@@ -34,31 +34,6 @@ export function getToolbarInfo(pathname: string): {
         title: "Dashboard",
         subtitle: iso ? `${iso} · solar & wind investment` : undefined,
       };
-    case "account":
-      return {
-        title: "Account",
-        subtitle: "Sign in, register, or manage your profile",
-      };
-    case "forgotPassword":
-      return {
-        title: "Forgot password",
-        subtitle: "Reset with username and email",
-      };
-    case "resetPassword":
-      return {
-        title: "Reset password",
-        subtitle: "Choose a new password for your account",
-      };
-    case "verifyEmail":
-      return {
-        title: "Verify email",
-        subtitle: "Confirm your address to create your account",
-      };
-    case "admin":
-      return {
-        title: "Manage Users",
-        subtitle: "Admin-only user management",
-      };
     default:
       return { title: "EU Renewables Monitor" };
   }
@@ -74,10 +49,6 @@ export function isSidebarItemActive(
 
   if (itemId === "map") {
     return pathname === paths.map || pathname.startsWith("/dashboard/");
-  }
-
-  if (itemId === "admin") {
-    return pathname.startsWith("/admin");
   }
 
   return pathname === paths.comparison;

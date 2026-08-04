@@ -1,9 +1,11 @@
 using backend;
 using backend.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace backend.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/generation")]
 public class GenerationController : ControllerBase

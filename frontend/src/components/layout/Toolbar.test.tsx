@@ -23,14 +23,9 @@ vi.mock("@/hooks/useAuth", () => ({
   useAuth: () => ({
     user: null,
     isLoading: false,
-    error: null,
     login: vi.fn(),
     register: vi.fn(),
-    establishSession: vi.fn(),
-    updateProfile: vi.fn(),
     logout: vi.fn(),
-    deleteAccount: vi.fn(),
-    clearError: vi.fn(),
   }),
 }));
 
@@ -64,13 +59,6 @@ describe("Toolbar Component", () => {
       screen.getByLabelText("Select timezone for dates and charts")
     ).toBeInTheDocument();
     expect(screen.getByDisplayValue("Europe/Bucharest")).toBeInTheDocument();
-  });
-
-  it("renders the account button next to the theme toggle", () => {
-    renderToolbar(<Toolbar title="Theme Test" />);
-
-    expect(screen.getByLabelText("Sign in or register")).toBeInTheDocument();
-    expect(screen.getByTitle("Switch to dark mode")).toBeInTheDocument();
   });
 
   it("triggers the theme toggle function when clicked", () => {

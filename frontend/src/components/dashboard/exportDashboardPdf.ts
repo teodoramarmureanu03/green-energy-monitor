@@ -864,7 +864,7 @@ class PdfReportBuilder {
       this.y + 7
     );
     this.pdf.text(
-      "Authenticated user report",
+      "Dashboard report",
       PAGE_W - MARGIN - 4,
       this.y + 7,
       {

@@ -5,6 +5,11 @@ import type {
   HistoryPeriod,
 } from "@/types/contract";
 import countriesCatalog from "@/data/countries.json";
+import {
+  ACCESS_TOKEN_KEY,
+  getAccessToken,
+  refreshAccessToken,
+} from "@/lib/auth";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
 
@@ -15,17 +20,85 @@ export interface ViewerTimezonePreference {
   updatedAt: string;
 }
 
-// Country names and map coordinates stay in a local catalog.
-// Live generation numbers always come from the backend API.
+function authHeaders(json = false): HeadersInit {
+  const headers: Record<string, string> = {};
+  const token = getAccessToken();
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  if (json) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  return headers;
+}
+
+let refreshInFlight: Promise<boolean> | null = null;
+
+async function tryRefreshSession(): Promise<boolean> {
+  if (!refreshInFlight) {
+    refreshInFlight = refreshAccessToken()
+      .then(() => true)
+      .catch(() => {
+        window.sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+        return false;
+      })
+      .finally(() => {
+        refreshInFlight = null;
+      });
+  }
+
+  return refreshInFlight;
+}
+
+async function apiFetch(
+  path: string,
+  init: RequestInit = {},
+  retry = true
+): Promise<Response> {
+  const headers = new Headers(init.headers);
+  const auth = authHeaders(
+    init.body != null && !headers.has("Content-Type")
+  );
+
+  Object.entries(auth).forEach(([key, value]) => {
+    if (!headers.has(key)) {
+      headers.set(key, value);
+    }
+  });
+
+  const response = await fetch(`${API_BASE}${path}`, {
+    ...init,
+    headers,
+    credentials: "include",
+  });
+
+  if (response.status !== 401 || !retry || path.startsWith("/api/auth/")) {
+    return response;
+  }
+
+  const refreshed = await tryRefreshSession();
+  if (!refreshed) {
+    return response;
+  }
+
+  return apiFetch(path, init, false);
+}
+
 export async function fetchCountries(): Promise<Country[]> {
   return countriesCatalog as Country[];
 }
 
-// Latest production snapshot for one country.
 export async function fetchGeneration(
   isoCode: string
 ): Promise<CountryGeneration> {
-  const response = await fetch(`${API_BASE}/api/generation/${isoCode}`);
+  const response = await apiFetch(`/api/generation/${isoCode}`);
+
+  if (response.status === 401) {
+    throw new Error("Please sign in to view generation data.");
+  }
 
   if (!response.ok) {
     throw new Error(`No generation data available for ${isoCode}.`);
@@ -34,7 +107,6 @@ export async function fetchGeneration(
   return response.json();
 }
 
-// Historical chart data for week / month / year views.
 export async function fetchGenerationHistory(
   isoCode: string,
   period: HistoryPeriod,
@@ -45,10 +117,14 @@ export async function fetchGenerationHistory(
     params.set("timeZone", timeZone);
   }
 
-  const response = await fetch(
-    `${API_BASE}/api/history/${isoCode}?${params.toString()}`,
+  const response = await apiFetch(
+    `/api/history/${isoCode}?${params.toString()}`,
     { cache: "no-store" }
   );
+
+  if (response.status === 401) {
+    throw new Error("Please sign in to view history data.");
+  }
 
   if (response.status === 404) {
     return [];
@@ -64,11 +140,11 @@ export async function fetchGenerationHistory(
 export async function fetchViewerTimezone(
   clientId: string
 ): Promise<ViewerTimezonePreference | null> {
-  const response = await fetch(
-    `${API_BASE}/api/preferences/timezone?clientId=${encodeURIComponent(clientId)}`
+  const response = await apiFetch(
+    `/api/preferences/timezone?clientId=${encodeURIComponent(clientId)}`
   );
 
-  if (response.status === 404) {
+  if (response.status === 401 || response.status === 404) {
     return null;
   }
 
@@ -84,11 +160,15 @@ export async function saveViewerTimezone(
   countryIso: string,
   timeZone: string
 ): Promise<ViewerTimezonePreference> {
-  const response = await fetch(`${API_BASE}/api/preferences/timezone`, {
+  const response = await apiFetch(`/api/preferences/timezone`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ clientId, countryIso, timeZone }),
   });
+
+  if (response.status === 401) {
+    throw new Error("Please sign in to save timezone preference.");
+  }
 
   if (!response.ok) {
     throw new Error("Could not save timezone preference.");

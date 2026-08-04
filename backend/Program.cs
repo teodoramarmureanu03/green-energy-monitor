@@ -1,11 +1,13 @@
-using System.Text;
-using backend;
+﻿using backend;
 using backend.Repositories;
 using backend.Services;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Npgsql;
+
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 if (File.Exists(".env"))
 {
@@ -18,38 +20,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowReact", policy =>
-    {
-        policy
-            .WithOrigins(
-                "http://localhost:5173",
-                "http://localhost:5174",
-                "http://localhost:3000")
-            .AllowAnyHeader()
-            .AllowAnyMethod();
-    });
-});
 
-builder.Services.AddDbContext<EnergyDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-builder.Services.AddScoped<IGenerationRepository, GenerationRepository>();
-builder.Services.AddScoped<IHistoryRepository, HistoryRepository>();
-builder.Services.AddScoped<IPreferencesRepository, PreferencesRepository>();
-builder.Services.AddScoped<GenerationService>();
-builder.Services.AddScoped<HistoryService>();
-builder.Services.AddScoped<PreferencesService>();
-builder.Services.AddScoped<AuthService>();
-builder.Services.Configure<backend.Models.EmailOptions>(
-    builder.Configuration.GetSection(backend.Models.EmailOptions.SectionName));
-builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddSingleton<IEmailMailboxVerifier, EmailMailboxVerifier>();
-builder.Services.AddHttpClient<EntsoeService>();
-builder.Services.AddHostedService<EntsoeDataSyncService>();
-
-var jwtKey = builder.Configuration["Jwt:Key"]
+var jwtSecret =
+    builder.Configuration["JwtSettings:Secret"]
     ?? Environment.GetEnvironmentVariable("JWT_SECRET")
     ?? "green-energy-monitor-dev-jwt-key-change-me-32chars!";
 
@@ -59,31 +32,76 @@ builder.Services
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "green-energy-monitor",
-            ValidAudience = builder.Configuration["Jwt:Audience"] ?? "green-energy-monitor",
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
-            RoleClaimType = System.Security.Claims.ClaimTypes.Role,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromSeconds(30),
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var header = context.Request.Headers.Authorization.FirstOrDefault();
+                if (
+                    !string.IsNullOrWhiteSpace(header)
+                    && header.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+                )
+                {
+                    context.Token = header["Bearer ".Length..].Trim();
+                }
+                else
+                {
+                    context.Token = context.Request.Cookies["jwt_token"];
+                }
+
+                return Task.CompletedTask;
+            },
         };
     });
 
 builder.Services.AddAuthorization();
 
+builder.Services.AddDbContext<EnergyDbContext>(options =>
+{
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
+});
+
+builder.Services.AddScoped<IGenerationRepository, GenerationRepository>();
+builder.Services.AddScoped<IHistoryRepository, HistoryRepository>();
+builder.Services.AddScoped<IPreferencesRepository, PreferencesRepository>();
+builder.Services.AddScoped<GenerationService>();
+builder.Services.AddScoped<HistoryService>();
+builder.Services.AddScoped<PreferencesService>();
+builder.Services.AddHttpClient<EntsoeService>();
+builder.Services.AddHostedService<EntsoeDataSyncService>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("PermiteTot", policy =>
-    {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-    });
+    options.AddPolicy(
+        "AllowFrontend",
+        policy =>
+        {
+            policy
+                .WithOrigins(
+                    "http://localhost:5173",
+                    "http://localhost:5174",
+                    "http://localhost:3000"
+                )
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+        }
+    );
 });
 
 var app = builder.Build();
-app.UseCors("PermiteTot");
+app.UseCors("AllowFrontend");
 
 if (app.Environment.IsDevelopment())
 {
@@ -91,12 +109,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseAuthentication();
-app.UseAuthorization();
-
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<EnergyDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
 
     try
     {
@@ -111,15 +127,19 @@ using (var scope = app.Services.CreateScope())
             ON CONFLICT ("MigrationId") DO NOTHING
             """);
     }
+    catch (Exception ex)
+    {
+        logger.LogWarning(ex, "Database MigrateAsync failed; continuing with Ensure* bootstrap.");
+    }
 
     await EnsureViewerTimezoneTableAsync(db);
     await EnsureUsersTableAsync(db);
-    await EnsurePendingRegistrationsTableAsync(db);
+    await EnsureRefreshTokensTableAsync(db);
     await EnsureReferenceDataAsync(db);
-
-    var authService = scope.ServiceProvider.GetRequiredService<AuthService>();
-    await authService.EnsureAdminUserAsync();
 }
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 app.Run();
@@ -145,69 +165,36 @@ static async Task EnsureUsersTableAsync(EnergyDbContext db)
     await db.Database.ExecuteSqlRawAsync("""
         CREATE TABLE IF NOT EXISTS "Users" (
             "Id" integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-            "Username" character varying(100) NOT NULL DEFAULT '',
-            "Email" character varying(256) NOT NULL,
-            "DisplayName" character varying(100) NOT NULL,
-            "Gender" character varying(20) NOT NULL DEFAULT 'Male',
-            "PasswordHash" character varying(200) NOT NULL,
+            "Email" text NOT NULL,
+            "PasswordHash" text NOT NULL,
+            "Role" text NOT NULL,
             "CreatedAt" timestamp with time zone NOT NULL
         );
 
-        ALTER TABLE "Users"
-            ADD COLUMN IF NOT EXISTS "Gender" character varying(20) NOT NULL DEFAULT 'Male';
-
-        ALTER TABLE "Users"
-            ADD COLUMN IF NOT EXISTS "PasswordResetTokenHash" character varying(128) NULL;
-
-        ALTER TABLE "Users"
-            ADD COLUMN IF NOT EXISTS "PasswordResetTokenExpiresAt" timestamp with time zone NULL;
-
-        ALTER TABLE "Users"
-            ADD COLUMN IF NOT EXISTS "IsAdmin" boolean NOT NULL DEFAULT FALSE;
-
-        ALTER TABLE "Users"
-            ADD COLUMN IF NOT EXISTS "Username" character varying(100) NOT NULL DEFAULT '';
-
-        UPDATE "Users"
-        SET "Username" = lower(split_part("Email", '@', 1)) || '_' || "Id"::text
-        WHERE "Username" IS NULL OR btrim("Username") = '';
-
-        DROP INDEX IF EXISTS "IX_Users_Email";
-
-        CREATE INDEX IF NOT EXISTS "IX_Users_Email"
+        CREATE UNIQUE INDEX IF NOT EXISTS "IX_Users_Email"
             ON "Users" ("Email");
-
-        CREATE UNIQUE INDEX IF NOT EXISTS "IX_Users_Username"
-            ON "Users" ("Username");
-
-        CREATE INDEX IF NOT EXISTS "IX_Users_PasswordResetTokenHash"
-            ON "Users" ("PasswordResetTokenHash");
         """);
 }
 
-static async Task EnsurePendingRegistrationsTableAsync(EnergyDbContext db)
+static async Task EnsureRefreshTokensTableAsync(EnergyDbContext db)
 {
     await db.Database.ExecuteSqlRawAsync("""
-        CREATE TABLE IF NOT EXISTS "PendingRegistrations" (
+        CREATE TABLE IF NOT EXISTS "RefreshTokens" (
             "Id" integer GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-            "Username" character varying(100) NOT NULL,
-            "Email" character varying(256) NOT NULL,
-            "DisplayName" character varying(100) NOT NULL,
-            "Gender" character varying(20) NOT NULL,
-            "PasswordHash" character varying(200) NOT NULL,
+            "UserId" integer NOT NULL,
             "TokenHash" character varying(128) NOT NULL,
             "ExpiresAt" timestamp with time zone NOT NULL,
-            "CreatedAt" timestamp with time zone NOT NULL
+            "CreatedAt" timestamp with time zone NOT NULL,
+            "RevokedAt" timestamp with time zone NULL,
+            CONSTRAINT "FK_RefreshTokens_Users_UserId"
+                FOREIGN KEY ("UserId") REFERENCES "Users" ("Id") ON DELETE CASCADE
         );
 
-        CREATE UNIQUE INDEX IF NOT EXISTS "IX_PendingRegistrations_Username"
-            ON "PendingRegistrations" ("Username");
+        CREATE UNIQUE INDEX IF NOT EXISTS "IX_RefreshTokens_TokenHash"
+            ON "RefreshTokens" ("TokenHash");
 
-        CREATE UNIQUE INDEX IF NOT EXISTS "IX_PendingRegistrations_TokenHash"
-            ON "PendingRegistrations" ("TokenHash");
-
-        CREATE INDEX IF NOT EXISTS "IX_PendingRegistrations_ExpiresAt"
-            ON "PendingRegistrations" ("ExpiresAt");
+        CREATE INDEX IF NOT EXISTS "IX_RefreshTokens_UserId"
+            ON "RefreshTokens" ("UserId");
         """);
 }
 

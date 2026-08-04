@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { useAuth } from "@/hooks/useAuth";
 import { useCountries } from "@/hooks/useCountries";
 import { useGeneration } from "@/hooks/useGeneration";
 import { useGenerationHistory } from "@/hooks/useGenerationHistory";
@@ -48,14 +47,11 @@ const dashboardCssVariables = {
 
 export function DashboardScreen({ initialIso }: DashboardScreenProps) {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const { countries } = useCountries();
   const { timeZone } = useTimezone();
   const [selectedIso, setSelectedIso] = useState(initialIso);
-  const [showAuthTip, setShowAuthTip] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
-  const downloadButtonRef = useRef<HTMLButtonElement>(null);
 
   const { data, loading, error } = useGeneration(selectedIso);
   const {
@@ -68,30 +64,8 @@ export function DashboardScreen({ initialIso }: DashboardScreenProps) {
     countries.find((country) => country.isoCode === selectedIso)?.name ??
     selectedIso;
 
-  useEffect(() => {
-    if (!showAuthTip) {
-      return;
-    }
-
-    function hideTip() {
-      setShowAuthTip(false);
-    }
-
-    window.addEventListener("mousedown", hideTip);
-    window.addEventListener("keydown", hideTip);
-    return () => {
-      window.removeEventListener("mousedown", hideTip);
-      window.removeEventListener("keydown", hideTip);
-    };
-  }, [showAuthTip]);
-
   function handleDownloadPdf() {
     setExportError(null);
-
-    if (!user) {
-      setShowAuthTip(true);
-      return;
-    }
 
     if (!data || loading) {
       setExportError(
@@ -107,7 +81,6 @@ export function DashboardScreen({ initialIso }: DashboardScreenProps) {
       return;
     }
 
-    setShowAuthTip(false);
     setIsExporting(true);
 
     try {
@@ -138,8 +111,6 @@ export function DashboardScreen({ initialIso }: DashboardScreenProps) {
         }}
         onDownloadPdf={handleDownloadPdf}
         isExporting={isExporting}
-        showAuthTip={showAuthTip}
-        downloadButtonRef={downloadButtonRef}
         downloadDisabled={loading || !data}
       />
 
