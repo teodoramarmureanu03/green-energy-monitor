@@ -220,11 +220,11 @@
   padding: 1.85rem 1.75rem 1.75rem;
   border-radius: 20px;
   color: var(--ink);
-  background: color-mix(in srgb, var(--surface) 58%, transparent);
-  border: 1px solid color-mix(in srgb, var(--surface) 40%, rgba(255, 255, 255, 0.45));
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-sage) 70%, rgba(255, 255, 255, 0.5));
   box-shadow: var(--shadow-elevated);
-  backdrop-filter: blur(22px) saturate(1.25);
-  -webkit-backdrop-filter: blur(22px) saturate(1.25);
+  backdrop-filter: blur(16px) saturate(1.1);
+  -webkit-backdrop-filter: blur(16px) saturate(1.1);
   animation: login-panel-in 480ms var(--ease-out-expo) both;
 }
 
