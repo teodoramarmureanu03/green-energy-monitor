@@ -37,14 +37,15 @@ services:
       EntsoeApiKey: ${ENTSOE_API_KEY}
       JWT_SECRET: ${JWT_SECRET:-green-energy-monitor-dev-jwt-key-change-me-32chars!}
       PasswordPepper: ${PASSWORD_PEPPER:-green-energy-monitor-dev-password-pepper-change-me!}
-      # Prefer Resend on Render (HTTPS). Locally SMTP or Resend both work.
-      Email__ResendApiKey: ${RESEND_API_KEY:-}
+      # Prefer Mailjet (HTTPS). Locally SMTP or Mailjet both work.
+      Email__MailjetApiKey: ${MAILJET_API_KEY:-}
+      Email__MailjetSecretKey: ${MAILJET_SECRET_KEY:-}
       Email__Host: ${SMTP_HOST:-}
       Email__Port: ${SMTP_PORT:-465}
       Email__UseSsl: ${SMTP_USE_SSL:-true}
       Email__Username: ${SMTP_USERNAME:-}
       Email__Password: ${SMTP_PASSWORD:-}
-      Email__FromAddress: ${SMTP_FROM:-onboarding@resend.dev}
+      Email__FromAddress: ${SMTP_FROM:-}
       Email__FromName: Green Energy Monitor
       Email__FrontendBaseUrl: ${FRONTEND_BASE_URL:-http://localhost:3000}
       EMAIL_BYPASS: ${EMAIL_BYPASS:-false}

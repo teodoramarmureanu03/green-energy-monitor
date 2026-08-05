@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json.Serialization;
 using backend.Models;
 using MailKit.Net.Smtp;
@@ -49,43 +50,56 @@ public class EmailService : IEmailService
             );
         }
 
-        if (_options.HasResend)
+        if (_options.HasMailjet)
         {
-            await SendWithResendAsync(toEmail, subject, htmlBody, cancellationToken);
+            await SendWithMailjetAsync(toEmail, subject, htmlBody, cancellationToken);
             return;
         }
 
         await SendWithSmtpAsync(toEmail, subject, htmlBody, cancellationToken);
     }
 
-    private async Task SendWithResendAsync(
+    private async Task SendWithMailjetAsync(
         string toEmail,
         string subject,
         string htmlBody,
         CancellationToken cancellationToken
     )
     {
-        var fromAddress = string.IsNullOrWhiteSpace(_options.FromAddress)
-            ? "onboarding@resend.dev"
-            : _options.FromAddress.Trim();
-        var from = string.IsNullOrWhiteSpace(_options.FromName)
-            ? fromAddress
-            : $"{_options.FromName} <{fromAddress}>";
+        var fromAddress = _options.FromAddress.Trim();
+        var fromName = string.IsNullOrWhiteSpace(_options.FromName)
+            ? "Green Energy Monitor"
+            : _options.FromName.Trim();
 
-        var client = _httpClientFactory.CreateClient("resend");
-        using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.resend.com/emails");
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _options.ResendApiKey.Trim());
+        var client = _httpClientFactory.CreateClient("mailjet");
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            "https://api.mailjet.com/v3.1/send"
+        );
+
+        var credentials = Convert.ToBase64String(
+            Encoding.ASCII.GetBytes(
+                $"{_options.MailjetApiKey.Trim()}:{_options.MailjetSecretKey.Trim()}"
+            )
+        );
+        request.Headers.Authorization = new AuthenticationHeaderValue("Basic", credentials);
         request.Content = JsonContent.Create(
-            new ResendSendRequest
+            new MailjetSendRequest
             {
-                From = from,
-                To = [toEmail],
-                Subject = subject,
-                Html = htmlBody,
+                Messages =
+                [
+                    new MailjetMessage
+                    {
+                        From = new MailjetAddress { Email = fromAddress, Name = fromName },
+                        To = [new MailjetAddress { Email = toEmail }],
+                        Subject = subject,
+                        HTMLPart = htmlBody,
+                    },
+                ],
             }
         );
 
-        _logger.LogInformation("Sending email via Resend to {Email}: {Subject}", toEmail, subject);
+        _logger.LogInformation("Sending email via Mailjet to {Email}: {Subject}", toEmail, subject);
 
         using var response = await client.SendAsync(request, cancellationToken);
         var body = await response.Content.ReadAsStringAsync(cancellationToken);
@@ -93,16 +107,21 @@ public class EmailService : IEmailService
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogError(
-                "Resend API failed ({Status}): {Body}",
+                "Mailjet API failed ({Status}): {Body}",
                 (int)response.StatusCode,
                 body
             );
 
             var lower = body.ToLowerInvariant();
-            if (lower.Contains("invalid") && lower.Contains("to"))
+            if (
+                lower.Contains("sender")
+                || lower.Contains("from")
+                || lower.Contains("not authorized")
+                || lower.Contains("inactive")
+            )
             {
                 throw new InvalidOperationException(
-                    "That email address cannot receive mail from Resend yet. On the free plan without a verified domain, you can only send to your Resend account email — or verify a domain in Resend.",
+                    "Sender email is not verified in Mailjet. Verify your From address in Mailjet → Account → Sender domains & addresses, then try again.",
                     new InvalidOperationException(body)
                 );
             }
@@ -113,7 +132,7 @@ public class EmailService : IEmailService
             );
         }
 
-        _logger.LogInformation("Sent email via Resend to {Email}: {Subject}", toEmail, subject);
+        _logger.LogInformation("Sent email via Mailjet to {Email}: {Subject}", toEmail, subject);
     }
 
     private async Task SendWithSmtpAsync(
@@ -227,18 +246,34 @@ public class EmailService : IEmailService
         return SecureSocketOptions.Auto;
     }
 
-    private sealed class ResendSendRequest
+    private sealed class MailjetSendRequest
     {
-        [JsonPropertyName("from")]
-        public string From { get; set; } = "";
+        [JsonPropertyName("Messages")]
+        public MailjetMessage[] Messages { get; set; } = [];
+    }
 
-        [JsonPropertyName("to")]
-        public string[] To { get; set; } = [];
+    private sealed class MailjetMessage
+    {
+        [JsonPropertyName("From")]
+        public MailjetAddress From { get; set; } = new();
 
-        [JsonPropertyName("subject")]
+        [JsonPropertyName("To")]
+        public MailjetAddress[] To { get; set; } = [];
+
+        [JsonPropertyName("Subject")]
         public string Subject { get; set; } = "";
 
-        [JsonPropertyName("html")]
-        public string Html { get; set; } = "";
+        [JsonPropertyName("HTMLPart")]
+        public string HTMLPart { get; set; } = "";
+    }
+
+    private sealed class MailjetAddress
+    {
+        [JsonPropertyName("Email")]
+        public string Email { get; set; } = "";
+
+        [JsonPropertyName("Name")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public string? Name { get; set; }
     }
 }

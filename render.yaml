@@ -2,8 +2,9 @@
 # Deploy: https://dashboard.render.com → New → Blueprint → connect this repo.
 # After first deploy, set on the web service:
 #   ENTSOE_API_KEY, JWT_SECRET, ALLOWED_ORIGINS (frontend URL),
-#   RESEND_API_KEY, FRONTEND_BASE_URL, Email__FromAddress=onboarding@resend.dev
-# Keep EMAIL_BYPASS unset or false when using Resend.
+#   MAILJET_API_KEY, MAILJET_SECRET_KEY,
+#   Email__FromAddress (validated Mailjet sender),
+#   FRONTEND_BASE_URL, EMAIL_BYPASS=false
 
 databases:
   - name: energy-monitor-db
@@ -30,12 +31,14 @@ services:
         sync: false
       - key: ALLOWED_ORIGINS
         sync: false
-      - key: RESEND_API_KEY
+      - key: MAILJET_API_KEY
+        sync: false
+      - key: MAILJET_SECRET_KEY
+        sync: false
+      - key: Email__FromAddress
         sync: false
       - key: FRONTEND_BASE_URL
         sync: false
-      - key: Email__FromAddress
-        value: onboarding@resend.dev
       - key: EMAIL_BYPASS
         value: "false"
       - key: ConnectionStrings__DefaultConnection

@@ -103,7 +103,8 @@ public class AuthService : IAuthService
 
     /// <summary>
     /// Skip verify/reset emails only when EMAIL_BYPASS=true.
-    /// Prefer Resend (RESEND_API_KEY) on Render — SMTP ports are blocked there.
+    /// Prefer Mailjet (MAILJET_API_KEY + MAILJET_SECRET_KEY) on Render — SMTP ports are blocked there.
+    /// When no email provider is configured, auth already falls back via !IsConfigured.
     /// </summary>
     private bool UseEmailBypass =>
         string.Equals(
@@ -187,6 +188,11 @@ public class AuthService : IAuthService
         if (await _userRepository.GetUserByUsernameAsync(username) is not null)
         {
             throw new InvalidOperationException("That username is already taken.");
+        }
+
+        if (await _userRepository.GetUserByEmailAsync(email) is not null)
+        {
+            throw new InvalidOperationException("That email is already registered.");
         }
 
         var passwordHash = _passwords.Hash(password);
@@ -335,6 +341,15 @@ public class AuthService : IAuthService
             await _db.SaveChangesAsync();
             throw new InvalidOperationException(
                 "That username is already taken. Please register again with a different username."
+            );
+        }
+
+        if (await _db.Users.AnyAsync(user => user.Email == pending.Email))
+        {
+            _db.PendingRegistrations.Remove(pending);
+            await _db.SaveChangesAsync();
+            throw new InvalidOperationException(
+                "That email is already registered. Sign in, or reset your password if you forgot it."
             );
         }
 

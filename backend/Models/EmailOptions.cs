@@ -4,19 +4,27 @@ public class EmailOptions
 {
     public const string SectionName = "Email";
 
-    /// <summary>Resend API key (preferred on Render — uses HTTPS, not blocked SMTP ports).</summary>
-    public string ResendApiKey { get; set; } = "";
+    /// <summary>Mailjet API key (public) — preferred on Render (HTTPS, not blocked SMTP).</summary>
+    public string MailjetApiKey { get; set; } = "";
+
+    /// <summary>Mailjet secret key (private).</summary>
+    public string MailjetSecretKey { get; set; } = "";
 
     public string Host { get; set; } = "";
     public int Port { get; set; } = 587;
     public bool UseSsl { get; set; } = true;
     public string Username { get; set; } = "";
     public string Password { get; set; } = "";
-    public string FromAddress { get; set; } = "onboarding@resend.dev";
+    public string FromAddress { get; set; } = "";
     public string FromName { get; set; } = "Green Energy Monitor";
     public string FrontendBaseUrl { get; set; } = "http://localhost:3000";
 
-    public bool HasResend => !LooksLikePlaceholder(ResendApiKey) && ResendApiKey.StartsWith("re_", StringComparison.Ordinal);
+    public bool HasMailjet =>
+        !LooksLikePlaceholder(MailjetApiKey)
+        && !LooksLikePlaceholder(MailjetSecretKey)
+        && !LooksLikePlaceholder(FromAddress)
+        && MailjetApiKey.Trim().Length >= 10
+        && MailjetSecretKey.Trim().Length >= 10;
 
     public bool HasSmtp =>
         !string.IsNullOrWhiteSpace(Host)
@@ -24,8 +32,8 @@ public class EmailOptions
         && !LooksLikePlaceholder(Password)
         && !LooksLikePlaceholder(FromAddress);
 
-    /// <summary>True when Resend or SMTP credentials are present.</summary>
-    public bool IsConfigured => HasResend || HasSmtp;
+    /// <summary>True when Mailjet or SMTP credentials are present.</summary>
+    public bool IsConfigured => HasMailjet || HasSmtp;
 
     private static bool LooksLikePlaceholder(string? value)
     {
@@ -41,7 +49,10 @@ public class EmailOptions
             || normalized.Contains("your_app_password")
             || normalized.Contains("app.sender@gmail.com")
             || normalized.Contains("xxxx xxxx")
-            || normalized.Contains("re_xxxxxxxxx")
-            || normalized.Contains("example.com");
+            || normalized.Contains("your-mailjet")
+            || normalized.Contains("your-brevo-api-key")
+            || normalized.Contains("xkeysib-xxxxxxxx")
+            || normalized.Contains("example.com")
+            || normalized.Contains("onboarding@resend.dev");
     }
 }

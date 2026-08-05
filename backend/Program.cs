@@ -124,20 +124,26 @@ builder.Services.AddScoped<GenerationService>();
 builder.Services.AddScoped<HistoryService>();
 builder.Services.AddScoped<PreferencesService>();
 builder.Services.AddHttpClient<EntsoeService>();
-builder.Services.AddHttpClient("resend");
+builder.Services.AddHttpClient("mailjet");
 builder.Services.AddHostedService<EntsoeDataSyncService>();
 builder.Services.Configure<backend.Models.EmailOptions>(
     builder.Configuration.GetSection(backend.Models.EmailOptions.SectionName)
 );
-// Allow RESEND_API_KEY / SMTP_* / FRONTEND_BASE_URL names as docker-compose /.env on Render.
+// Allow MAILJET_* / SMTP_* / FRONTEND_BASE_URL names as docker-compose /.env on Render.
 builder.Services.PostConfigure<backend.Models.EmailOptions>(options =>
 {
     static string? Env(string key) => Environment.GetEnvironmentVariable(key);
 
-    var resendKey = Env("RESEND_API_KEY") ?? Env("Email__ResendApiKey");
-    if (!string.IsNullOrWhiteSpace(resendKey))
+    var mailjetKey = Env("MAILJET_API_KEY") ?? Env("Email__MailjetApiKey");
+    if (!string.IsNullOrWhiteSpace(mailjetKey))
     {
-        options.ResendApiKey = resendKey;
+        options.MailjetApiKey = mailjetKey;
+    }
+
+    var mailjetSecret = Env("MAILJET_SECRET_KEY") ?? Env("Email__MailjetSecretKey");
+    if (!string.IsNullOrWhiteSpace(mailjetSecret))
+    {
+        options.MailjetSecretKey = mailjetSecret;
     }
 
     if (string.IsNullOrWhiteSpace(options.Host))
