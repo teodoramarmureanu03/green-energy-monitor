@@ -39,46 +39,67 @@ public static class DatabaseBootstrap
         await EnsurePendingRegistrationsTableAsync(db);
         await EnsureRefreshTokensTableAsync(db);
         await EnsureReferenceDataAsync(db);
-        await PromoteAdminFromEnvAsync(db, logger);
+
+        var passwords = scope.ServiceProvider.GetRequiredService<PasswordProtector>();
+        await EnsureAdminUserAsync(db, passwords, logger);
     }
 
     /// <summary>
-    /// Optional one-shot promote: set ADMIN_BOOTSTRAP_USERNAME on Render, redeploy,
-    /// then remove the env var. Avoids needing external DB clients (DBeaver/psql).
+    /// Creates/updates the built-in <c>admin</c> account when ADMIN_BOOTSTRAP_PASSWORD is set.
+    /// Set on Render once, redeploy, login as admin, then remove the env var.
     /// </summary>
-    private static async Task PromoteAdminFromEnvAsync(EnergyDbContext db, ILogger logger)
+    private static async Task EnsureAdminUserAsync(
+        EnergyDbContext db,
+        PasswordProtector passwords,
+        ILogger logger
+    )
     {
-        var username = Environment.GetEnvironmentVariable("ADMIN_BOOTSTRAP_USERNAME")?.Trim();
-        if (string.IsNullOrWhiteSpace(username))
+        var bootstrapPassword = Environment.GetEnvironmentVariable("ADMIN_BOOTSTRAP_PASSWORD");
+        if (string.IsNullOrWhiteSpace(bootstrapPassword))
         {
             return;
         }
 
-        var normalized = username.ToLowerInvariant();
-        var user = await db.Users.FirstOrDefaultAsync(item => item.Username == normalized);
+        var username = AuthService.AdminUsername;
+        var email =
+            Environment.GetEnvironmentVariable("ADMIN_BOOTSTRAP_EMAIL")?.Trim().ToLowerInvariant()
+            ?? "admin@green-energy-monitor.local";
+
+        var user = await db.Users.FirstOrDefaultAsync(item => item.Username == username);
         if (user is null)
         {
+            // Email must be unique — if taken, attach a suffix.
+            if (await db.Users.AnyAsync(item => item.Email == email))
+            {
+                email = $"admin+bootstrap@{Guid.NewGuid():N}.local";
+            }
+
+            db.Users.Add(
+                new User
+                {
+                    Username = username,
+                    Email = email,
+                    DisplayName = "Admin",
+                    Gender = "Other",
+                    PasswordHash = passwords.Hash(bootstrapPassword),
+                    Role = AuthService.AdminRole,
+                    CreatedAt = DateTime.UtcNow,
+                }
+            );
+            await db.SaveChangesAsync();
             logger.LogWarning(
-                "ADMIN_BOOTSTRAP_USERNAME={Username} not found in Users; no admin promoted.",
+                "Created admin user '{Username}'. Remove ADMIN_BOOTSTRAP_PASSWORD after you can log in.",
                 username
             );
             return;
         }
 
-        if (string.Equals(user.Role, AuthService.AdminRole, StringComparison.Ordinal))
-        {
-            logger.LogInformation(
-                "User {Username} is already Admin; ADMIN_BOOTSTRAP_USERNAME is a no-op.",
-                user.Username
-            );
-            return;
-        }
-
         user.Role = AuthService.AdminRole;
+        user.PasswordHash = passwords.Hash(bootstrapPassword);
         await db.SaveChangesAsync();
         logger.LogWarning(
-            "Promoted user {Username} to Admin via ADMIN_BOOTSTRAP_USERNAME. Remove that env var after login.",
-            user.Username
+            "Reset admin user '{Username}' password/role via ADMIN_BOOTSTRAP_PASSWORD. Remove that env var after login.",
+            username
         );
     }
 
