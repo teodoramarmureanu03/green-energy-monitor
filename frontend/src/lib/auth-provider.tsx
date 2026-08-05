@@ -197,9 +197,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const changePassword = useCallback(
     async (currentPassword: string, newPassword: string) => {
-      const token = getAccessToken();
+      let token = getAccessToken();
       if (!token) {
-        throw new Error("You are not signed in.");
+        try {
+          const refreshed = await refreshAccessToken();
+          token = refreshed.token;
+        } catch {
+          throw new Error("You are not signed in.");
+        }
       }
 
       await changePasswordUser(token, currentPassword, newPassword);

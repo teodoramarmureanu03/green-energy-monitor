@@ -35,6 +35,66 @@ export function setAccessToken(token: string): void {
   window.sessionStorage.setItem(ACCESS_TOKEN_KEY, token);
 }
 
+let refreshInFlight: Promise<AuthResponse> | null = null;
+
+/** Uses HttpOnly refresh_token cookie to get a new access JWT. */
+export async function refreshAccessToken(): Promise<AuthResponse> {
+  if (!refreshInFlight) {
+    refreshInFlight = (async () => {
+      const response = await fetch(`${API_BASE}/api/auth/refresh`, {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error(await readError(response, "Session expired."));
+      }
+
+      const data = (await response.json()) as AuthResponse;
+      setAccessToken(data.token);
+      return data;
+    })().finally(() => {
+      refreshInFlight = null;
+    });
+  }
+
+  return refreshInFlight;
+}
+
+/**
+ * Authenticated fetch for /api/auth/me* routes.
+ * On 401, refreshes the access JWT once via the refresh cookie, then retries.
+ */
+async function authFetch(
+  path: string,
+  init: RequestInit = {},
+  retry = true
+): Promise<Response> {
+  const headers = new Headers(init.headers);
+  const token = getAccessToken();
+  if (token && !headers.has("Authorization")) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+
+  const response = await fetch(`${API_BASE}${path}`, {
+    ...init,
+    headers,
+    credentials: "include",
+  });
+
+  if (response.status !== 401 || !retry) {
+    return response;
+  }
+
+  try {
+    await refreshAccessToken();
+  } catch {
+    return response;
+  }
+
+  return authFetch(path, init, false);
+}
+
 export async function loginUser(
   username: string,
   password: string
@@ -70,22 +130,6 @@ export async function registerUser(
   return response.json();
 }
 
-/** Uses HttpOnly refresh_token cookie to get a new access JWT. */
-export async function refreshAccessToken(): Promise<AuthResponse> {
-  const response = await fetch(`${API_BASE}/api/auth/refresh`, {
-    method: "POST",
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    throw new Error(await readError(response, "Session expired."));
-  }
-
-  const data = (await response.json()) as AuthResponse;
-  setAccessToken(data.token);
-  return data;
-}
-
 export async function fetchCurrentUser(token: string): Promise<{
   username: string;
   email: string;
@@ -93,9 +137,8 @@ export async function fetchCurrentUser(token: string): Promise<{
   gender: string;
   role: string;
 }> {
-  const response = await fetch(`${API_BASE}/api/auth/me`, {
+  const response = await authFetch("/api/auth/me", {
     headers: { Authorization: `Bearer ${token}` },
-    credentials: "include",
   });
 
   if (!response.ok) {
@@ -123,13 +166,12 @@ export async function updateProfileUser(
     gender: string;
   }
 ): Promise<AuthResponse> {
-  const response = await fetch(`${API_BASE}/api/auth/me`, {
+  const response = await authFetch("/api/auth/me", {
     method: "PUT",
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
-    credentials: "include",
     body: JSON.stringify(input),
   });
 
@@ -145,13 +187,12 @@ export async function changePasswordUser(
   currentPassword: string,
   newPassword: string
 ): Promise<void> {
-  const response = await fetch(`${API_BASE}/api/auth/me/password`, {
+  const response = await authFetch("/api/auth/me/password", {
     method: "PUT",
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
-    credentials: "include",
     body: JSON.stringify({ currentPassword, newPassword }),
   });
 
@@ -161,10 +202,9 @@ export async function changePasswordUser(
 }
 
 export async function deleteAccountUser(token: string): Promise<void> {
-  const response = await fetch(`${API_BASE}/api/auth/me`, {
+  const response = await authFetch("/api/auth/me", {
     method: "DELETE",
     headers: { Authorization: `Bearer ${token}` },
-    credentials: "include",
   });
 
   if (!response.ok) {

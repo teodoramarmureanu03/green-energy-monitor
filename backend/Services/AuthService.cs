@@ -66,7 +66,9 @@ public class AuthService : IAuthService
     public const string AdminUsername = "admin";
     public const string AdminRole = "Admin";
 
-    public static readonly TimeSpan AccessTokenLifetime = TimeSpan.FromMinutes(5);
+    // Short-lived access JWT; frontend refreshes via HttpOnly refresh cookie.
+    // 5 minutes was too aggressive for account actions that don't auto-retry on 401.
+    public static readonly TimeSpan AccessTokenLifetime = TimeSpan.FromMinutes(30);
     public static readonly TimeSpan RefreshTokenLifetime = TimeSpan.FromDays(7);
     private static readonly TimeSpan PasswordResetTokenLifetime = TimeSpan.FromHours(1);
     private static readonly TimeSpan EmailVerificationTokenLifetime = TimeSpan.FromHours(24);
