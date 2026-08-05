@@ -75,42 +75,57 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      try {
-        if (!token) {
-          const refreshed = await refreshAccessToken();
-          token = refreshed.token;
+      async function restoreOnce(): Promise<boolean> {
+        try {
+          if (!token) {
+            const refreshed = await refreshAccessToken();
+            token = refreshed.token;
+            if (!cancelled) {
+              const next = toAuthUser(refreshed);
+              saveSession(next, token);
+              setUser(next);
+            }
+            return true;
+          }
+
+          const current = await fetchCurrentUser(token);
           if (!cancelled) {
-            const next = toAuthUser(refreshed);
+            const next = toAuthUser(current);
             saveSession(next, token);
             setUser(next);
           }
-          return;
-        }
-
-        const current = await fetchCurrentUser(token);
-        if (!cancelled) {
-          const next = toAuthUser(current);
-          saveSession(next, token);
-          setUser(next);
-        }
-      } catch {
-        try {
-          const refreshed = await refreshAccessToken();
-          if (!cancelled) {
-            const next = toAuthUser(refreshed);
-            saveSession(next, refreshed.token);
-            setUser(next);
-          }
+          return true;
         } catch {
-          clearSession();
-          if (!cancelled) {
-            setUser(null);
+          try {
+            const refreshed = await refreshAccessToken();
+            token = refreshed.token;
+            if (!cancelled) {
+              const next = toAuthUser(refreshed);
+              saveSession(next, refreshed.token);
+              setUser(next);
+            }
+            return true;
+          } catch {
+            return false;
           }
         }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
+      }
+
+      // One retry helps when Render free tier is cold-starting the API.
+      let ok = await restoreOnce();
+      if (!ok && !cancelled) {
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        token = getAccessToken();
+        ok = await restoreOnce();
+      }
+
+      if (!ok && !cancelled) {
+        clearSession();
+        setUser(null);
+      }
+
+      if (!cancelled) {
+        setIsLoading(false);
       }
     }
 

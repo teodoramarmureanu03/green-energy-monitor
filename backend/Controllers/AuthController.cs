@@ -253,7 +253,7 @@ public class AuthController : ControllerBase
 
     private void SetRefreshCookie(string refreshToken)
     {
-        var secure = HttpContext.Request.IsHttps;
+        var crossSite = ShouldUseCrossSiteRefreshCookie();
         // Session cookie (no Expires/Max-Age): removed when the browser closes.
         Response.Cookies.Append(
             RefreshCookieName,
@@ -261,8 +261,8 @@ public class AuthController : ControllerBase
             new CookieOptions
             {
                 HttpOnly = true,
-                Secure = secure,
-                SameSite = secure ? SameSiteMode.None : SameSiteMode.Lax,
+                Secure = crossSite,
+                SameSite = crossSite ? SameSiteMode.None : SameSiteMode.Lax,
                 Path = "/api/auth",
             }
         );
@@ -270,15 +270,41 @@ public class AuthController : ControllerBase
 
     private void ClearRefreshCookie()
     {
-        var secure = HttpContext.Request.IsHttps;
+        var crossSite = ShouldUseCrossSiteRefreshCookie();
         Response.Cookies.Delete(
             RefreshCookieName,
             new CookieOptions
             {
-                Secure = secure,
-                SameSite = secure ? SameSiteMode.None : SameSiteMode.Lax,
+                Secure = crossSite,
+                SameSite = crossSite ? SameSiteMode.None : SameSiteMode.Lax,
                 Path = "/api/auth",
             }
         );
+    }
+
+    /// <summary>
+    /// Cross-origin SPA (Render frontend ≠ API) needs SameSite=None; Secure.
+    /// Prefer HTTPS / X-Forwarded-Proto; in Production always use cross-site flags
+    /// so a missing forwarded header cannot fall back to Lax (which breaks refresh).
+    /// </summary>
+    private bool ShouldUseCrossSiteRefreshCookie()
+    {
+        if (HttpContext.Request.IsHttps)
+        {
+            return true;
+        }
+
+        var forwardedProto = HttpContext.Request.Headers["X-Forwarded-Proto"]
+            .FirstOrDefault()
+            ?.Split(',')
+            .FirstOrDefault()
+            ?.Trim();
+        if (string.Equals(forwardedProto, "https", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        return string.Equals(env, "Production", StringComparison.OrdinalIgnoreCase);
     }
 }
