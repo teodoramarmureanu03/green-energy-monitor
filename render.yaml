@@ -1,7 +1,10 @@
 # Render blueprint: managed Postgres + backend API.
 # Deploy: https://dashboard.render.com → New → Blueprint → connect this repo.
-# After first deploy, set ENTSOE_API_KEY and JWT_SECRET in the web service env,
-# and set ALLOWED_ORIGINS to your Netlify URL (https://….netlify.app).
+# After first deploy, set on the web service:
+#   ENTSOE_API_KEY, JWT_SECRET, ALLOWED_ORIGINS (frontend URL),
+#   MAILJET_API_KEY, MAILJET_SECRET_KEY,
+#   Email__FromAddress (validated Mailjet sender),
+#   FRONTEND_BASE_URL, EMAIL_BYPASS=false
 
 databases:
   - name: energy-monitor-db
@@ -28,6 +31,16 @@ services:
         sync: false
       - key: ALLOWED_ORIGINS
         sync: false
+      - key: MAILJET_API_KEY
+        sync: false
+      - key: MAILJET_SECRET_KEY
+        sync: false
+      - key: Email__FromAddress
+        sync: false
+      - key: FRONTEND_BASE_URL
+        sync: false
+      - key: EMAIL_BYPASS
+        value: "false"
       - key: ConnectionStrings__DefaultConnection
         fromDatabase:
           name: energy-monitor-db

@@ -17,6 +17,8 @@ async function readErrorMessage(response: Response, fallback: string) {
 export async function requestPasswordReset(input: {
   username: string;
   email: string;
+  newPassword?: string;
+  confirmPassword?: string;
 }): Promise<string> {
   const response = await fetch(`${API_BASE}/api/auth/forgot-password`, {
     method: "POST",
