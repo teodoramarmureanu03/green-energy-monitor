@@ -1,13 +1,13 @@
 ﻿using backend;
 using backend.Repositories;
 using backend.Services;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Npgsql;
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
+using Npgsql;
 using System.Text;
 
 if (File.Exists(".env"))
@@ -19,6 +19,17 @@ if (File.Exists(".env"))
 Environment.SetEnvironmentVariable("DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE", "false");
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Render (and similar PaaS) terminate TLS at the proxy and forward plain HTTP to the
+// container. Without this, Request.IsHttps is false → refresh cookie is SameSite=Lax
+// and is not sent on cross-origin XHR from the frontend Static Site.
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -230,6 +241,7 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+app.UseForwardedHeaders();
 app.UseCors("AllowFrontend");
 
 if (app.Environment.IsDevelopment())
