@@ -477,14 +477,14 @@
 }
 
 .login-forgot-link {
-  color: #d7fff8;
+  color: #0f766e;
   font-size: 0.9rem;
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
 .login-forgot-link:hover {
-  color: #ffffff;
+  color: #115e59;
 }
 
 .login-success {
@@ -500,13 +500,13 @@
 }
 
 .login-footer-link a {
-  color: #d7fff8;
+  color: #0f766e;
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
 .login-footer-link a:hover {
-  color: #ffffff;
+  color: #115e59;
 }
 
 .masked-secret-input {
