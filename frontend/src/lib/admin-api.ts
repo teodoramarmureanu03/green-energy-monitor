@@ -12,6 +12,19 @@ export interface AdminUser {
   createdAt: string;
 }
 
+export type AdminRoleFilter = "all" | "admin" | "user";
+export type AdminGenderFilter = "all" | "Male" | "Female" | "Other";
+export type AdminSortBy = "username" | "name" | "email" | "role";
+export type AdminSortDir = "asc" | "desc";
+
+export interface AdminUserListParams {
+  search?: string;
+  role?: AdminRoleFilter;
+  gender?: AdminGenderFilter;
+  sortBy?: AdminSortBy;
+  sortDir?: AdminSortDir;
+}
+
 async function readErrorMessage(response: Response, fallback: string) {
   try {
     const payload = (await response.json()) as {
@@ -31,8 +44,30 @@ function authHeaders(token: string, json = false): HeadersInit {
   };
 }
 
-export async function fetchAdminUsers(token: string): Promise<AdminUser[]> {
-  const response = await fetch(`${API_BASE}/api/admin/users`, {
+export async function fetchAdminUsers(
+  token: string,
+  params: AdminUserListParams = {}
+): Promise<AdminUser[]> {
+  const query = new URLSearchParams();
+  const search = params.search?.trim();
+  if (search) {
+    query.set("search", search);
+  }
+  if (params.role && params.role !== "all") {
+    query.set("role", params.role);
+  }
+  if (params.gender && params.gender !== "all") {
+    query.set("gender", params.gender);
+  }
+  if (params.sortBy) {
+    query.set("sortBy", params.sortBy);
+  }
+  if (params.sortDir) {
+    query.set("sortDir", params.sortDir);
+  }
+
+  const suffix = query.toString() ? `?${query.toString()}` : "";
+  const response = await fetch(`${API_BASE}/api/admin/users${suffix}`, {
     headers: authHeaders(token),
   });
 

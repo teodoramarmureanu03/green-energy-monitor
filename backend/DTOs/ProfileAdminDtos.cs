@@ -44,3 +44,12 @@ public class AdminUpdateUserRequest
     public string Gender { get; set; } = string.Empty;
     public string? Password { get; set; }
 }
+
+public class AdminUserListQuery
+{
+    public string? Search { get; set; }
+    public string? Role { get; set; }
+    public string? Gender { get; set; }
+    public string? SortBy { get; set; }
+    public string? SortDir { get; set; }
+}

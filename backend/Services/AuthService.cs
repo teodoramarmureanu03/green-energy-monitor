@@ -50,7 +50,7 @@ public interface IAuthService
         ChangePasswordRequest request
     );
     Task<(bool Ok, string? Error)> DeleteAccountAsync(int userId);
-    Task<List<AdminUserDto>> ListUsersAsync();
+    Task<List<AdminUserDto>> ListUsersAsync(AdminUserListQuery? query = null);
     Task<(AdminUserDto? User, string? Error)> AdminCreateUserAsync(AdminCreateUserRequest request);
     Task<(AdminUserDto? User, string? Error)> AdminUpdateUserAsync(
         int userId,
@@ -653,12 +653,71 @@ public class AuthService : IAuthService
         return (true, null);
     }
 
-    public async Task<List<AdminUserDto>> ListUsersAsync()
+    public async Task<List<AdminUserDto>> ListUsersAsync(AdminUserListQuery? query = null)
     {
-        return await _db.Users
-            .AsNoTracking()
-            .OrderByDescending(user => user.Role == AdminRole)
-            .ThenBy(user => user.Username)
+        query ??= new AdminUserListQuery();
+
+        var users = _db.Users.AsNoTracking();
+
+        var search = query.Search?.Trim();
+        if (!string.IsNullOrEmpty(search))
+        {
+            var term = search.ToLowerInvariant();
+            users = users.Where(user =>
+                user.Username.ToLower().Contains(term)
+                || user.DisplayName.ToLower().Contains(term)
+                || user.Email.ToLower().Contains(term)
+            );
+        }
+
+        var role = (query.Role ?? "all").Trim().ToLowerInvariant();
+        if (role == "admin")
+        {
+            users = users.Where(user => user.Role == AdminRole);
+        }
+        else if (role is "user" or "viewer")
+        {
+            users = users.Where(user => user.Role != AdminRole);
+        }
+
+        var gender = (query.Gender ?? "all").Trim();
+        if (
+            !string.IsNullOrEmpty(gender)
+            && !gender.Equals("all", StringComparison.OrdinalIgnoreCase)
+        )
+        {
+            var normalizedGender = NormalizeGender(gender);
+            if (normalizedGender is not null)
+            {
+                users = users.Where(user => user.Gender == normalizedGender);
+            }
+        }
+
+        var sortBy = (query.SortBy ?? "username").Trim().ToLowerInvariant();
+        var sortDir = (query.SortDir ?? "asc").Trim().ToLowerInvariant();
+        var descending = sortDir == "desc";
+
+        users = sortBy switch
+        {
+            "name" or "displayname" => descending
+                ? users.OrderByDescending(user => user.DisplayName).ThenBy(user => user.Username)
+                : users.OrderBy(user => user.DisplayName).ThenBy(user => user.Username),
+            "email" => descending
+                ? users.OrderByDescending(user => user.Email).ThenBy(user => user.Username)
+                : users.OrderBy(user => user.Email).ThenBy(user => user.Username),
+            "role" => descending
+                // User first, then Admin
+                ? users.OrderBy(user => user.Role == AdminRole).ThenBy(user => user.Username)
+                // Admin first, then User
+                : users
+                    .OrderByDescending(user => user.Role == AdminRole)
+                    .ThenBy(user => user.Username),
+            _ => descending
+                ? users.OrderByDescending(user => user.Username)
+                : users.OrderBy(user => user.Username),
+        };
+
+        return await users
             .Select(user => new AdminUserDto
             {
                 Id = user.Id,

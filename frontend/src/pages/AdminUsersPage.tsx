@@ -7,6 +7,10 @@ import {
   deleteAdminUser,
   fetchAdminUsers,
   updateAdminUser,
+  type AdminGenderFilter,
+  type AdminRoleFilter,
+  type AdminSortBy,
+  type AdminSortDir,
   type AdminUser,
 } from "@/lib/admin-api";
 import { getAccessToken } from "@/lib/auth";
@@ -46,6 +50,20 @@ export function AdminUsersPage() {
   });
   const [submitting, setSubmitting] = useState(false);
 
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState<AdminRoleFilter>("all");
+  const [genderFilter, setGenderFilter] = useState<AdminGenderFilter>("all");
+  const [sortBy, setSortBy] = useState<AdminSortBy>("username");
+  const [sortDir, setSortDir] = useState<AdminSortDir>("asc");
+
+  useEffect(() => {
+    const handle = window.setTimeout(() => {
+      setSearch(searchInput.trim());
+    }, 300);
+    return () => window.clearTimeout(handle);
+  }, [searchInput]);
+
   const loadUsers = useCallback(async () => {
     const token = getAccessToken();
     if (!token) {
@@ -55,14 +73,20 @@ export function AdminUsersPage() {
     setLoading(true);
     setError(null);
     try {
-      const next = await fetchAdminUsers(token);
+      const next = await fetchAdminUsers(token, {
+        search,
+        role: roleFilter,
+        gender: genderFilter,
+        sortBy,
+        sortDir,
+      });
       setUsers(next);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not load users.");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [search, roleFilter, genderFilter, sortBy, sortDir]);
 
   useEffect(() => {
     if (!isAdminUser(user?.role)) {
@@ -305,8 +329,77 @@ export function AdminUsersPage() {
           </button>
         </div>
 
+        <div className="admin-filters">
+          <label className="admin-field admin-filter-search">
+            <span>Search</span>
+            <input
+              type="search"
+              value={searchInput}
+              onChange={(event) => setSearchInput(event.target.value)}
+              placeholder="Username, name, or email"
+            />
+          </label>
+          <label className="admin-field">
+            <span>Role</span>
+            <select
+              value={roleFilter}
+              onChange={(event) =>
+                setRoleFilter(event.target.value as AdminRoleFilter)
+              }
+            >
+              <option value="all">All</option>
+              <option value="admin">Admin</option>
+              <option value="user">User</option>
+            </select>
+          </label>
+          <label className="admin-field">
+            <span>Gender</span>
+            <select
+              value={genderFilter}
+              onChange={(event) =>
+                setGenderFilter(event.target.value as AdminGenderFilter)
+              }
+            >
+              <option value="all">All</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </label>
+          <label className="admin-field">
+            <span>Sort by</span>
+            <select
+              value={sortBy}
+              onChange={(event) => setSortBy(event.target.value as AdminSortBy)}
+            >
+              <option value="username">Username</option>
+              <option value="name">Name</option>
+              <option value="email">Email</option>
+              <option value="role">Role</option>
+            </select>
+          </label>
+          <label className="admin-field">
+            <span>Direction</span>
+            <select
+              value={sortDir}
+              onChange={(event) =>
+                setSortDir(event.target.value as AdminSortDir)
+              }
+            >
+              <option value="asc">
+                {sortBy === "role" ? "Admin first" : "A → Z"}
+              </option>
+              <option value="desc">
+                {sortBy === "role" ? "User first" : "Z → A"}
+              </option>
+            </select>
+          </label>
+        </div>
+
         {loading ? (
           <p className="admin-muted">Loading users…</p>
+        ) : users.length === 0 ? (
+          <p className="admin-muted">No users match these filters.</p>
         ) : (
           <div className="admin-table-scroll">
             <table className="admin-table">
